@@ -1,0 +1,422 @@
+---
+title: "Heart Failure Inpatient Analysis"
+author: "Harrison Nguyen"
+date: "27/09/2021"
+output:  
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    number_sections: true
+bibliography: references.bib
+link-citations: true
+linkcolor: blue
+vignette: >
+  %\VignetteIndexEntry{Heart Failure Inpatient Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning=FALSE, message=FALSE
+)
+knitr::opts_knit$set(
+  root.dir = here::here()
+)
+```
+
+```{r import}
+
+library(magrittr)
+library(targets)
+library(tidyverse)
+library(kableExtra)
+library(ggplot2)
+library(ggpubr)
+library(acs)
+library(flextable)
+
+library(hefd)
+```
+
+```{r}
+
+proportion_bar_plot <- function(df,column,title){
+  plot<- df %>%
+     ggplot2::ggplot(., aes(x=!!rlang::sym(column),fill=!!rlang::sym(column))) +
+    ggplot2::geom_bar(aes(y = ..count..),stat="count",alpha=0.5,show.legend = FALSE) +
+    ggplot2::xlab(title) + 
+    ggplot2::ylab("Count") + 
+    ggtitle(paste0(title, " (n = ",nrow(df), ")")) +
+    geom_text(
+       aes(label=paste(round((..count..)/sum(..count..)*100,0),"%",sep=""),y= ..count..),
+       stat='count',
+       vjust=-0.25
+   ) + 
+  theme_minimal()
+  
+  return(plot)
+}
+
+conditional_bar_plot <- function(df,var1,var2,title){
+  
+  var1<- rlang::sym(var1)
+  var2<- rlang::sym(var2)
+  plot <- df%>%
+  dplyr::count(!!var1,!!var2) %>%
+  dplyr::group_by(!!var1) %>%
+  dplyr::mutate(prop = prop.table(n)*100) %>%
+  ggplot2::ggplot(., aes(x=!!var1,y=n,fill=!!var2)) + 
+  geom_bar(stat="identity",position=position_dodge(0.7),width=0.7,alpha=0.5) +
+  geom_text(aes(label= paste(round(prop,0),"%",sep=""),y=n),position=position_dodge(0.7),vjust=-0.5) +
+  labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")")) +
+  scale_fill_discrete(name = var2) + 
+  theme_minimal()
+  
+  return(plot)
+}
+
+plot_histogram <- function(df,column, title,threshold = NULL){
+  var1<- rlang::sym(column)
+
+  df %<>% dplyr::filter(!is.na(!!var1))
+  
+  
+  plot <- df %>%
+  ggplot2::ggplot(., aes(x=!!var1,fill=!!var1)) + 
+   geom_histogram(fill="lightblue",alpha=0.5) +
+  labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")"))+
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
+    stat_bin(aes(y=..count.., label=ifelse(..count..==0,"",..count..)), geom="text", vjust=-.5) +
+  theme_minimal()
+    
+
+  
+  if(!is.null(threshold)){
+    plot <- plot + geom_vline(aes(xintercept=threshold),
+            color="red", linetype="dashed", size=1)
+  }
+  
+  return(plot)
+}
+
+plot_histogram_group <- function(df,var1,var2,title){
+  var1<- rlang::sym(var1)
+  var2<- rlang::sym(var2)
+
+  df %<>% dplyr::filter(!is.na(!!var1)) %>%
+    dplyr::filter(!is.na(!!var2))
+  
+  
+  plot <- df %>%
+  ggplot2::ggplot(., aes(x=!!var1,fill=!!var2,color=!!var2)) + 
+   geom_histogram(aes(y=..density..),alpha=0.5, position="identity") +
+    geom_density(alpha=0.3)+
+  labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")"))+
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
+  theme_minimal()
+    
+  
+  return(plot)
+}
+
+plot_logical_columns <- function(df,var1,title){
+  var1<- rlang::sym(var1)
+  
+  plot_data <- df %>% 
+    dplyr::summarise_if(is.logical,sum) %>%
+   tidyr::pivot_longer(everything(),values_to = "N",names_to = rlang::as_string(var1)) %>%
+  dplyr::mutate(prop = N/nrow(df)*100)
+
+  plot <- plot_data %>%
+       ggplot2::ggplot(., aes(x=!!var1,y=N,fill=!!var1)) +
+      ggplot2::geom_bar(position="dodge", stat="identity",show.legend = FALSE) +
+    geom_text(aes(label= paste(round(prop,0),"%",sep=""),y=N),vjust=-0.5) + 
+    labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")"))
+  
+  return(plot)
+}
+
+```
+
+```{r}
+plot_pie_chart <- function(df,var1,title){
+  var1<- rlang::sym(var1)
+  df %<>% 
+    filter(!is.na(!!var1)) %>%
+    group_by(!!var1) %>% # Variable to be transformed
+    count() %>% 
+    ungroup() %>% 
+    mutate(perc = `n` / sum(`n`)) %>% 
+    arrange(perc) %>%
+    mutate(labels = scales::percent(perc))
+  
+  plot <- ggplot(df, aes(x = "", y = n, fill = !!var1)) +
+    geom_col() +
+    geom_text(aes(label = labels),
+              position = position_stack(vjust = 0.5)) +
+    coord_polar(theta = "y")
+    labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")"))
+    
+  return(plot)
+}
+
+```
+
+```{r data-load}
+encounter_ref <- load_data("encounter_reference")
+encounter <- load_data("encounter")
+diagnosis <- load_data("diagnosis")
+diagnosis_history <- load_data("diagnosis_history")
+problem <- load_data("problem")
+orders <- load_data("orders")
+```
+
+
+```{r}
+hf_diag <- diagnosis %>%
+  dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50"))
+
+qual_enc <- encounter %>%
+  dplyr::filter(ENCNTR_ID %in% hf_diag$ENCNTR_ID & LOC_FACILITY_CD == "Royal North Shore")
+
+cohort <- qual_enc %>%
+  dplyr::distinct(PERSON_ID)
+```
+
+```{r}
+counts <- qual_enc %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::summarise(N = dplyr::n())
+
+proportion_bar_plot(counts,"N", "Distribution of encounters")
+```
+
+```{r}
+extract_hf_diagnosis <- function(df){
+  df %<>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::summarise(
+    `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
+    `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
+    `Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1")
+  ) %>%
+  replace(is.na(.), FALSE)
+  
+  return(df)
+}
+```
+
+
+```{r}
+
+hf_diag_primary <- hf_diag %>%
+  dplyr::filter(DIAG_PRIORITY == 1)
+
+primary_temp <- cohort %>% 
+  dplyr::left_join(hf_diag_primary,by="PERSON_ID") %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::summarise(
+    `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
+    `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
+    `Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1")
+  ) %>%
+  replace(is.na(.), FALSE) %>%
+  dplyr::mutate(`Only secondary HF diagnosis` = !`Congestive heart failure` & !`Heart failure, unspecified` & !`Left ventricular failure`)
+
+hf_diag_secondary <- hf_diag %>%
+  dplyr::filter(DIAG_PRIORITY != 1)
+
+secondary_temp <- cohort %>% 
+  dplyr::left_join(hf_diag_secondary,by="PERSON_ID") %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::summarise(
+    `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
+    `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
+    `Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1")
+  ) %>%
+  replace(is.na(.), FALSE) %>%
+  dplyr::mutate(`Only primary HF diagnosis` = !`Congestive heart failure` & !`Heart failure, unspecified` & !`Left ventricular failure`)
+
+```  
+
+```{r}
+
+plot_logical_columns(primary_temp,"ICD10","Distribution of Primary HF ICD10")
+
+plot_logical_columns(secondary_temp,"ICD10","Distribution of Secondary HF ICD10")
+```
+
+
+```{r}
+only_secondary_cohort <- secondary_temp %>% dplyr::filter(!`Only primary HF diagnosis`)
+
+primary_diag_of_secondary <- diagnosis %>%
+  dplyr::filter(!stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & 
+                  PERSON_ID %in% only_secondary_cohort$PERSON_ID &
+                  DIAG_PRIORITY == 1 &
+                  SOURCE_VOCABULARY_CD == "ICD10-AM" &
+                  ENCNTR_ID %in% qual_enc$ENCNTR_ID) 
+
+primary_diag_of_secondary %>%
+  dplyr::group_by(SOURCE_STRING) %>%
+  dplyr::summarise(N = dplyr::n_distinct(PERSON_ID)) %>% 
+  dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_diag_of_secondary$PERSON_ID)*100,1)) %>%
+  dplyr::arrange(desc(N)) %>% 
+  dplyr::top_n(15) %>%
+  knitr::kable()
+
+```
+
+```{r}
+primary_cohort <- cohort %>%
+  dplyr::filter(PERSON_ID %in% hf_diag_primary$PERSON_ID) %>%
+  dplyr::mutate(HAS_PRIMARY_HF = TRUE)
+```
+
+```{r}
+known_to_hf <- problem %>%
+  dplyr::filter(stringr::str_detect(SOURCE_STRING,"(?i)Known to heart failure")) %>%
+  dplyr::select(PERSON_ID) %>%
+  dplyr::mutate(HAS_ALERT = TRUE)
+
+kk<- primary_cohort %>%
+  merge(.,known_to_hf , by="PERSON_ID",all=TRUE) %>%
+  replace(is.na(.), FALSE)
+
+
+table(kk$HAS_PRIMARY_HF,kk$HAS_ALERT) %>% 
+  knitr::kable(caption = "Contigency table of Primary HF ICD10 and Advanced Care directive (ACD).") %>%
+  kableExtra::add_header_above(c("Has Primary\n ICD10"=1,"Has ACD"=2))%>%
+  kable_styling(position = "center",full_width = FALSE)
+
+```
+
+```{r}
+his_hf_diag <- diagnosis_history %>%
+  dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
+                  PERSON_ID %in% primary_cohort$PERSON_ID)
+
+summary_his_diag <- extract_hf_diagnosis(his_hf_diag) %>%
+  dplyr::right_join(primary_cohort,by="PERSON_ID") %>%
+  dplyr::select(-HAS_PRIMARY_HF) %>%
+  replace(is.na(.),FALSE) %>%
+    dplyr::mutate(`No His. HF ICD10` = !`Congestive heart failure` & !`Heart failure, unspecified`
+                  & !`Left ventricular failure`)
+plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10")
+```
+
+```{r}
+primary_enc <- encounter %>%
+  dplyr::filter(ENCNTR_ID %in% hf_diag_primary$ENCNTR_ID)
+echos <- orders %>%
+  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::group_by(ENCNTR_ID) %>%
+  dplyr::arrange(desc(STATUS_DT_TM)) %>%
+  dplyr::slice(1) %>%
+  dplyr::select(ENCNTR_ID,CATALOG_CD,STATUS_DT_TM) %>%
+  dplyr::right_join(
+    dplyr::select(primary_enc,ENCNTR_ID,ARRIVE_DT_TM),by="ENCNTR_ID") %>%
+  dplyr::mutate(HAS_ECHO = !is.na(CATALOG_CD),ECHO_DELTA = difftime(STATUS_DT_TM,ARRIVE_DT_TM,units = "days")) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(-CATALOG_CD) %>%
+  dplyr::rename(ECHO_START_DT_TM = STATUS_DT_TM)
+
+```
+
+```{r}
+
+extract_path_result <- function(df,string,prefix,breaks=NULL,labels=NULL){
+  df %<>% dplyr::filter(EVENT_CD == string) %>%
+  dplyr::select(ENCNTR_ID,EVENT_START_DT_TM,RESULT_VAL,RESULT_UNITS_CD) %>%
+    dplyr::mutate(RESULT_VAL = as.numeric(stringr::str_remove_all(RESULT_VAL, '\"')) )  %>% 
+  dplyr::rename("{prefix}_EVENT_START_DT_TM" := EVENT_START_DT_TM,
+                
+                "{prefix}_RESULT_UNITS_CD" := RESULT_UNITS_CD)
+  
+  if(!is.null(breaks)){
+    df %<>% dplyr::mutate("{prefix}_BIN" := cut(RESULT_VAL,breaks=breaks,labels=labels))
+  }
+  df %<>% dplyr::rename("{prefix}_RESULT_VAL" := RESULT_VAL)
+  
+  return(df)
+}
+```
+
+```{r}
+path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'")
+
+path_tests %<>%
+  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::group_by(ENCNTR_ID,EVENT_CD) %>%
+  dplyr::arrange(desc(EVENT_START_DT_TM)) %>%
+  dplyr::slice(1) %>%
+  dplyr::ungroup()
+
+
+
+```
+```{r}
+hf_order<-echos  %>%
+  dplyr::left_join(
+    extract_path_result(path_tests,"Brain Natriuretic peptide (BNP )", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
+  ) %>%
+  dplyr::left_join(
+    extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")), by="ENCNTR_ID"
+  ) %>%
+  dplyr::left_join(
+    extract_path_result(path_tests,"Transferrin Saturation", "TRANSFERRIN_SAT",c(-Inf,20,Inf),c("< 20","20+")), by="ENCNTR_ID"
+  ) %>%
+  dplyr::mutate(HAS_BNP = !is.na(BNP_EVENT_START_DT_TM),
+                HAS_IRON = !is.na(IRON_EVENT_START_DT_TM),
+                HAS_TRANSFERRIN_SAT = !is.na(TRANSFERRIN_SAT_EVENT_START_DT_TM))
+
+plot_logical_columns(hf_order,"ORDERS","Proportion of Encounter with Order")
+
+plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
+               "ECHO_DELTA","Distribution of time taken for Echo",
+               mean(hf_order$ECHO_DELTA,na.rm = TRUE)) + xlab("Time take for echo since admission (days)")
+```
+```{r}
+plot_pie_chart(hf_order,"BNP_BIN","BNP Results by Group")
+plot_pie_chart(hf_order,"IRON_BIN","BNP Results by Group")
+plot_pie_chart(hf_order,"TRANSFERRIN_SAT_BIN","BNP Results by Group")
+```
+
+```{r}
+extract_form <- function(df,string,prefix){
+  df %<>%
+  dplyr::filter(DESCRIPTION == string) %>%
+  dplyr::mutate(HAS_FORM = TRUE) %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::arrange(desc(FORM_DT_TM)) %>%
+  dplyr::slice(1) %>%
+  dplyr::select(PERSON_ID,ENCNTR_ID,HAS_FORM,PARENT_ENTITY_ID,FORM_DT_TM) %>%
+    dplyr::rename_with(.fn = ~ paste0(prefix,"_",.x))
+  
+  return(df)
+}
+  
+```
+
+```{r}
+
+hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = 'Heart Failure (MACARF) Referral Form' or DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
+
+
+form_primary_cohort <- primary_cohort %>%
+  dplyr::left_join(
+    extract_form(hf_form,'Heart Failure - Management of Cardiac Function Enrolment',"ENROLMENT"), by = c("PERSON_ID" = "ENROLMENT_PERSON_ID")
+  ) %>%
+  dplyr::left_join(
+    extract_form(hf_form,'Heart Failure (MACARF) Referral Form',"REFERRAL"), by = c("PERSON_ID" = "REFERRAL_PERSON_ID")
+  ) %>%
+  tidyr::replace_na(list(ENROLMENT_HAS_FORM = FALSE, REFERRAL_HAS_FORM = FALSE))
+
+plot_logical_columns(form_primary_cohort,"Form","Proportion with HF Form")
+```

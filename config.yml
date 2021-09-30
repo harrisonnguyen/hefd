@@ -1,0 +1,18 @@
+---
+default:
+  data_retrieve_method: 'db'
+  datawarehouse:
+    driver: 'SQL Server'
+    server: 'sldcsql-mdb029'
+    database: 'heartfailure'
+    uid: !expr keyring::key_list("heartfailure_db")[1,2]
+    pwd: !expr keyring::key_get("heartfailure_db",'pipeline')
+  hf_spec: "Heart Failure Specifications V1.2.xlsm"
+  hf_file_dir: "C:/Users/60231488/Documents/temp"
+  hfmanagement_path: "D:/FTP/HF/new/"
+  hfmanagement_file:
+    file1: "macarf_2019-01-01_2021-06-01_20210602093056_hfmanagement.csv"
+    file2: "macarf_2019-01-01_2021-06-01_20210602085626_hfmanagement.csv"
+  hfmanagement_encounter_file:
+    file1: "macarf_2019-01-01_2021-06-01_20210602093056_visit.csv"
+    file2: "macarf_2019-01-01_2021-06-01_20210602085626_visit.csv"
