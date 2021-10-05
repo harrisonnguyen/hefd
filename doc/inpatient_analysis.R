@@ -1,25 +1,4 @@
----
-title: "Heart Failure Inpatient Analysis"
-author: "Harrison Nguyen"
-date: "27/09/2021"
-output:  
-  bookdown::html_document2:
-    code_folding: hide
-    toc: true
-    toc_float: true
-    toc_collapsed: true
-    toc_depth: 3
-    number_sections: true
-bibliography: references.bib
-link-citations: true
-linkcolor: blue
-vignette: >
-  %\VignetteIndexEntry{Heart Failure Inpatient Analysis}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r setup, include = FALSE}
+## ----setup, include = FALSE---------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -28,9 +7,8 @@ knitr::opts_chunk$set(
 knitr::opts_knit$set(
   root.dir = here::here()
 )
-```
 
-```{r import}
+## ----import-------------------------------------------------------------------
 
 library(magrittr)
 library(targets)
@@ -42,9 +20,8 @@ library(acs)
 library(flextable)
 
 library(hefd)
-```
 
-```{r}
+## -----------------------------------------------------------------------------
 
 proportion_bar_plot <- function(df,column,title){
   plot<- df %>%
@@ -142,9 +119,8 @@ plot_logical_columns <- function(df,var1,title){
   return(plot)
 }
 
-```
 
-```{r}
+## -----------------------------------------------------------------------------
 plot_pie_chart <- function(df,var1,title){
   var1<- rlang::sym(var1)
   df %<>% 
@@ -166,9 +142,8 @@ plot_pie_chart <- function(df,var1,title){
   return(plot)
 }
 
-```
 
-```{r data-load}
+## ----data-load----------------------------------------------------------------
 encounter_ref <- load_data("encounter_reference")
 encounter <- load_data("encounter")
 diagnosis <- load_data("diagnosis")
@@ -176,17 +151,14 @@ diagnosis_history <- load_data("diagnosis_history")
 problem <- load_data("problem")
 orders <- load_data("orders")
 patient <- load_data("patient")
-```
 
-
-```{r}
+## -----------------------------------------------------------------------------
 query <- glue::glue("SELECT * from MEDICATION_ORDERS as x \\
             WHERE ENCNTR_ID in (SELECT PX9_ENCNTR_ID from ENCOUNTER_REFERENCE \\
              WHERE Q4_DIAGNOSIS = 1 and PROCESS_FLAG = 1 and HISTORY_FLAG = 0) and (ORIG_ORD_AS_FLAG = 1 OR ORIG_ORD_AS_FLAG=2)")
 medication_order <- execute_query(query)
-```
 
-```{r}
+## -----------------------------------------------------------------------------
 location_string <- "Royal North Shore"
 hf_diag <- diagnosis %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50"))
@@ -196,27 +168,15 @@ qual_enc <- encounter %>%
 
 cohort <- qual_enc %>%
   dplyr::distinct(PERSON_ID)
-```
 
-# Introduction
-
-This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus there are **`r nrow(qual_enc)`** with **`r nrow(cohort)`**. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient. 
-
-The analysis of this cohort will be used to answer these following questions:
-
-1.
-2.
-3.
-
-```{r dist-enc-plot,fig.cap="Distribution of the number of encounters for each patient."}
+## ----dist-enc-plot,fig.cap="Distribution of the number of encounters for each patient."----
 counts <- qual_enc %>%
   dplyr::group_by(PERSON_ID) %>%
   dplyr::summarise(N = dplyr::n())
 
 proportion_bar_plot(counts,"N", "Number of encounters per patient")
-```
 
-```{r}
+## -----------------------------------------------------------------------------
 extract_hf_diagnosis <- function(df){
   df %<>%
   dplyr::group_by(PERSON_ID) %>%
@@ -229,11 +189,8 @@ extract_hf_diagnosis <- function(df){
   
   return(df)
 }
-```
 
-## Cohort Stratification - Primary & Secondary Heart Failure Diagnosis
-
-```{r}
+## -----------------------------------------------------------------------------
 
 hf_diag_primary <- hf_diag %>%
   dplyr::filter(DIAG_PRIORITY == 1 & ENCNTR_ID %in% qual_enc$ENCNTR_ID)
@@ -268,14 +225,8 @@ hf_diag_primary_count <- hf_diag_primary %>%
   dplyr::group_by(ENCNTR_ID) %>%
   dplyr::summarise(N = dplyr::n()) %>%
   dplyr::filter(N > 1)
-```  
 
-Figure \@ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnosis, (n = `r nrow(hf_diag_primary_count)`). An encounter can also be associated with both a primary and secondary heart failure ICD10. For example, in Figure \@ref(fig:icd10-dist-plot)**A** shows that **64**\% of encounters ONLY have a secondary diagnosis. Similarly  Figure \@ref(fig:icd10-dist-plot)**B** shows that **23**\% of encounters ONLY have a primary diagnosis. Therefore, **13**\% of encounters have both a  primary and secondary heart failure ICD10 diagnosis. 
-
-For the given diagnosis, **congestive heart failure** is most prevalent, followed by **left ventricular failure** then **heart failure, unspecified**.
- 
-
-```{r icd10-dist-plot, fig.cap="Distribution of primary and secondary ICD10 diagnosis." }
+## ----icd10-dist-plot, fig.cap="Distribution of primary and secondary ICD10 diagnosis."----
 
 p1 <- plot_logical_columns(primary_temp,"ICD10","Primary HF ICD10") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2)) + 
@@ -286,14 +237,11 @@ p2 <- plot_logical_columns(secondary_temp,"ICD10","Secondary HF ICD10") +
   ggplot2::ylim(0,2000)
 
 ggpubr::ggarrange(p1,p2,labels= c("A","B"), ncol = 1, nrow = 2)
-```
-```{r}
+
+## -----------------------------------------------------------------------------
 n_only_prim <-  sum(secondary_temp$`Only primary HF diagnosis`)
-```
 
-Table \ref(tab: primary-diag-secondary-hf-tab) shows the primary diagnosis of those encounters with a secondary heart failure diagnosis (n = **`r nrow(secondary_temp) - n_only_prim`**). The data shows that these encounters are also commonly associated with **pneumonia**, as well as some other heart related issue such as **atrial fibrillation** or a **myocardial infarction**.
-
-```{r primary-diag-secondary-hf-tab}
+## ----primary-diag-secondary-hf-tab--------------------------------------------
 only_secondary_cohort <- secondary_temp %>% dplyr::filter(!`Only primary HF diagnosis`)
 
 primary_diag_of_secondary <- diagnosis %>%
@@ -311,9 +259,8 @@ primary_diag_of_secondary %>%
   dplyr::top_n(15) %>%
   knitr::kable(caption = "Top 15 primary diagnosis for those with only a secondary heart failure diagnosis.")
 
-```
 
-```{r}
+## -----------------------------------------------------------------------------
 primary_cohort <- cohort %>%
   dplyr::filter(PERSON_ID %in% hf_diag_primary$PERSON_ID) %>%
   dplyr::mutate(HAS_PRIMARY_HF = TRUE)
@@ -329,15 +276,8 @@ primary_enc <- encounter %>%
   dplyr::mutate(AGE_BINNED = cut(AGE, breaks = AGE_breaks, labels = AGE_labels,
                                    right = FALSE)) %>%
     dplyr::mutate(LOS = difftime(DISCH_DT_TM,ARRIVE_DT_TM,units="days"))
-```
 
-The cohort that will be analysed for the rest of this document are those encounters with a primary heart failure diagnosis. 
-
-# Demographics
-
-With these selection and exclusion criteria, the cohort for this analysis will include  **`r nrow(hf_diag_primary)`** number of encounters for **`r nrow(primary_cohort)`** unique patients with the following demographics.
-
-```{r}
+## -----------------------------------------------------------------------------
 total<- bind_rows(primary_enc, mutate(primary_enc, SEX_CD = "Total")) %>%
   group_by(SEX_CD) %>%
   summarise(
@@ -358,31 +298,20 @@ total<- bind_rows(primary_enc, mutate(primary_enc, SEX_CD = "Total")) %>%
   set_header_labels(Group = "", p_Female = "%", p_Male = "%", N_Total = "n",
                     Age_Female = "Age (F)", Age_Male = "Age (M)", Age_Total = "Mean Age")
 total
-```
 
-Figure \@ref(fig:age-sex-plot) shows the distribution of sex according to age groups.
-
-```{r age-sex-plot, fig.cap="Distribution of Sex conditioned on Age."}
+## ----age-sex-plot, fig.cap="Distribution of Sex conditioned on Age."----------
 conditional_bar_plot(primary_enc,"AGE_BINNED","SEX_CD", "Age and Sex") +
   scale_fill_discrete(name = "SEX") + 
   xlab("AGE")
-```
 
-Figure \@ref(fig:los-dis-plot) shows the distribution of the length of stay (LOS) marked with the average LOS (**`r round(as.numeric(mean(primary_enc$LOS,na.rm=TRUE)),1)`** days). Encounters with either a missing admission or discharge date have been excluded.
-
-```{r los-dis-plot, fig.cap="Distribution of Length of Stay"}
+## ----los-dis-plot, fig.cap="Distribution of Length of Stay"-------------------
 
 plot_histogram(primary_enc,"LOS","Distribution of LOS",mean(primary_enc$LOS,na.rm=TRUE)) + xlab("LOS (days)") + xlim(0,50)
-```
-Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters types. **All** primary heart failure coded encounters are **inpatient** encounters.
 
-```{r encntr-type-plot, fig.cap="Distribution of Encounter Type."}
+## ----encntr-type-plot, fig.cap="Distribution of Encounter Type."--------------
 proportion_bar_plot(primary_enc,"ENCNTR_TYPE_CD","Distribution of Encounter Type.")
-```
-# Advanced Care Directive
 
-
-```{r acd-tab}
+## ----acd-tab------------------------------------------------------------------
 known_to_hf <- problem %>%
   dplyr::filter(stringr::str_detect(SOURCE_STRING,"(?i)Known to heart failure")) %>%
   dplyr::select(PERSON_ID) %>%
@@ -398,14 +327,8 @@ prop_tab %>%
   kableExtra::add_header_above(c("Has Primary\n ICD10"=1,"Has ACD"=2))%>%
   kable_styling(position = "center",full_width = FALSE)
 
-```
-Table \@ref(tab:acd-tab) shows a contingency table of the number of patients with a primary ICD10 code who also have an Advanced Care Directive. **`r round(prop_tab[2,1]/sum(prop_tab[2,])*100,1)`**\% of patients with a primary HF ICD10 have an advanced care directive. Table xxx shows the cohort with either a primary or secondary HF diagnosis.
 
-# Historical Diagnosis
-
-Figure \@ref(fig:his-diag-plot) shows whether or not, each person in the cohort has had a an encounter with a HF ICD10 diagnosis within the last three years. 
-
-```{r his-diag-plot, fig.cap="Distribution of historical diagnosis."}
+## ----his-diag-plot, fig.cap="Distribution of historical diagnosis."-----------
 his_hf_diag <- diagnosis_history %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
                   PERSON_ID %in% primary_cohort$PERSON_ID)
@@ -417,10 +340,8 @@ summary_his_diag <- extract_hf_diagnosis(his_hf_diag) %>%
     dplyr::mutate(`No His. HF ICD10` = !`Congestive heart failure` & !`Heart failure, unspecified`
                   & !`Left ventricular failure`)
 plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10")
-```
-# Orders
 
-```{r}
+## -----------------------------------------------------------------------------
 
 echos <- orders %>%
   dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
@@ -435,9 +356,8 @@ echos <- orders %>%
   dplyr::select(-CATALOG_CD) %>%
   dplyr::rename(ECHO_START_DT_TM = STATUS_DT_TM)
 
-```
 
-```{r}
+## -----------------------------------------------------------------------------
 
 extract_path_result <- function(df,string,prefix,breaks=NULL,labels=NULL){
   df %<>% dplyr::filter(EVENT_CD == string) %>%
@@ -454,9 +374,8 @@ extract_path_result <- function(df,string,prefix,breaks=NULL,labels=NULL){
   
   return(df)
 }
-```
 
-```{r}
+## -----------------------------------------------------------------------------
 path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'")
 
 path_tests %<>%
@@ -468,8 +387,8 @@ path_tests %<>%
 
 
 
-```
-```{r order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."}
+
+## ----order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."----
 hf_order<-echos  %>%
   dplyr::left_join(
     extract_path_result(path_tests,"Brain Natriuretic peptide (BNP )", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
@@ -487,23 +406,16 @@ hf_order<-echos  %>%
 plot_logical_columns(hf_order,"ORDERS","Proportion of Encounter with Order")
 
 
-```
 
-
-```{r echo-time-plot,fig.cap="Distribution of the time taken for an echocardiogram."}
+## ----echo-time-plot,fig.cap="Distribution of the time taken for an echocardiogram."----
 
 mean_delta <- mean(hf_order$ECHO_DELTA,na.rm = TRUE)
 plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
                "ECHO_DELTA","Distribution of time taken for Echo",
                mean_delta) + 
     xlab("Time take for echo since admission (days)")
-```
 
-Figure \@ref(fig:order-prop-plot) shows the proportion of encounters with a relevant heart failure order being echocardiogram, 
-brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure \@ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a mean time of **`r round(mean_delta,1)`** days.
-
-
-```{r path-test-plot,fig.cap="Results of pathology tests."}
+## ----path-test-plot,fig.cap="Results of pathology tests."---------------------
 
 
 p1<-plot_pie_chart(hf_order,"BNP_BIN","BNP Results by Group")
@@ -516,11 +428,8 @@ p3<-plot_pie_chart(hf_order,"TRANSFERRIN_SAT_BIN","BNP Results by Group")
 p1
 p2
 p3
-```
 
-# Forms
-
-```{r}
+## -----------------------------------------------------------------------------
 extract_form <- function(df,string,prefix){
   df %<>%
   dplyr::filter(DESCRIPTION == string) %>%
@@ -534,9 +443,8 @@ extract_form <- function(df,string,prefix){
   return(df)
 }
   
-```
 
-```{r form-plot,fig.cap = "Proportion of Patients with an enrolment or referral form."}
+## ----form-plot,fig.cap = "Proportion of Patients with an enrolment or referral form."----
 
 hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = 'Heart Failure (MACARF) Referral Form' or DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
 
@@ -551,32 +459,21 @@ form_primary_cohort <- primary_cohort %>%
   tidyr::replace_na(list(ENROLMENT_HAS_FORM = FALSE, REFERRAL_HAS_FORM = FALSE))
 
 plot_logical_columns(form_primary_cohort %>% dplyr::select(-HAS_PRIMARY_HF),"Form","Proportion with HF Form")
-```
 
-Figure \@ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR. 
-
-# Medication
-
-```{r}
+## -----------------------------------------------------------------------------
 primary_meds <- medication_order %>%
   dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID)
 primary_enc_meds <- primary_enc %>%
   dplyr::mutate(HAS_DISCH_MED = ENCNTR_ID %in% primary_meds$ENCNTR_ID)
 
-```
 
-Figure \@ref(fig:med-type-plot)**A** show the proportion of medications that were either a home or one that was ordered for discharged. Figure \@ref(fig:med-type-plot)**B** shows the proportion of the encounters that were given a discharge medication. 
-
-```{r med-type-plot, fig.cap="The type of medication whether home or discharge medication."}
+## ----med-type-plot, fig.cap="The type of medication whether home or discharge medication."----
 p1 <- proportion_bar_plot(primary_meds,"ORIG_ORD_AS_FLAG","Type of discharge medication\n")
 p2 <- proportion_bar_plot(primary_enc_meds,"HAS_DISCH_MED","Encounters with Discharge Medications\n")
 
 ggpubr::ggarrange(p1,p2,ncol=2,nrow=1,labels=c("A","B"))
-```
 
-Table \@ref(tab:med-class-tab) shows the top 15 medication classes given at discharge or home.
-
-```{r med-class-tab}
+## ----med-class-tab------------------------------------------------------------
 primary_meds %>%
   dplyr::group_by(MEDICATION_CLASS) %>%
   dplyr::summarise(N = dplyr::n_distinct(PERSON_ID)) %>% 
@@ -584,12 +481,8 @@ primary_meds %>%
   dplyr::arrange(desc(N)) %>% 
   dplyr::top_n(15) %>%
   knitr::kable(caption = "Top 15 discharge medication class.")
-```
-# Appendix
 
-## Inclusion of Primary and Secondayr HF Diagnosis
-
-```{r}
+## -----------------------------------------------------------------------------
 primary_cohort <- cohort %>%
   dplyr::filter(PERSON_ID %in% qual_enc$PERSON_ID) %>%
   dplyr::mutate(HAS_PRIMARY_HF = TRUE)
@@ -604,10 +497,8 @@ primary_enc <- qual_enc %>%
   dplyr::mutate(AGE_BINNED = cut(AGE, breaks = AGE_breaks, labels = AGE_labels,
                                    right = FALSE)) %>%
     dplyr::mutate(LOS = difftime(DISCH_DT_TM,ARRIVE_DT_TM,units="days"))
-```
 
-
-```{r}
+## -----------------------------------------------------------------------------
 total<- bind_rows(primary_enc, mutate(primary_enc, SEX_CD = "Total")) %>%
   group_by(SEX_CD) %>%
   summarise(
@@ -628,32 +519,20 @@ total<- bind_rows(primary_enc, mutate(primary_enc, SEX_CD = "Total")) %>%
   set_header_labels(Group = "", p_Female = "%", p_Male = "%", N_Total = "n",
                     Age_Female = "Age (F)", Age_Male = "Age (M)", Age_Total = "Mean Age")
 total
-```
 
-Figure \@ref(fig:age-sex-plot-sec) shows the distribution of sex according to age groups.
-
-```{r age-sex-plot-sec, fig.cap="Distribution of Sex conditioned on Age."}
+## ----age-sex-plot-sec, fig.cap="Distribution of Sex conditioned on Age."------
 conditional_bar_plot(primary_enc,"AGE_BINNED","SEX_CD", "Age and Sex") +
   scale_fill_discrete(name = "SEX") + 
   xlab("AGE")
-```
 
-Figure \@ref(fig:los-dis-plot-sec) shows the distribution of the length of stay (LOS) marked with the average LOS (**`r round(as.numeric(mean(primary_enc$LOS,na.rm=TRUE)),1)`** days). Encounters with either a missing admission or discharge date have been excluded.
-
-```{r los-dis-plot-sec, fig.cap="Distribution of Length of Stay"}
+## ----los-dis-plot-sec, fig.cap="Distribution of Length of Stay"---------------
 
 plot_histogram(primary_enc,"LOS","Distribution of LOS",mean(primary_enc$LOS,na.rm=TRUE)) + xlab("LOS (days)") + xlim(0,50)
-```
-Figure \@ref(fig:encntr-type-plot-sec) shows the distribution of encounters types.
 
-```{r encntr-type-plot-sec, fig.cap="Distribution of Encounter Type."}
+## ----encntr-type-plot-sec, fig.cap="Distribution of Encounter Type."----------
 proportion_bar_plot(primary_enc,"ENCNTR_TYPE_CD","Distribution of Encounter Type.")
-```
 
-### Advanced Care Directive
-
-
-```{r acd-tab-sec}
+## ----acd-tab-sec--------------------------------------------------------------
 known_to_hf <- problem %>%
   dplyr::filter(stringr::str_detect(SOURCE_STRING,"(?i)Known to heart failure")) %>%
   dplyr::select(PERSON_ID) %>%
@@ -669,15 +548,8 @@ prop_tab %>%
   kableExtra::add_header_above(c("Has Primary\n ICD10"=1,"Has ACD"=2))%>%
   kable_styling(position = "center",full_width = FALSE)
 
-```
 
-Table \@ref(tab:acd-tab-sec) shows a contingency table of the number of patients with a primary ICD10 code who also have an Advanced Care Directive. **`r round(prop_tab[2,1]/sum(prop_tab[2,])*100,1)`**\% of patients with a primary HF ICD10 have an advanced care directive. Table xxx shows the cohort with either a primary or secondary HF diagnosis.
-
-### Historical Diagnosis
-
-Figure \@ref(fig:his-diag-plot-sec) shows whether or not, each person in the cohort has had a an encounter with a HF ICD10 diagnosis within the last three years. 
-
-```{r his-diag-plot-sec, fig.cap="Distribution of historical diagnosis."}
+## ----his-diag-plot-sec, fig.cap="Distribution of historical diagnosis."-------
 his_hf_diag <- diagnosis_history %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
                   PERSON_ID %in% primary_cohort$PERSON_ID)
@@ -689,10 +561,8 @@ summary_his_diag <- extract_hf_diagnosis(his_hf_diag) %>%
     dplyr::mutate(`No His. HF ICD10` = !`Congestive heart failure` & !`Heart failure, unspecified`
                   & !`Left ventricular failure`)
 plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10")
-```
-### Orders
 
-```{r}
+## -----------------------------------------------------------------------------
 
 echos <- orders %>%
   dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
@@ -707,10 +577,8 @@ echos <- orders %>%
   dplyr::select(-CATALOG_CD) %>%
   dplyr::rename(ECHO_START_DT_TM = STATUS_DT_TM)
 
-```
 
-
-```{r}
+## -----------------------------------------------------------------------------
 path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'")
 
 path_tests %<>%
@@ -722,9 +590,8 @@ path_tests %<>%
 
 
 
-```
 
-```{r order-prop-plot-sec, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."}
+## ----order-prop-plot-sec, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."----
 hf_order<-echos  %>%
   dplyr::left_join(
     extract_path_result(path_tests,"Brain Natriuretic peptide (BNP )", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
@@ -742,23 +609,16 @@ hf_order<-echos  %>%
 plot_logical_columns(hf_order,"ORDERS","Proportion of Encounter with Order")
 
 
-```
 
-
-```{r echo-time-plot-sec,fig.cap="Distribution of the time taken for an echocardiogram."}
+## ----echo-time-plot-sec,fig.cap="Distribution of the time taken for an echocardiogram."----
 
 mean_delta <- mean(hf_order$ECHO_DELTA,na.rm = TRUE)
 plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
                "ECHO_DELTA","Distribution of time taken for Echo",
                mean_delta) + 
     xlab("Time take for echo since admission (days)")
-```
 
-Figure \@ref(fig:order-prop-plot) shows the proportion of encounters with a relevant heart failure order being echocardiogram, 
-brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure \@ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a mean time of **`r round(mean_delta,1)`** days.
-
-
-```{r path-test-plot-sec,fig.cap="Results of pathology tests."}
+## ----path-test-plot-sec,fig.cap="Results of pathology tests."-----------------
 
 
 p1<-plot_pie_chart(hf_order,"BNP_BIN","BNP Results by Group")
@@ -771,12 +631,8 @@ p3<-plot_pie_chart(hf_order,"TRANSFERRIN_SAT_BIN","BNP Results by Group")
 p1
 p2
 p3
-```
 
-### Forms
-
-
-```{r form-plot-sec,fig.cap = "Proportion of Patients with an enrolment or referral form."}
+## ----form-plot-sec,fig.cap = "Proportion of Patients with an enrolment or referral form."----
 
 
 form_primary_cohort <- primary_cohort %>%
@@ -789,4 +645,4 @@ form_primary_cohort <- primary_cohort %>%
   tidyr::replace_na(list(ENROLMENT_HAS_FORM = FALSE, REFERRAL_HAS_FORM = FALSE))
 
 plot_logical_columns(form_primary_cohort %>% dplyr::select(-HAS_PRIMARY_HF),"Form","Proportion with HF Form")
-```
+
