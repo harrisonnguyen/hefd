@@ -200,13 +200,26 @@ cohort <- qual_enc %>%
 
 # Introduction
 
-This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus there are **`r nrow(qual_enc)`** encounters with **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and  type of  Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters types where the majority of encounters are **inpatient** encounters. 
+This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus, in a 2.5 year period, there are **`r nrow(qual_enc)`** encounters with unique **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and  type of  Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters types where the majority of encounters are **inpatient** encounters. 
 
-The analysis of this cohort will be used to answer these following questions:
+The analysis of this cohort will be used to examine: 
 
-1.
-2.
-3.
+1. Demographics and characteristics
+  * Total admissions by facility
+  * Age and sex distributions
+  * Numbers of patient journeys and transfers across the District
+  * Mode of admission and mode of separation
+  * Number of patients with Advanced Care Directive
+  * Previous hospitalisation in the past 3 years (for HF or other?, primary or additional diagnoses?)
+2. Investigations
+  * Number of patients with at least 1 echocardiogram performed
+  * BNP and Iron profiles
+3. Discharge management
+  * Number of patients with discharge letters
+  * Number of patients on relevant discharge medications or none
+  * Number of patients that are referred to the HF service
+
+This feasibility analyses will be initially be performed for encounters at RNSH, then Ryde and Hornsby, and then patients that transfer between NSLHD facilities.
 
 ```{r dist-enc-plot,fig.cap="Distribution of the number of encounters for each patient."}
 counts <- qual_enc %>%
@@ -223,9 +236,11 @@ proportion_bar_plot(qual_enc,"ENCNTR_TYPE_CD","Distribution of Encounter Type.")
 ```
 
 ```{r}
-extract_hf_diagnosis <- function(df){
+extract_hf_diagnosis <- function(df,group_cols = "ENCNTR_ID"){
+  
+  group_cols <- rlang::sym(group_cols)
   df %<>%
-  dplyr::group_by(ENCNTR_ID) %>%
+  dplyr::group_by(!!group_cols) %>%
   dplyr::summarise(
     `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
     `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
@@ -522,7 +537,8 @@ his_hf_diag <- diagnosis_history %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
                   PERSON_ID %in% primary_cohort$PERSON_ID)
 
-summary_his_diag <- extract_hf_diagnosis(his_hf_diag) %>%
+summary_his_diag <- his_hf_diag %>%
+  extract_hf_diagnosis(group_cols = "PERSON_ID") %>%
   dplyr::right_join(primary_cohort,by="PERSON_ID") %>%
   dplyr::select(-HAS_PRIMARY_HF) %>%
   replace(is.na(.),FALSE) %>%
@@ -801,7 +817,8 @@ his_hf_diag <- diagnosis_history %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
                   PERSON_ID %in% primary_cohort$PERSON_ID)
 
-summary_his_diag <- extract_hf_diagnosis(his_hf_diag) %>%
+summary_his_diag <- his_hf_diag %>%
+  extract_hf_diagnosis(group_cols = "PERSON_ID") %>%
   dplyr::right_join(primary_cohort,by="PERSON_ID") %>%
   dplyr::select(-HAS_PRIMARY_HF) %>%
   replace(is.na(.),FALSE) %>%
@@ -809,6 +826,7 @@ summary_his_diag <- extract_hf_diagnosis(his_hf_diag) %>%
                   & !`Left ventricular failure`)
 plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10")
 ```
+
 ### Orders
 
 ```{r}
