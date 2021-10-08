@@ -200,13 +200,30 @@ cohort <- qual_enc %>%
 
 # Introduction
 
-This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus there are **`r nrow(qual_enc)`** with **`r nrow(cohort)`**. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient. 
+This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus, in a 2.5 year period, there are **`r nrow(qual_enc)`** encounters with unique **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient. 
 
-The analysis of this cohort will be used to answer these following questions:
+The analysis of this cohort will be used to examine: 
 
-1.
-2.
-3.
+1. Demographics and characteristics
+
+* Total admissions by facility
+* Age and sex distributions
+* Numbers of patient journeys and transfers across the District
+* Mode of admission and mode of separation
+* Number of patients with Advanced Care Directive
+* Previous hospitalisation in the past 3 years (for HF or other?, primary or additional diagnoses?)
+
+2. Investigations
+
+* Number of patients with at least 1 echocardiogram performed
+* BNP and Iron profiles
+
+3. Discharge management
+* Number of patients with discharge letters
+* Number of patients on relevant discharge medications or none
+* Number of patients that are referred to the HF service
+
+This feasibility analyses will be initially be performed for encounters at RNSH, then Ryde and Hornsby, and then patients that transfer between NSLHD facilities.
 
 ```{r dist-enc-plot,fig.cap="Distribution of the number of encounters for each patient."}
 counts <- qual_enc %>%
