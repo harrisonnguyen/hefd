@@ -1,7 +1,7 @@
 ---
 title: "Heart Failure Inpatient Analysis"
 author: "Harrison Nguyen"
-date: "27/09/2021"
+date: "10/11/2021"
 output:  
   bookdown::html_document2:
     code_folding: hide
@@ -176,6 +176,8 @@ diagnosis_history <- load_data("diagnosis_history")
 problem <- load_data("problem")
 orders <- load_data("orders")
 patient <- load_data("patient")
+
+
 ```
 
 
@@ -184,6 +186,8 @@ query <- glue::glue("SELECT * from MEDICATION_ORDERS as x \\
             WHERE ENCNTR_ID in (SELECT PX9_ENCNTR_ID from ENCOUNTER_REFERENCE \\
              WHERE Q4_DIAGNOSIS = 1 and PROCESS_FLAG = 1 and HISTORY_FLAG = 0) and (ORIG_ORD_AS_FLAG = 1 OR ORIG_ORD_AS_FLAG=2)")
 medication_order <- execute_query(query)
+
+hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = 'Heart Failure (MACARF) Referral Form' or DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
 ```
 
 ```{r}
@@ -196,11 +200,13 @@ qual_enc <- encounter %>%
 
 cohort <- qual_enc %>%
   dplyr::distinct(PERSON_ID)
+
+time_period <- round(difftime(max(qual_enc$DISCH_DT_TM,na.rm = TRUE), min(qual_enc$DISCH_DT_TM,na.rm = TRUE),units="days")/362.2425,1)
 ```
 
 # Introduction
 
-This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus, in a 2.5 year period, there are **`r nrow(qual_enc)`** encounters with unique **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and  type of  Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters types where the majority of encounters are **inpatient** encounters. 
+This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus, in a **`r time_period`** year period, there are **`r nrow(qual_enc)`** encounters with unique **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and  type of  Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters types where the majority of encounters are **inpatient** encounters. 
 
 The analysis of this cohort will be used to examine: 
 
@@ -293,7 +299,7 @@ hf_diag_secondary_count <- hf_diag_secondary %>%
   dplyr::filter(N > 1)
 ```  
 
-Figure \@ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnosis, (n = **`r nrow(hf_diag_primary_count)`**) and similarly with secondary diagnosis (n = **`r nrow(hf_diag_secondary_count)`**. 
+Figure \@ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnosis, (n = **`r nrow(hf_diag_primary_count)`**) and similarly with secondary diagnosis (n = **`r nrow(hf_diag_secondary_count)`**). 
 
 
 For the given diagnosis, **congestive heart failure** is most prevalent, followed by **left ventricular failure** then **heart failure, unspecified**.
@@ -354,7 +360,7 @@ only_secondary <- secondary_temp %>%
 n_only_prim <-  nrow(only_secondary)
 ```
 
-Table \ref(tab: primary-diag-secondary-hf-tab) shows the primary diagnosis of those encounters with **ONLY** secondary heart failure diagnosis (n = **`r n_only_prim`**). The data shows that these encounters are also commonly associated with **pneumonia**, as well as some other heart related issue such as **atrial fibrillation** or a **myocardial infarction**.
+Table @\ref(tab:primary-diag-secondary-hf-tab) shows the primary diagnosis of those encounters with **ONLY** secondary heart failure diagnosis (n = **`r n_only_prim`**). The data shows that these encounters are also commonly associated with **pneumonia**, as well as some other heart related issue such as **atrial fibrillation** or a **myocardial infarction**.
 
 ```{r primary-diag-secondary-hf-tab}
 
@@ -466,6 +472,7 @@ p2 <- plot_histogram_group(primary_enc,"LOS","PRIMARY_DIAG","Distribution of LOS
 
 ggpubr::ggarrange(p1,p2,nrow=2,ncol = 1, labels=c("A","B"))
 ```
+
 ```{r los-stat-tab}
 primary_enc %>%
   dplyr::bind_rows(mutate(primary_enc, PRIMARY_DIAG = "Total")) %>%
@@ -477,7 +484,8 @@ primary_enc %>%
                    MEDIAN = as.numeric(round(median(LOS),1)),
                    STD = as.numeric(round(sd(LOS),1)),
                    N = dplyr::n()) %>%
-  flextable()
+  flextable() %>%
+  set_caption("Statistics of LOS by HF diagnosis.")
 ```
 
 # Advanced Care Directive
@@ -530,7 +538,9 @@ Figure \@ref(fig:alert-delta-plot) shows the distribution of the time taken for 
 
 # Historical Diagnosis
 
-Figure \@ref(fig:his-diag-plot) shows whether or not, each person in the cohort has had a an encounter with a HF ICD10 diagnosis within the last three years. 
+A historical diagnosis for a patient is defined as a HF ICD10 diagnosis (either primary or secondary) that was coded within the last three years of the patient's first HF diagnosis between **`r format(as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE)),format="%Y")`** to **`r format(as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE)),format="%Y")`**. For example, if a patient had been diagnosed with HF in 2018 and 2020, that patient would have been considered to have a historical HF diagnosis if they were diagnosed between 2015 and their encounter in 2018.
+
+Figure \@ref(fig:his-diag-plot) shows whether or not a patient has has a historical diagnosis of HF and if so, the coded HF diagnosis. The plot demonstrates that most patients have had no previous HF diagnosis since entering the cohort.
 
 ```{r his-diag-plot, fig.cap="Distribution of historical diagnosis."}
 his_hf_diag <- diagnosis_history %>%
@@ -568,7 +578,7 @@ extract_form <- function(df,string,prefix){
 
 ```{r form-plot,fig.cap = "Proportion of Patients with an enrolment or referral form."}
 
-hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = 'Heart Failure (MACARF) Referral Form' or DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
+
 
 
 form_primary_cohort <- primary_cohort %>%
@@ -587,7 +597,24 @@ form_primary_cohort %>%
  labs(x="")
 ```
 
-Figure \@ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR. 
+Figure \@ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR. Figure \@ref(fig:no-form-disch-plot) shows the discharge modes for patients without either a referral nor an enrolment form (n = **`r sum(form_primary_cohort$NO_FORM)`**).
+
+```{r no-form-disch-plot,fig.cap="Distribution of mode of discharge for patients without either a referral nor enrolment form."}
+form_primary_cohort %>%
+  dplyr::filter(NO_FORM) %>%
+  dplyr::left_join(primary_enc,by="PERSON_ID") %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::summarise(
+    DISCH_MODE = dplyr::case_when(
+      any(DISCH_DISPOSITION_CD == 'Pt Death without Autopsy') ~ 'Death without Autopsy',
+      any(DISCH_DISPOSITION_CD == 'Discharge Own Risk') ~ 'Discharge Own Risk',
+      any(stringr::str_detect(DISCH_DISPOSITION_CD, "(?i)transfer")) ~ 'Transfer',
+      any(DISCH_DISPOSITION_CD == "Discharge by Hospital") ~ "Discharge by Hospital",
+    )
+  ) %>%
+  proportion_bar_plot("DISCH_MODE","Discharge mode for patients without forms") + xlab("")
+
+```
 
 # Medication
 
@@ -779,6 +806,7 @@ Figure \@ref(fig:los-dis-plot-sec) shows the distribution of the length of stay 
 
 plot_histogram(primary_enc,"LOS","Distribution of LOS",mean(primary_enc$LOS,na.rm=TRUE)) + xlab("LOS (days)") + xlim(0,50)
 ```
+
 Figure \@ref(fig:encntr-type-plot-sec) shows the distribution of encounters types.
 
 ```{r encntr-type-plot-sec, fig.cap="Distribution of Encounter Type."}
@@ -810,7 +838,6 @@ Table \@ref(tab:acd-tab-sec) shows a contingency table of the number of patients
 
 ### Historical Diagnosis
 
-Figure \@ref(fig:his-diag-plot-sec) shows whether or not, each person in the cohort has had a an encounter with a HF ICD10 diagnosis within the last three years. 
 
 ```{r his-diag-plot-sec, fig.cap="Distribution of historical diagnosis."}
 his_hf_diag <- diagnosis_history %>%

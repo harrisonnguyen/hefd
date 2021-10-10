@@ -152,22 +152,28 @@ problem <- load_data("problem")
 orders <- load_data("orders")
 patient <- load_data("patient")
 
+
+
 ## -----------------------------------------------------------------------------
 query <- glue::glue("SELECT * from MEDICATION_ORDERS as x \\
             WHERE ENCNTR_ID in (SELECT PX9_ENCNTR_ID from ENCOUNTER_REFERENCE \\
              WHERE Q4_DIAGNOSIS = 1 and PROCESS_FLAG = 1 and HISTORY_FLAG = 0) and (ORIG_ORD_AS_FLAG = 1 OR ORIG_ORD_AS_FLAG=2)")
 medication_order <- execute_query(query)
 
+hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = 'Heart Failure (MACARF) Referral Form' or DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
+
 ## -----------------------------------------------------------------------------
 location_string <- "Royal North Shore"
 hf_diag <- diagnosis %>%
-  dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50"))
+  dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & DIAG_TYPE_CD == "Final")
 
 qual_enc <- encounter %>%
   dplyr::filter(ENCNTR_ID %in% hf_diag$ENCNTR_ID & LOC_FACILITY_CD == location_string)
 
 cohort <- qual_enc %>%
   dplyr::distinct(PERSON_ID)
+
+time_period <- round(difftime(max(qual_enc$DISCH_DT_TM,na.rm = TRUE), min(qual_enc$DISCH_DT_TM,na.rm = TRUE),units="days")/362.2425,1)
 
 ## ----dist-enc-plot,fig.cap="Distribution of the number of encounters for each patient."----
 counts <- qual_enc %>%
@@ -176,10 +182,15 @@ counts <- qual_enc %>%
 
 proportion_bar_plot(counts,"N", "Number of encounters per patient")
 
+## ----encntr-type-plot, fig.cap="Distribution of Encounter Type."--------------
+proportion_bar_plot(qual_enc,"ENCNTR_TYPE_CD","Distribution of Encounter Type.")
+
 ## -----------------------------------------------------------------------------
-extract_hf_diagnosis <- function(df){
+extract_hf_diagnosis <- function(df,group_cols = "ENCNTR_ID"){
+  
+  group_cols <- rlang::sym(group_cols)
   df %<>%
-  dplyr::group_by(PERSON_ID) %>%
+  dplyr::group_by(!!group_cols) %>%
   dplyr::summarise(
     `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
     `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
@@ -194,34 +205,33 @@ extract_hf_diagnosis <- function(df){
 
 hf_diag_primary <- hf_diag %>%
   dplyr::filter(DIAG_PRIORITY == 1 & ENCNTR_ID %in% qual_enc$ENCNTR_ID)
-
-primary_temp <- cohort %>% 
-  dplyr::left_join(hf_diag_primary,by="PERSON_ID") %>%
-  dplyr::group_by(PERSON_ID) %>%
-  dplyr::summarise(
-    `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
-    `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
-    `Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1")
-  ) %>%
-  replace(is.na(.), FALSE) %>%
-  dplyr::mutate(`Only secondary HF diagnosis` = !`Congestive heart failure` & !`Heart failure, unspecified` & !`Left ventricular failure`)
-
+  
 hf_diag_secondary <- hf_diag %>%
   dplyr::filter(DIAG_PRIORITY != 1 & ENCNTR_ID %in% qual_enc$ENCNTR_ID)
+  
 
-secondary_temp <- cohort %>% 
-  dplyr::left_join(hf_diag_secondary,by="PERSON_ID") %>%
-  dplyr::group_by(PERSON_ID) %>%
-  dplyr::summarise(
-    `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
-    `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
-    `Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1")
-  ) %>%
-  replace(is.na(.), FALSE) %>%
-  dplyr::mutate(`Only primary HF diagnosis` = !`Congestive heart failure` & !`Heart failure, unspecified` & !`Left ventricular failure`)
+## -----------------------------------------------------------------------------
+primary_temp <- hf_diag_primary %>%
+  extract_hf_diagnosis() %>%
+  dplyr::mutate(`Primary HF Diagnosis` = TRUE)
 
+secondary_temp <- hf_diag_secondary %>%
+  extract_hf_diagnosis() %>%
+  dplyr::mutate(`Secondary HF Diagnosis` = TRUE)
+
+combined_temp <- hf_diag %>%
+  dplyr::filter(ENCNTR_ID %in% qual_enc$ENCNTR_ID) %>%
+  extract_hf_diagnosis() %>%
+  dplyr::mutate(`Prim. & Sec. HF Diagnosis` = TRUE)
+
+## -----------------------------------------------------------------------------
 
 hf_diag_primary_count <- hf_diag_primary %>%
+  dplyr::group_by(ENCNTR_ID) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  dplyr::filter(N > 1)
+
+hf_diag_secondary_count <- hf_diag_secondary %>%
   dplyr::group_by(ENCNTR_ID) %>%
   dplyr::summarise(N = dplyr::n()) %>%
   dplyr::filter(N > 1)
@@ -230,30 +240,61 @@ hf_diag_primary_count <- hf_diag_primary %>%
 
 p1 <- plot_logical_columns(primary_temp,"ICD10","Primary HF ICD10") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2)) + 
-  ggplot2::ylim(0,2000)
+  ggplot2::ylim(0,1400)
 
 p2 <- plot_logical_columns(secondary_temp,"ICD10","Secondary HF ICD10") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
-  ggplot2::ylim(0,2000)
+  ggplot2::ylim(0,2600)
 
-ggpubr::ggarrange(p1,p2,labels= c("A","B"), ncol = 1, nrow = 2)
+p3 <- plot_logical_columns(combined_temp,"ICD10","Combined Primary & Secondary HF ICD10") + 
+  scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
+  ggplot2::ylim(0,4500)
+
+ggpubr::ggarrange(p1,p2,p3,labels= c("A","B","C"), ncol = 1, nrow = 3)
 
 ## -----------------------------------------------------------------------------
-n_only_prim <-  sum(secondary_temp$`Only primary HF diagnosis`)
+prim_sec_merge <- primary_temp %>%
+  dplyr::inner_join(secondary_temp,by="ENCNTR_ID",suffix = c("_PRIMARY","_SECONDARY")) %>%
+  dplyr::mutate(PRIMARY_DIAG = 
+                  dplyr::case_when(
+                    `Congestive heart failure_PRIMARY` ~ "Congestive heart failure",
+                    `Left ventricular failure_PRIMARY` ~ "Left ventricular failure",
+                    `Heart failure, unspecified_PRIMARY` ~ "Heart failure, unspecified",
+                  ),
+                SECONDARY_DIAG = 
+                  dplyr::case_when(
+                    `Congestive heart failure_SECONDARY` ~ "Congestive heart failure",
+                    `Left ventricular failure_SECONDARY` ~ "Left ventricular failure",
+                    `Heart failure, unspecified_SECONDARY` ~ "Heart failure, unspecified",
+                  )
+                )
+
+## -----------------------------------------------------------------------------
+diag_tab <- prop.table(table(prim_sec_merge$PRIMARY_DIAG,prim_sec_merge$SECONDARY_DIAG))
+
+## ----primary-sec-hf-diag------------------------------------------------------
+diag_tab %>% 
+  knitr::kable(caption = "Contigency table of Primary and Secondary HF Diagnosis.",digits=2) %>%
+  kableExtra::add_header_above(c("Primary ICD10"=1,"Secondary ICD10"=3))%>%
+  kable_styling(position = "center",full_width = FALSE)
+
+## -----------------------------------------------------------------------------
+
+only_secondary <- secondary_temp %>%
+  dplyr::filter(!ENCNTR_ID %in% primary_temp$ENCNTR_ID)
+n_only_prim <-  nrow(only_secondary)
 
 ## ----primary-diag-secondary-hf-tab--------------------------------------------
-only_secondary_cohort <- secondary_temp %>% dplyr::filter(!`Only primary HF diagnosis`)
 
 primary_diag_of_secondary <- diagnosis %>%
   dplyr::filter(!stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & 
-                  PERSON_ID %in% only_secondary_cohort$PERSON_ID &
+                  ENCNTR_ID %in% only_secondary$ENCNTR_ID &
                   DIAG_PRIORITY == 1 &
-                  SOURCE_VOCABULARY_CD == "ICD10-AM" &
-                  ENCNTR_ID %in% qual_enc$ENCNTR_ID) 
+                  SOURCE_VOCABULARY_CD == "ICD10-AM") 
 
 primary_diag_of_secondary %>%
   dplyr::group_by(SOURCE_STRING) %>%
-  dplyr::summarise(N = dplyr::n_distinct(PERSON_ID)) %>% 
+  dplyr::summarise(N = dplyr::n_distinct(ENCNTR_ID)) %>% 
   dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_diag_of_secondary$PERSON_ID)*100,1)) %>%
   dplyr::arrange(desc(N)) %>% 
   dplyr::top_n(15) %>%
@@ -275,10 +316,25 @@ primary_enc <- encounter %>%
   dplyr::mutate(AGE = as.integer(difftime(ACTIVE_STATUS_DT_TM,BIRTH_DT_TM, units="weeks")/52.25)) %>%
   dplyr::mutate(AGE_BINNED = cut(AGE, breaks = AGE_breaks, labels = AGE_labels,
                                    right = FALSE)) %>%
-    dplyr::mutate(LOS = difftime(DISCH_DT_TM,ARRIVE_DT_TM,units="days"))
+    dplyr::mutate(LOS = difftime(DISCH_DT_TM,ARRIVE_DT_TM,units="days")) %>%
+  dplyr::left_join(primary_temp, by="ENCNTR_ID") %>%
+  dplyr::mutate(PRIMARY_DIAG = 
+                  dplyr::case_when(
+                    `Congestive heart failure` ~ "Congestive heart failure",
+                    `Left ventricular failure` ~ "Left ventricular failure",
+                    `Heart failure, unspecified` ~ "Heart failure, unspecified",
+                  ))
+
+
 
 ## -----------------------------------------------------------------------------
-total<- bind_rows(primary_enc, mutate(primary_enc, SEX_CD = "Total")) %>%
+primary_demo <- primary_enc %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::arrange(AGE) %>%
+  dplyr::slice(1) %>%
+  dplyr::ungroup()
+
+total<- bind_rows(primary_demo, mutate(primary_demo, SEX_CD = "Total")) %>%
   group_by(SEX_CD) %>%
   summarise(
     N = n(),
@@ -300,25 +356,49 @@ total<- bind_rows(primary_enc, mutate(primary_enc, SEX_CD = "Total")) %>%
 total
 
 ## ----age-sex-plot, fig.cap="Distribution of Sex conditioned on Age."----------
-conditional_bar_plot(primary_enc,"AGE_BINNED","SEX_CD", "Age and Sex") +
+conditional_bar_plot(primary_demo,"AGE_BINNED","SEX_CD", "Age and Sex") +
   scale_fill_discrete(name = "SEX") + 
   xlab("AGE")
 
+## ----admit-disch-mode-plot,fig.cap="Admission and Discharge mode of encounters with primary HF diagnosis."----
+
+p1 <- proportion_bar_plot(primary_enc,"ADMIT_MODE_CD","Distribution of Mode of Admission") + ylim(0,800) +  scale_x_discrete(guide = guide_axis(n.dodge=3))
+
+p2 <- proportion_bar_plot(primary_enc,"DISCH_DISPOSITION_CD","Distribution of Mode of Separation")  + ylim(0,1100) +  scale_x_discrete(guide = guide_axis(n.dodge=3))
+
+
+ggpubr::ggarrange(p1,p2,nrow=2,ncol = 1, labels=c("A","B"))
+
 ## ----los-dis-plot, fig.cap="Distribution of Length of Stay"-------------------
 
-plot_histogram(primary_enc,"LOS","Distribution of LOS",mean(primary_enc$LOS,na.rm=TRUE)) + xlab("LOS (days)") + xlim(0,50)
+p1 <- plot_histogram(primary_enc,"LOS","Distribution of LOS",mean(primary_enc$LOS,na.rm=TRUE)) + xlab("LOS (days)") + xlim(0,40) + ylim(0,250)
 
-## ----encntr-type-plot, fig.cap="Distribution of Encounter Type."--------------
-proportion_bar_plot(primary_enc,"ENCNTR_TYPE_CD","Distribution of Encounter Type.")
+p2 <- plot_histogram_group(primary_enc,"LOS","PRIMARY_DIAG","Distribution of LOS by Diagnosis") + xlab("LOS (days)") + xlim(0,40)
+
+ggpubr::ggarrange(p1,p2,nrow=2,ncol = 1, labels=c("A","B"))
+
+## ----los-stat-tab-------------------------------------------------------------
+primary_enc %>%
+  dplyr::bind_rows(mutate(primary_enc, PRIMARY_DIAG = "Total")) %>%
+  dplyr::filter(!is.na(LOS)) %>%
+  dplyr::group_by(PRIMARY_DIAG) %>%
+  dplyr::summarise(MEAN = as.numeric(round(mean(LOS),1)),
+                   MAX = as.numeric(round(max(LOS),1)),
+                   MIN = as.numeric(round(min(LOS),1)),
+                   MEDIAN = as.numeric(round(median(LOS),1)),
+                   STD = as.numeric(round(sd(LOS),1)),
+                   N = dplyr::n()) %>%
+  flextable() %>%
+  set_caption("Statistics of LOS by HF diagnosis.")
 
 ## ----acd-tab------------------------------------------------------------------
 known_to_hf <- problem %>%
   dplyr::filter(stringr::str_detect(SOURCE_STRING,"(?i)Known to heart failure")) %>%
-  dplyr::select(PERSON_ID) %>%
+  dplyr::select(PERSON_ID,BEG_EFFECTIVE_DT_TM) %>%
   dplyr::mutate(HAS_ALERT = TRUE)
 
 kk<- primary_cohort %>%
-  merge(.,known_to_hf , by="PERSON_ID",all=TRUE) %>%
+  merge(.,select(known_to_hf,-BEG_EFFECTIVE_DT_TM) , by="PERSON_ID",all=TRUE) %>%
   replace(is.na(.), FALSE)
 
 prop_tab <- prop.table(table(kk$HAS_PRIMARY_HF,kk$HAS_ALERT))
@@ -328,18 +408,112 @@ prop_tab %>%
   kable_styling(position = "center",full_width = FALSE)
 
 
+## ----alert-delta-plot,fig.cap="Distribution of time taken to register Advanced Care Directive since admission for the encounter."----
+primary_enc_alert <- primary_enc %>%
+  dplyr::left_join(known_to_hf,by="PERSON_ID") %>%
+  dplyr::mutate(ALERT_DELTA = difftime(BEG_EFFECTIVE_DT_TM,ARRIVE_DT_TM,units="days"))
+
+plot_histogram(primary_enc_alert,"ALERT_DELTA","Time taken for ACD to be registered since arrival",mean(primary_enc_alert$ALERT_DELTA,na.rm=TRUE)) + xlim(-100,100) + xlab("Time (days)")
+
+## -----------------------------------------------------------------------------
+n_1_alert <- primary_enc_alert %>%
+  dplyr::filter(ALERT_DELTA < 1) %>%
+  nrow()
+
+n_3_alert <- primary_enc_alert %>%
+  dplyr::filter(ALERT_DELTA < 3) %>%
+  nrow()
+
+n_alert <- primary_enc_alert %>%
+  dplyr::filter(!is.na(HAS_ALERT)) %>%
+  nrow()
+
 ## ----his-diag-plot, fig.cap="Distribution of historical diagnosis."-----------
 his_hf_diag <- diagnosis_history %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
                   PERSON_ID %in% primary_cohort$PERSON_ID)
 
-summary_his_diag <- extract_hf_diagnosis(his_hf_diag) %>%
+summary_his_diag <- his_hf_diag %>%
+  extract_hf_diagnosis(group_cols = "PERSON_ID") %>%
   dplyr::right_join(primary_cohort,by="PERSON_ID") %>%
   dplyr::select(-HAS_PRIMARY_HF) %>%
   replace(is.na(.),FALSE) %>%
     dplyr::mutate(`No His. HF ICD10` = !`Congestive heart failure` & !`Heart failure, unspecified`
                   & !`Left ventricular failure`)
 plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10")
+
+## -----------------------------------------------------------------------------
+extract_form <- function(df,string,prefix){
+  df %<>%
+  dplyr::filter(DESCRIPTION == string) %>%
+  dplyr::mutate(HAS_FORM = TRUE) %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::arrange(desc(FORM_DT_TM)) %>%
+  dplyr::slice(1) %>%
+  dplyr::select(PERSON_ID,ENCNTR_ID,HAS_FORM,PARENT_ENTITY_ID,FORM_DT_TM) %>%
+    dplyr::rename_with(.fn = ~ paste0(prefix,"_",.x))
+  
+  return(df)
+}
+  
+
+## ----form-plot,fig.cap = "Proportion of Patients with an enrolment or referral form."----
+
+
+
+
+form_primary_cohort <- primary_cohort %>%
+  dplyr::left_join(
+    extract_form(hf_form,'Heart Failure - Management of Cardiac Function Enrolment',"ENROLMENT"), by = c("PERSON_ID" = "ENROLMENT_PERSON_ID")
+  ) %>%
+  dplyr::left_join(
+    extract_form(hf_form,'Heart Failure (MACARF) Referral Form',"REFERRAL"), by = c("PERSON_ID" = "REFERRAL_PERSON_ID")
+  ) %>%
+  tidyr::replace_na(list(ENROLMENT_HAS_FORM = FALSE, REFERRAL_HAS_FORM = FALSE)) %>%
+  dplyr::mutate(NO_FORM = !ENROLMENT_HAS_FORM & !REFERRAL_HAS_FORM)
+
+form_primary_cohort %>%
+  dplyr::select(-HAS_PRIMARY_HF) %>%
+  plot_logical_columns("Form","Proportion with HF Form") +
+ labs(x="")
+
+## ----no-form-disch-plot,fig.cap="Distribution of mode of discharge for patients without either a referral nor enrolment form."----
+form_primary_cohort %>%
+  dplyr::filter(NO_FORM) %>%
+  dplyr::left_join(primary_enc,by="PERSON_ID") %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::summarise(
+    DISCH_MODE = dplyr::case_when(
+      any(DISCH_DISPOSITION_CD == 'Pt Death without Autopsy') ~ 'Death without Autopsy',
+      any(DISCH_DISPOSITION_CD == 'Discharge Own Risk') ~ 'Discharge Own Risk',
+      any(stringr::str_detect(DISCH_DISPOSITION_CD, "(?i)transfer")) ~ 'Transfer',
+      any(DISCH_DISPOSITION_CD == "Discharge by Hospital") ~ "Discharge by Hospital",
+    )
+  ) %>%
+  proportion_bar_plot("DISCH_MODE","Discharge mode for patients without forms") + xlab("")
+
+
+## -----------------------------------------------------------------------------
+primary_meds <- medication_order %>%
+  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID)
+primary_enc_meds <- primary_enc %>%
+  dplyr::mutate(HAS_DISCH_MED = ENCNTR_ID %in% primary_meds$ENCNTR_ID)
+
+
+## ----med-type-plot, fig.cap="The type of medication whether home or discharge medication."----
+p1 <- proportion_bar_plot(primary_meds,"ORIG_ORD_AS_FLAG","Type of discharge medication\n")
+p2 <- proportion_bar_plot(primary_enc_meds,"HAS_DISCH_MED","Encounters with Discharge Medications\n")
+
+ggpubr::ggarrange(p1,p2,ncol=2,nrow=1,labels=c("A","B"))
+
+## ----med-class-tab------------------------------------------------------------
+primary_meds %>%
+  dplyr::group_by(MEDICATION_CLASS) %>%
+  dplyr::summarise(N = dplyr::n_distinct(PERSON_ID)) %>% 
+  dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_meds$PERSON_ID)*100,1)) %>%
+  dplyr::arrange(desc(N)) %>% 
+  dplyr::top_n(15) %>%
+  knitr::kable(caption = "Top 15 discharge medication class.")
 
 ## -----------------------------------------------------------------------------
 
@@ -430,59 +604,6 @@ p2
 p3
 
 ## -----------------------------------------------------------------------------
-extract_form <- function(df,string,prefix){
-  df %<>%
-  dplyr::filter(DESCRIPTION == string) %>%
-  dplyr::mutate(HAS_FORM = TRUE) %>%
-  dplyr::group_by(PERSON_ID) %>%
-  dplyr::arrange(desc(FORM_DT_TM)) %>%
-  dplyr::slice(1) %>%
-  dplyr::select(PERSON_ID,ENCNTR_ID,HAS_FORM,PARENT_ENTITY_ID,FORM_DT_TM) %>%
-    dplyr::rename_with(.fn = ~ paste0(prefix,"_",.x))
-  
-  return(df)
-}
-  
-
-## ----form-plot,fig.cap = "Proportion of Patients with an enrolment or referral form."----
-
-hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = 'Heart Failure (MACARF) Referral Form' or DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
-
-
-form_primary_cohort <- primary_cohort %>%
-  dplyr::left_join(
-    extract_form(hf_form,'Heart Failure - Management of Cardiac Function Enrolment',"ENROLMENT"), by = c("PERSON_ID" = "ENROLMENT_PERSON_ID")
-  ) %>%
-  dplyr::left_join(
-    extract_form(hf_form,'Heart Failure (MACARF) Referral Form',"REFERRAL"), by = c("PERSON_ID" = "REFERRAL_PERSON_ID")
-  ) %>%
-  tidyr::replace_na(list(ENROLMENT_HAS_FORM = FALSE, REFERRAL_HAS_FORM = FALSE))
-
-plot_logical_columns(form_primary_cohort %>% dplyr::select(-HAS_PRIMARY_HF),"Form","Proportion with HF Form")
-
-## -----------------------------------------------------------------------------
-primary_meds <- medication_order %>%
-  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID)
-primary_enc_meds <- primary_enc %>%
-  dplyr::mutate(HAS_DISCH_MED = ENCNTR_ID %in% primary_meds$ENCNTR_ID)
-
-
-## ----med-type-plot, fig.cap="The type of medication whether home or discharge medication."----
-p1 <- proportion_bar_plot(primary_meds,"ORIG_ORD_AS_FLAG","Type of discharge medication\n")
-p2 <- proportion_bar_plot(primary_enc_meds,"HAS_DISCH_MED","Encounters with Discharge Medications\n")
-
-ggpubr::ggarrange(p1,p2,ncol=2,nrow=1,labels=c("A","B"))
-
-## ----med-class-tab------------------------------------------------------------
-primary_meds %>%
-  dplyr::group_by(MEDICATION_CLASS) %>%
-  dplyr::summarise(N = dplyr::n_distinct(PERSON_ID)) %>% 
-  dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_meds$PERSON_ID)*100,1)) %>%
-  dplyr::arrange(desc(N)) %>% 
-  dplyr::top_n(15) %>%
-  knitr::kable(caption = "Top 15 discharge medication class.")
-
-## -----------------------------------------------------------------------------
 primary_cohort <- cohort %>%
   dplyr::filter(PERSON_ID %in% qual_enc$PERSON_ID) %>%
   dplyr::mutate(HAS_PRIMARY_HF = TRUE)
@@ -554,7 +675,8 @@ his_hf_diag <- diagnosis_history %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
                   PERSON_ID %in% primary_cohort$PERSON_ID)
 
-summary_his_diag <- extract_hf_diagnosis(his_hf_diag) %>%
+summary_his_diag <- his_hf_diag %>%
+  extract_hf_diagnosis(group_cols = "PERSON_ID") %>%
   dplyr::right_join(primary_cohort,by="PERSON_ID") %>%
   dplyr::select(-HAS_PRIMARY_HF) %>%
   replace(is.na(.),FALSE) %>%
