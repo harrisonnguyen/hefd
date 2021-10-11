@@ -206,7 +206,7 @@ time_period <- round(difftime(max(qual_enc$DISCH_DT_TM,na.rm = TRUE), min(qual_e
 
 # Introduction
 
-This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus, in a **`r time_period`** year period, there are **`r nrow(qual_enc)`** encounters with unique **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and  type of  Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters types where the majority of encounters are **inpatient** encounters. 
+This document will investigate encounters that have been coded with a heart failure-related ICD10 code (I150; primary or secondary) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus, in a **`r time_period`** year period, there are **`r nrow(qual_enc)`** encounters with unique **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and  Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters type where the majority of encounters are **inpatient** encounters. 
 
 The analysis of this cohort will be used to examine: 
 
@@ -299,7 +299,7 @@ hf_diag_secondary_count <- hf_diag_secondary %>%
   dplyr::filter(N > 1)
 ```  
 
-Figure \@ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnosis, (n = **`r nrow(hf_diag_primary_count)`**) and similarly with secondary diagnosis (n = **`r nrow(hf_diag_secondary_count)`**). 
+Figure \@ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnoses, (n = **`r nrow(hf_diag_primary_count)`**) and similarly with secondary diagnosis (n = **`r nrow(hf_diag_secondary_count)`**). 
 
 
 For the given diagnosis, **congestive heart failure** is most prevalent, followed by **left ventricular failure** then **heart failure, unspecified**.
@@ -344,11 +344,11 @@ prim_sec_merge <- primary_temp %>%
 diag_tab <- prop.table(table(prim_sec_merge$PRIMARY_DIAG,prim_sec_merge$SECONDARY_DIAG))
 ```
 
-An encounter can also be associated with both a primary and secondary heart failure ICD10, where **`r round(nrow(prim_sec_merge)/nrow(combined_temp)*100,1)`**\% (**`r nrow(prim_sec_merge)`**/**`r nrow(combined_temp)`**) of encounters have both a  primary and secondary heart failure ICD10 diagnosis . Table \@ref(tab:primary-sec-hf-diag) shows the encounters with both a primary and secondary HF diagnosis (n = **`r nrow(prim_sec_merge)`**) and the proportion of this selection with different combinations of primary and secondary diagnosis. For example, **`r round(diag_tab[1,1]*100,1)`**\% of these encounters have both a primary and secondary diagnosis of **congestive heart failure**.
+An encounter can also be associated with both a primary and secondary heart failure ICD10, where **`r round(nrow(prim_sec_merge)/nrow(combined_temp)*100,1)`**\% (**`r nrow(prim_sec_merge)`**/**`r nrow(combined_temp)`**) of encounters have both a  primary and secondary heart failure ICD10 diagnosis . Table \@ref(tab:primary-sec-hf-diag) shows the encounters with both a primary and secondary HF diagnosis (n = **`r nrow(prim_sec_merge)`**) and the proportion of this selection with different combinations of primary and secondary diagnosis. For example, **`r round(diag_tab[1,1]*100,1)`**\% of these encounters have both a primary and secondary diagnosis of **congestive heart failure**. This is explained by coding occurring at the episode level and encounters may have >1 episode.
 
 ```{r primary-sec-hf-diag}
 diag_tab %>% 
-  knitr::kable(caption = "Contigency table of Primary and Secondary HF Diagnosis.",digits=2) %>%
+  knitr::kable(caption = "Contingency table of Primary and Secondary HF Diagnosis.",digits=2) %>%
   kableExtra::add_header_above(c("Primary ICD10"=1,"Secondary ICD10"=3))%>%
   kable_styling(position = "center",full_width = FALSE)
 ```
@@ -409,7 +409,7 @@ primary_enc <- encounter %>%
 
 The cohort that will be analysed for the rest of this document are those encounters with a primary heart failure diagnosis. 
 
-# Demographics
+# Demographics in patients with encounters containing a primary HF ICD10 code
 
 With these selection and exclusion criteria, the cohort for this analysis will include  **`r nrow(hf_diag_primary)`** number of encounters for **`r nrow(primary_cohort)`** unique patients with the following demographics.
 
@@ -597,7 +597,9 @@ form_primary_cohort %>%
  labs(x="")
 ```
 
-Figure \@ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR. Figure \@ref(fig:no-form-disch-plot) shows the discharge modes for patients without either a referral nor an enrolment form (n = **`r sum(form_primary_cohort$NO_FORM)`**).
+Figure \@ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR. 
+
+Figure \@ref(fig:no-form-disch-plot) shows the discharge modes for patients without either a referral nor an enrolment form (n = **`r sum(form_primary_cohort$NO_FORM)`**).
 
 ```{r no-form-disch-plot,fig.cap="Distribution of mode of discharge for patients without either a referral nor enrolment form."}
 form_primary_cohort %>%
