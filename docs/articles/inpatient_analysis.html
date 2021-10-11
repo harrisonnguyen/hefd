@@ -75,7 +75,7 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Heart Failure Inpatient Analysis</h1>
-                        <h4 class="author">Harrison Nguyen</h4>
+                        <h4 class="author">Harrison Nguyen and Charmaine Tam</h4>
             
             <h4 class="date">10/11/2021</h4>
       
@@ -98,24 +98,38 @@
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">hefd</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">proportion_bar_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">column</span>,<span class="va">title</span><span class="op">)</span><span class="op">{</span>
+<code class="sourceCode R"><span class="va">proportion_bar_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">column</span>,<span class="va">title</span>,<span class="va">n_suffix</span> <span class="op">=</span> <span class="cn">NULL</span>,<span class="va">vjust</span><span class="op">=</span><span class="op">-</span><span class="fl">0.25</span><span class="op">)</span><span class="op">{</span>
+  <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">n_suffix</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span> 
+  <span class="op">}</span>
+  <span class="kw">else</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">" "</span>,<span class="va">n_suffix</span>, <span class="st">")"</span><span class="op">)</span>
+  <span class="op">}</span>
+  
   <span class="va">plot</span><span class="op">&lt;-</span> <span class="va">df</span> <span class="op">%&gt;%</span>
      <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">.</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">column</span><span class="op">)</span>,fill<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">column</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">..count..</span><span class="op">)</span>,stat<span class="op">=</span><span class="st">"count"</span>,alpha<span class="op">=</span><span class="fl">0.5</span>,show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="va">title</span><span class="op">)</span> <span class="op">+</span> 
     <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Count"</span><span class="op">)</span> <span class="op">+</span> 
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (n = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="va">title</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span><span class="op">(</span>
        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="op">(</span><span class="va">..count..</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/pkg/acs/man/sum-methods.html">sum</a></span><span class="op">(</span><span class="va">..count..</span><span class="op">)</span><span class="op">*</span><span class="fl">100</span>,<span class="fl">0</span><span class="op">)</span>,<span class="st">"%"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span>,y<span class="op">=</span> <span class="va">..count..</span><span class="op">)</span>,
        stat<span class="op">=</span><span class="st">'count'</span>,
-       vjust<span class="op">=</span><span class="op">-</span><span class="fl">0.25</span>
+       vjust<span class="op">=</span><span class="va">vjust</span>
    <span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span>
+  
   
   <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span>
 <span class="op">}</span>
 
-<span class="va">conditional_bar_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">var1</span>,<span class="va">var2</span>,<span class="va">title</span><span class="op">)</span><span class="op">{</span>
+<span class="va">conditional_bar_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">var1</span>,<span class="va">var2</span>,<span class="va">title</span>,<span class="va">n_suffix</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">{</span>
+  <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">n_suffix</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span> 
+  <span class="op">}</span>
+  <span class="kw">else</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">" "</span>,<span class="va">n_suffix</span>, <span class="st">")"</span><span class="op">)</span>
+  <span class="op">}</span>
   
   <span class="va">var1</span><span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">var1</span><span class="op">)</span>
   <span class="va">var2</span><span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">var2</span><span class="op">)</span>
@@ -126,14 +140,21 @@
   <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">.</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var1</span>,y<span class="op">=</span><span class="va">n</span>,fill<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>stat<span class="op">=</span><span class="st">"identity"</span>,position<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html">position_dodge</a></span><span class="op">(</span><span class="fl">0.7</span><span class="op">)</span>,width<span class="op">=</span><span class="fl">0.7</span>,alpha<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label<span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">prop</span>,<span class="fl">0</span><span class="op">)</span>,<span class="st">"%"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span>,y<span class="op">=</span><span class="va">n</span><span class="op">)</span>,position<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html">position_dodge</a></span><span class="op">(</span><span class="fl">0.7</span><span class="op">)</span>,vjust<span class="op">=</span><span class="op">-</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="va">title</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html">scale_fill_discrete</a></span><span class="op">(</span>name <span class="op">=</span> <span class="va">var2</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span>
   
   <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span>
 <span class="op">}</span>
 
-<span class="va">plot_histogram</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">column</span>, <span class="va">title</span>,<span class="va">threshold</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">{</span>
+<span class="va">plot_histogram</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">column</span>, <span class="va">title</span>,<span class="va">threshold</span> <span class="op">=</span> <span class="cn">NULL</span>,<span class="va">n_suffix</span><span class="op">=</span><span class="cn">NULL</span><span class="op">)</span><span class="op">{</span>
+  <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">n_suffix</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span> 
+  <span class="op">}</span>
+  <span class="kw">else</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">" "</span>,<span class="va">n_suffix</span>, <span class="st">")"</span><span class="op">)</span>
+  <span class="op">}</span>
+  
   <span class="va">var1</span><span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">column</span><span class="op">)</span>
 
   <span class="va">df</span> <span class="op">%&lt;&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">var1</span><span class="op">)</span><span class="op">)</span>
@@ -142,7 +163,7 @@
   <span class="va">plot</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op">%&gt;%</span>
   <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">.</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var1</span>,fill<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>fill<span class="op">=</span><span class="st">"lightblue"</span>,alpha<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="va">title</span><span class="op">)</span><span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/breaks_pretty.html">pretty_breaks</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">stat_bin</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y<span class="op">=</span><span class="va">..count..</span>, label<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">..count..</span><span class="op">==</span><span class="fl">0</span>,<span class="st">""</span>,<span class="va">..count..</span><span class="op">)</span><span class="op">)</span>, geom<span class="op">=</span><span class="st">"text"</span>, vjust<span class="op">=</span><span class="op">-</span><span class="fl">.5</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span>
@@ -157,7 +178,15 @@
   <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span>
 <span class="op">}</span>
 
-<span class="va">plot_histogram_group</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">var1</span>,<span class="va">var2</span>,<span class="va">title</span><span class="op">)</span><span class="op">{</span>
+<span class="va">plot_histogram_group</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">var1</span>,<span class="va">var2</span>,<span class="va">title</span>,<span class="va">n_suffix</span><span class="op">)</span><span class="op">{</span>
+  
+  <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">n_suffix</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span> 
+  <span class="op">}</span>
+  <span class="kw">else</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">" "</span>,<span class="va">n_suffix</span>, <span class="st">")"</span><span class="op">)</span>
+  <span class="op">}</span>
+  
   <span class="va">var1</span><span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">var1</span><span class="op">)</span>
   <span class="va">var2</span><span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">var2</span><span class="op">)</span>
 
@@ -169,7 +198,7 @@
   <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">.</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var1</span>,fill<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var2</span>,color<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y<span class="op">=</span><span class="va">..density..</span><span class="op">)</span>,alpha<span class="op">=</span><span class="fl">0.5</span>, position<span class="op">=</span><span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html">geom_density</a></span><span class="op">(</span>alpha<span class="op">=</span><span class="fl">0.3</span><span class="op">)</span><span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="va">title</span><span class="op">)</span><span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/breaks_pretty.html">pretty_breaks</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span>
     
@@ -177,7 +206,14 @@
   <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span>
 <span class="op">}</span>
 
-<span class="va">plot_logical_columns</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">var1</span>,<span class="va">title</span><span class="op">)</span><span class="op">{</span>
+<span class="va">plot_logical_columns</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">var1</span>,<span class="va">title</span>,<span class="va">n_suffix</span><span class="op">=</span><span class="cn">NULL</span><span class="op">)</span><span class="op">{</span>
+  <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">n_suffix</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span> 
+  <span class="op">}</span>
+  <span class="kw">else</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">" "</span>,<span class="va">n_suffix</span>, <span class="st">")"</span><span class="op">)</span>
+  <span class="op">}</span>
+  
   <span class="va">var1</span><span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">var1</span><span class="op">)</span>
   
   <span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op">%&gt;%</span> 
@@ -189,12 +225,19 @@
        <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">.</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var1</span>,y<span class="op">=</span><span class="va">N</span>,fill<span class="op">=</span><span class="op">!</span><span class="op">!</span><span class="va">var1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
       <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>position<span class="op">=</span><span class="st">"dodge"</span>, stat<span class="op">=</span><span class="st">"identity"</span>,show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label<span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">prop</span>,<span class="fl">0</span><span class="op">)</span>,<span class="st">"%"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span>,y<span class="op">=</span><span class="va">N</span><span class="op">)</span>,vjust<span class="op">=</span><span class="op">-</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span> 
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span><span class="op">)</span>
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="va">title</span><span class="op">)</span>
   
   <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">plot_pie_chart</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">var1</span>,<span class="va">title</span><span class="op">)</span><span class="op">{</span>
+<code class="sourceCode R"><span class="va">plot_pie_chart</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">var1</span>,<span class="va">title</span>,<span class="va">n_suffix</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">{</span>
+  <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">n_suffix</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span> 
+  <span class="op">}</span>
+  <span class="kw">else</span><span class="op">{</span>
+    <span class="va">title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">" "</span>,<span class="va">n_suffix</span>, <span class="st">")"</span><span class="op">)</span>
+  <span class="op">}</span>
+  
   <span class="va">var1</span><span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html">sym</a></span><span class="op">(</span><span class="va">var1</span><span class="op">)</span>
   <span class="va">df</span> <span class="op">%&lt;&gt;%</span> 
     <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">var1</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -210,7 +253,7 @@
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">labels</span><span class="op">)</span>,
               position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_stack.html">position_stack</a></span><span class="op">(</span>vjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_polar.html">coord_polar</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span>
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">title</span>, <span class="st">" (N = "</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>, <span class="st">")"</span><span class="op">)</span><span class="op">)</span>
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y<span class="op">=</span><span class="st">"Count"</span>,x<span class="op">=</span><span class="va">var1</span>, title <span class="op">=</span> <span class="va">title</span><span class="op">)</span>
     
   <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
@@ -244,7 +287,7 @@
 <div id="introduction" class="section level1">
 <h1 class="hasAnchor">
 <a href="#introduction" class="anchor"></a>Introduction</h1>
-<p>This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at <strong>Royal North Shore</strong> Hospital with discharge dates between <strong>2019-01-01</strong> to <strong>2021-07-31</strong>. Thus, in a <strong>2.6</strong> year period, there are <strong>3538</strong> encounters with unique <strong>2654</strong> patients. Figure @ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and type of Figure @ref(fig:encntr-type-plot) shows the distribution of encounters types where the majority of encounters are <strong>inpatient</strong> encounters.</p>
+<p>This document will investigate encounters that have been coded with a heart failure-related ICD10 code (I150; primary or secondary) at <strong>Royal North Shore</strong> Hospital with discharge dates between <strong>2019-01-01</strong> to <strong>2021-07-31</strong>. Thus, in a <strong>2.6</strong> year period, there are <strong>3538</strong> encounters with unique <strong>2654</strong> patients. Figure @ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and Figure @ref(fig:encntr-type-plot) shows the distribution of encounters type where the majority of encounters are <strong>inpatient</strong> encounters.</p>
 <p>The analysis of this cohort will be used to examine:</p>
 <ol style="list-style-type: decimal">
 <li>Demographics and characteristics</li>
@@ -278,14 +321,14 @@
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">PERSON_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
 
-<span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">counts</span>,<span class="st">"N"</span>, <span class="st">"Number of encounters per patient"</span><span class="op">)</span></code></pre></div>
+<span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">counts</span>,<span class="st">"N"</span>, <span class="st">"Number of encounters per patient"</span>,n_suffix<span class="op">=</span><span class="st">"patients"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/dist-enc-plot-1.png" alt="Distribution of the number of encounters for each patient." width="700"><p class="caption">
 Distribution of the number of encounters for each patient.
 </p>
 </div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">qual_enc</span>,<span class="st">"ENCNTR_TYPE_CD"</span>,<span class="st">"Distribution of Encounter Type."</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">qual_enc</span>,<span class="st">"ENCNTR_TYPE_CD"</span>,<span class="st">"Distribution of Encounter Type"</span>,n_suffix <span class="op">=</span> <span class="st">"encounters"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/encntr-type-plot-1.png" alt="Distribution of Encounter Type." width="700"><p class="caption">
 Distribution of Encounter Type.
@@ -338,20 +381,20 @@ Distribution of Encounter Type.
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">N</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>
-<p>Figure @ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnosis, (n = <strong>59</strong>) and similarly with secondary diagnosis (n = <strong>233</strong>).</p>
+<p>Figure @ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnoses, (n = <strong>59</strong>) and similarly with secondary diagnosis (n = <strong>233</strong>).</p>
 <p>For the given diagnosis, <strong>congestive heart failure</strong> is most prevalent, followed by <strong>left ventricular failure</strong> then <strong>heart failure, unspecified</strong>.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">primary_temp</span>,<span class="st">"ICD10"</span>,<span class="st">"Primary HF ICD10"</span><span class="op">)</span> <span class="op">+</span> 
+<code class="sourceCode R"><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">primary_temp</span>,<span class="st">"ICD10"</span>,<span class="st">"Primary HF ICD10"</span>,n_suffix<span class="op">=</span><span class="st">"patients"</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_discrete.html">scale_x_discrete</a></span><span class="op">(</span>guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_axis.html">guide_axis</a></span><span class="op">(</span>n.dodge<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1400</span><span class="op">)</span>
+  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2000</span><span class="op">)</span>
 
-<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">secondary_temp</span>,<span class="st">"ICD10"</span>,<span class="st">"Secondary HF ICD10"</span><span class="op">)</span> <span class="op">+</span> 
+<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">secondary_temp</span>,<span class="st">"ICD10"</span>,<span class="st">"Secondary HF ICD10"</span>,n_suffix<span class="op">=</span><span class="st">"patients"</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_discrete.html">scale_x_discrete</a></span><span class="op">(</span>guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_axis.html">guide_axis</a></span><span class="op">(</span>n.dodge<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> 
-  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2600</span><span class="op">)</span>
+  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">3500</span><span class="op">)</span>
 
-<span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">combined_temp</span>,<span class="st">"ICD10"</span>,<span class="st">"Combined Primary &amp; Secondary HF ICD10"</span><span class="op">)</span> <span class="op">+</span> 
+<span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">combined_temp</span>,<span class="st">"ICD10"</span>,<span class="st">"Combined Primary &amp; Secondary HF ICD10"</span>,n_suffix<span class="op">=</span><span class="st">"patients"</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_discrete.html">scale_x_discrete</a></span><span class="op">(</span>guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_axis.html">guide_axis</a></span><span class="op">(</span>n.dodge<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> 
-  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">4500</span><span class="op">)</span>
+  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5000</span><span class="op">)</span>
 
 <span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>,<span class="va">p2</span>,<span class="va">p3</span>,labels<span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>,<span class="st">"B"</span>,<span class="st">"C"</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
 <div class="figure">
@@ -377,15 +420,17 @@ Distribution of primary and secondary ICD10 diagnosis.
                 <span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">diag_tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/prop.table.html">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">prim_sec_merge</span><span class="op">$</span><span class="va">PRIMARY_DIAG</span>,<span class="va">prim_sec_merge</span><span class="op">$</span><span class="va">SECONDARY_DIAG</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p>An encounter can also be associated with both a primary and secondary heart failure ICD10, where <strong>2.3</strong>% (<strong>82</strong>/<strong>3538</strong>) of encounters have both a primary and secondary heart failure ICD10 diagnosis . Table @ref(tab:primary-sec-hf-diag) shows the encounters with both a primary and secondary HF diagnosis (n = <strong>82</strong>) and the proportion of this selection with different combinations of primary and secondary diagnosis. For example, <strong>80.5</strong>% of these encounters have both a primary and secondary diagnosis of <strong>congestive heart failure</strong>.</p>
+<p>An encounter can also be associated with both a primary and secondary heart failure ICD10, where <strong>2.3</strong>% (<strong>82</strong>/<strong>3538</strong>) of encounters have both a primary and secondary heart failure ICD10 diagnosis . Table @ref(tab:primary-sec-hf-diag) shows the encounters with both a primary and secondary HF diagnosis (n = <strong>82</strong>) and the proportion of this selection with different combinations of primary and secondary diagnosis. For example, <strong>80.5</strong>% of these encounters have both a primary and secondary diagnosis of <strong>congestive heart failure</strong>. This is explained by coding occurring at the episode level and encounters may have &gt;1 episode.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">diag_tab</span> <span class="op">%&gt;%</span> 
-  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">"Contigency table of Primary and Secondary HF Diagnosis."</span>,digits<span class="op">=</span><span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<code class="sourceCode R"><span class="va">tab_caption</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Contingency table of Primary and Secondary HF Diagnosis (N = "</span>,
+                      <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">prim_sec_merge</span><span class="op">)</span>,<span class="st">"/"</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">combined_temp</span><span class="op">)</span>,<span class="st">")"</span><span class="op">)</span>
+<span class="va">diag_tab</span> <span class="op">%&gt;%</span> 
+  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="va">tab_caption</span>,digits<span class="op">=</span><span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">kableExtra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/add_header_above.html">add_header_above</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Primary ICD10"</span><span class="op">=</span><span class="fl">1</span>,<span class="st">"Secondary ICD10"</span><span class="op">=</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html">kable_styling</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"center"</span>,full_width <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
 <table class="table table">
 <caption>
-Contigency table of Primary and Secondary HF Diagnosis.
+Contingency table of Primary and Secondary HF Diagnosis (N = 82/3538)
 </caption>
 <thead>
 <tr>
@@ -463,7 +508,7 @@ Left ventricular failure
 <code class="sourceCode R"><span class="va">only_secondary</span> <span class="op">&lt;-</span> <span class="va">secondary_temp</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">ENCNTR_ID</span> <span class="op">%in%</span> <span class="va">primary_temp</span><span class="op">$</span><span class="va">ENCNTR_ID</span><span class="op">)</span>
 <span class="va">n_only_prim</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">only_secondary</span><span class="op">)</span></code></pre></div>
-<p>Table @(tab:primary-diag-secondary-hf-tab) shows the primary diagnosis of those encounters with <strong>ONLY</strong> secondary heart failure diagnosis (n = <strong>2290</strong>). The data shows that these encounters are also commonly associated with <strong>pneumonia</strong>, as well as some other heart related issue such as <strong>atrial fibrillation</strong> or a <strong>myocardial infarction</strong>.</p>
+<p>Table @ref(tab:prim-sec-tab) shows the primary diagnosis of those encounters with <strong>ONLY</strong> secondary heart failure diagnosis (n = <strong>2290</strong>). The data shows that these encounters are also commonly associated with <strong>pneumonia</strong>, as well as some other heart related issue such as <strong>atrial fibrillation</strong> or a <strong>myocardial infarction</strong>.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">primary_diag_of_secondary</span> <span class="op">&lt;-</span> <span class="va">diagnosis</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">SOURCE_IDENTIFIER</span>,<span class="st">"(?i)I50"</span><span class="op">)</span> <span class="op">&amp;</span> 
@@ -471,16 +516,23 @@ Left ventricular failure
                   <span class="va">DIAG_PRIORITY</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span>
                   <span class="va">SOURCE_VOCABULARY_CD</span> <span class="op">==</span> <span class="st">"ICD10-AM"</span><span class="op">)</span> 
 
-<span class="va">primary_diag_of_secondary</span> <span class="op">%&gt;%</span>
+<span class="va">tab_cap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span>
+  <span class="st">"Top 15 primary diagnosis for those with only a secondary heart failure diagnosis (N ="</span>,
+  <span class="va">n_only_prim</span>,
+  <span class="st">"encounters)."</span>,
+  sep<span class="op">=</span><span class="st">" "</span>
+<span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">primary_diag_of_secondary</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">SOURCE_STRING</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html">n_distinct</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>prop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">N</span><span class="op">/</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html">n_distinct</a></span><span class="op">(</span><span class="va">primary_diag_of_secondary</span><span class="op">$</span><span class="va">PERSON_ID</span><span class="op">)</span><span class="op">*</span><span class="fl">100</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/top_n.html">top_n</a></span><span class="op">(</span><span class="fl">15</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">"Top 15 primary diagnosis for those with only a secondary heart failure diagnosis."</span><span class="op">)</span></code></pre></div>
+  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="va">tab_cap</span><span class="op">)</span></code></pre></div>
 <table class="table">
 <caption>
-Top 15 primary diagnosis for those with only a secondary heart failure diagnosis.
+Top 15 primary diagnosis for those with only a secondary heart failure diagnosis (N = 2290 encounters).
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -661,7 +713,7 @@ Person awaiting admission to other health care facility
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">primary_cohort</span> <span class="op">&lt;-</span> <span class="va">cohort</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">PERSON_ID</span> <span class="op">%in%</span> <span class="va">hf_diag_primary</span><span class="op">$</span><span class="va">PERSON_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>HAS_PRIMARY_HF <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
@@ -687,11 +739,11 @@ Person awaiting admission to other health care facility
 <p>The cohort that will be analysed for the rest of this document are those encounters with a primary heart failure diagnosis.</p>
 </div>
 </div>
-<div id="demographics" class="section level1">
+<div id="demographics-in-patients-with-encounters-containing-a-primary-hf-icd10-code" class="section level1">
 <h1 class="hasAnchor">
-<a href="#demographics" class="anchor"></a>Demographics</h1>
+<a href="#demographics-in-patients-with-encounters-containing-a-primary-hf-icd10-code" class="anchor"></a>Demographics in patients with encounters containing a primary HF ICD10 code</h1>
 <p>With these selection and exclusion criteria, the cohort for this analysis will include <strong>1310</strong> number of encounters for <strong>952</strong> unique patients with the following demographics.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">primary_demo</span> <span class="op">&lt;-</span> <span class="va">primary_enc</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">PERSON_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">AGE</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -718,7 +770,7 @@ Person awaiting admission to other health care facility
   <span class="fu"><a href="https://davidgohel.github.io/flextable/reference/set_header_labels.html">set_header_labels</a></span><span class="op">(</span>Group <span class="op">=</span> <span class="st">""</span>, p_Female <span class="op">=</span> <span class="st">"%"</span>, p_Male <span class="op">=</span> <span class="st">"%"</span>, N_Total <span class="op">=</span> <span class="st">"n"</span>,
                     Age_Female <span class="op">=</span> <span class="st">"Age (F)"</span>, Age_Male <span class="op">=</span> <span class="st">"Age (M)"</span>, Age_Total <span class="op">=</span> <span class="st">"Mean Age"</span><span class="op">)</span>
 <span class="va">total</span></code></pre></div>
-<template id="b6cce3ae-6caa-40c1-946b-18cc6d8bbd32"><style>
+<template id="73de183c-89c0-4311-a2cb-7defef365010"><style>
 .tabwid table{
   border-spacing:0px !important;
   border-collapse:collapse;
@@ -754,33 +806,33 @@ background-color: transparent;
 }
 </style>
 <div class="tabwid">
-<style>.cl-42bb3c38{}.cl-42b1ed54{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-42b21450{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-42b23b60{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-42b23b61{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
-<table class="table cl-42bb3c38">
+<style>.cl-858a6f2a{}.cl-85805cce{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-858083e8{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-8580d208{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-8580d209{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
+<table class="table cl-858a6f2a">
 <thead><tr style="overflow-wrap:break-word;">
-<td class="cl-42b23b61"><p class="cl-42b21450"><span class="cl-42b1ed54">Females</span></p></td>
-<td class="cl-42b23b61"><p class="cl-42b21450"><span class="cl-42b1ed54">%</span></p></td>
-<td class="cl-42b23b61"><p class="cl-42b21450"><span class="cl-42b1ed54">Males</span></p></td>
-<td class="cl-42b23b61"><p class="cl-42b21450"><span class="cl-42b1ed54">%</span></p></td>
-<td class="cl-42b23b61"><p class="cl-42b21450"><span class="cl-42b1ed54">n</span></p></td>
-<td class="cl-42b23b61"><p class="cl-42b21450"><span class="cl-42b1ed54">Age (F)</span></p></td>
-<td class="cl-42b23b61"><p class="cl-42b21450"><span class="cl-42b1ed54">Age (M)</span></p></td>
-<td class="cl-42b23b61"><p class="cl-42b21450"><span class="cl-42b1ed54">Mean Age</span></p></td>
+<td class="cl-8580d209"><p class="cl-858083e8"><span class="cl-85805cce">Females</span></p></td>
+<td class="cl-8580d209"><p class="cl-858083e8"><span class="cl-85805cce">%</span></p></td>
+<td class="cl-8580d209"><p class="cl-858083e8"><span class="cl-85805cce">Males</span></p></td>
+<td class="cl-8580d209"><p class="cl-858083e8"><span class="cl-85805cce">%</span></p></td>
+<td class="cl-8580d209"><p class="cl-858083e8"><span class="cl-85805cce">n</span></p></td>
+<td class="cl-8580d209"><p class="cl-858083e8"><span class="cl-85805cce">Age (F)</span></p></td>
+<td class="cl-8580d209"><p class="cl-858083e8"><span class="cl-85805cce">Age (M)</span></p></td>
+<td class="cl-8580d209"><p class="cl-858083e8"><span class="cl-85805cce">Mean Age</span></p></td>
 </tr></thead>
 <tbody><tr style="overflow-wrap:break-word;">
-<td class="cl-42b23b60"><p class="cl-42b21450"><span class="cl-42b1ed54">444</span></p></td>
-<td class="cl-42b23b60"><p class="cl-42b21450"><span class="cl-42b1ed54">46.6</span></p></td>
-<td class="cl-42b23b60"><p class="cl-42b21450"><span class="cl-42b1ed54">508</span></p></td>
-<td class="cl-42b23b60"><p class="cl-42b21450"><span class="cl-42b1ed54">53.4</span></p></td>
-<td class="cl-42b23b60"><p class="cl-42b21450"><span class="cl-42b1ed54">952</span></p></td>
-<td class="cl-42b23b60"><p class="cl-42b21450"><span class="cl-42b1ed54">83</span></p></td>
-<td class="cl-42b23b60"><p class="cl-42b21450"><span class="cl-42b1ed54">80</span></p></td>
-<td class="cl-42b23b60"><p class="cl-42b21450"><span class="cl-42b1ed54">81</span></p></td>
+<td class="cl-8580d208"><p class="cl-858083e8"><span class="cl-85805cce">444</span></p></td>
+<td class="cl-8580d208"><p class="cl-858083e8"><span class="cl-85805cce">46.6</span></p></td>
+<td class="cl-8580d208"><p class="cl-858083e8"><span class="cl-85805cce">508</span></p></td>
+<td class="cl-8580d208"><p class="cl-858083e8"><span class="cl-85805cce">53.4</span></p></td>
+<td class="cl-8580d208"><p class="cl-858083e8"><span class="cl-85805cce">952</span></p></td>
+<td class="cl-8580d208"><p class="cl-858083e8"><span class="cl-85805cce">83</span></p></td>
+<td class="cl-8580d208"><p class="cl-858083e8"><span class="cl-85805cce">80</span></p></td>
+<td class="cl-8580d208"><p class="cl-858083e8"><span class="cl-85805cce">81</span></p></td>
 </tr></tbody>
 </table>
-</div></template><div class="flextable-shadow-host" id="e9841714-6927-4acb-b5bd-8ebba473afa3"></div>
+</div></template><div class="flextable-shadow-host" id="aca9f488-4dbc-4012-b24c-72865e930810"></div>
 <script>
-var dest = document.getElementById("e9841714-6927-4acb-b5bd-8ebba473afa3");
-var template = document.getElementById("b6cce3ae-6caa-40c1-946b-18cc6d8bbd32");
+var dest = document.getElementById("aca9f488-4dbc-4012-b24c-72865e930810");
+var template = document.getElementById("73de183c-89c0-4311-a2cb-7defef365010");
 var caption = template.content.querySelector("caption");
 if(caption) {
   caption.style.cssText = "display:block;text-align:center;";
@@ -792,8 +844,8 @@ var fantome = dest.attachShadow({mode: 'open'});
 var templateContent = template.content;
 fantome.appendChild(templateContent);
 </script><p>Figure @ref(fig:age-sex-plot) shows the distribution of sex according to age groups.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">conditional_bar_plot</span><span class="op">(</span><span class="va">primary_demo</span>,<span class="st">"AGE_BINNED"</span>,<span class="st">"SEX_CD"</span>, <span class="st">"Age and Sex"</span><span class="op">)</span> <span class="op">+</span>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">conditional_bar_plot</span><span class="op">(</span><span class="va">primary_demo</span>,<span class="st">"AGE_BINNED"</span>,<span class="st">"SEX_CD"</span>, <span class="st">"Age and Sex"</span>,n_suffix<span class="op">=</span><span class="st">"patients"</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html">scale_fill_discrete</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"SEX"</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"AGE"</span><span class="op">)</span></code></pre></div>
 <div class="figure">
@@ -802,10 +854,10 @@ Distribution of Sex conditioned on Age.
 </p>
 </div>
 <p>Figure @ref(fig:admit-disch-mode-plot) shows the distribution of admission and discharges modes for these encounters with a primary HF diagnosis. Arrival by <strong>State Ambulance Vehicle</strong> is the most prevalent mode of admission followed by <strong>Private Car</strong> then <strong>No transport</strong>. On the other hand, the top 3 discharge modes were, <strong>Discharge by hospital</strong>, followed by <strong>Transfer to Hospital in area/region</strong> then <strong>Pt death without autopsy</strong>.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"ADMIT_MODE_CD"</span>,<span class="st">"Distribution of Mode of Admission"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">800</span><span class="op">)</span> <span class="op">+</span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_discrete.html">scale_x_discrete</a></span><span class="op">(</span>guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_axis.html">guide_axis</a></span><span class="op">(</span>n.dodge<span class="op">=</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"ADMIT_MODE_CD"</span>,<span class="st">"Mode of Admission"</span>,n_suffix<span class="op">=</span><span class="st">"encounters"</span>,vjust<span class="op">=</span><span class="fl">0.25</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">800</span><span class="op">)</span> <span class="op">+</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html">coord_flip</a></span><span class="op">(</span><span class="op">)</span>
 
-<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"DISCH_DISPOSITION_CD"</span>,<span class="st">"Distribution of Mode of Separation"</span><span class="op">)</span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1100</span><span class="op">)</span> <span class="op">+</span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_discrete.html">scale_x_discrete</a></span><span class="op">(</span>guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_axis.html">guide_axis</a></span><span class="op">(</span>n.dodge<span class="op">=</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>
+<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"DISCH_DISPOSITION_CD"</span>,<span class="st">"Mode of Separation"</span>,n_suffix<span class="op">=</span><span class="st">"encounters"</span>,vjust<span class="op">=</span><span class="fl">0.25</span><span class="op">)</span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1100</span><span class="op">)</span> <span class="op">+</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html">coord_flip</a></span><span class="op">(</span><span class="op">)</span>
 
 
 <span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>,<span class="va">p2</span>,nrow<span class="op">=</span><span class="fl">2</span>,ncol <span class="op">=</span> <span class="fl">1</span>, labels<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>,<span class="st">"B"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
@@ -815,10 +867,10 @@ Admission and Discharge mode of encounters with primary HF diagnosis.
 </p>
 </div>
 <p>Figure @ref(fig:los-dis-plot)<strong>A</strong> shows the distribution of the length of stay (LOS) marked with the average LOS (<strong>7.9</strong> days) and Figure @ref(fig:los-dis-plot)<strong>B</strong> shows the distribution of LOS by diagnosis. Furthermore, Table @ref(tab:los-stat-tab) shows various statistics of the LOS by diagnosis. Encounters with either a missing admission or discharge date have been excluded.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">plot_histogram</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"LOS"</span>,<span class="st">"Distribution of LOS"</span>,<span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">primary_enc</span><span class="op">$</span><span class="va">LOS</span>,na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"LOS (days)"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">40</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">250</span><span class="op">)</span>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">plot_histogram</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"LOS"</span>,<span class="st">"Distribution of LOS"</span>,<span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">primary_enc</span><span class="op">$</span><span class="va">LOS</span>,na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>,n_suffix <span class="op">=</span> <span class="st">"encounters"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"LOS (days)"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">40</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">250</span><span class="op">)</span>
 
-<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">plot_histogram_group</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"LOS"</span>,<span class="st">"PRIMARY_DIAG"</span>,<span class="st">"Distribution of LOS by Diagnosis"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"LOS (days)"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">40</span><span class="op">)</span>
+<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">plot_histogram_group</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"LOS"</span>,<span class="st">"PRIMARY_DIAG"</span>,<span class="st">"Distribution of LOS by Diagnosis"</span>,n_suffix <span class="op">=</span> <span class="st">"encounters"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"LOS (days)"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">40</span><span class="op">)</span>
 
 <span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>,<span class="va">p2</span>,nrow<span class="op">=</span><span class="fl">2</span>,ncol <span class="op">=</span> <span class="fl">1</span>, labels<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>,<span class="st">"B"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <div class="figure">
@@ -826,7 +878,7 @@ Admission and Discharge mode of encounters with primary HF diagnosis.
 Distribution of Length of Stay
 </p>
 </div>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">primary_enc</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">primary_enc</span>, PRIMARY_DIAG <span class="op">=</span> <span class="st">"Total"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">LOS</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -839,7 +891,7 @@ Distribution of Length of Stay
                    N <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://davidgohel.github.io/flextable/reference/flextable.html">flextable</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://davidgohel.github.io/flextable/reference/set_caption.html">set_caption</a></span><span class="op">(</span><span class="st">"Statistics of LOS by HF diagnosis."</span><span class="op">)</span></code></pre></div>
-<template id="b4c9647c-2dc9-4001-b8db-0f3e68bae0e6"><style>
+<template id="894ef2be-00e7-4e6a-9e63-b39b187be388"><style>
 .tabwid table{
   border-spacing:0px !important;
   border-collapse:collapse;
@@ -875,61 +927,61 @@ background-color: transparent;
 }
 </style>
 <div class="tabwid">
-<style>.cl-448bb20e{}.cl-447fd7c2{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-447fd7c3{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-447fd7c4{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-448025e2{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-448025e3{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-448025e4{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-448025e5{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-448025e6{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-448025e7{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
-<table class="table cl-448bb20e">
+<style>.cl-875859ac{}.cl-874ee3ae{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-874f0ad2{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-874f0ad3{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-874f58d4{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-874f58d5{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-874f58d6{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-874f58d7{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-874f58d8{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-874f58d9{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
+<table class="table cl-875859ac">
 <caption class="Table Caption">Statistics of LOS by HF diagnosis.</caption>
 <thead><tr style="overflow-wrap:break-word;">
-<td class="cl-448025e7"><p class="cl-447fd7c3"><span class="cl-447fd7c2">PRIMARY_DIAG</span></p></td>
-<td class="cl-448025e6"><p class="cl-447fd7c4"><span class="cl-447fd7c2">MEAN</span></p></td>
-<td class="cl-448025e6"><p class="cl-447fd7c4"><span class="cl-447fd7c2">MAX</span></p></td>
-<td class="cl-448025e6"><p class="cl-447fd7c4"><span class="cl-447fd7c2">MIN</span></p></td>
-<td class="cl-448025e6"><p class="cl-447fd7c4"><span class="cl-447fd7c2">MEDIAN</span></p></td>
-<td class="cl-448025e6"><p class="cl-447fd7c4"><span class="cl-447fd7c2">STD</span></p></td>
-<td class="cl-448025e6"><p class="cl-447fd7c4"><span class="cl-447fd7c2">N</span></p></td>
+<td class="cl-874f58d9"><p class="cl-874f0ad2"><span class="cl-874ee3ae">PRIMARY_DIAG</span></p></td>
+<td class="cl-874f58d8"><p class="cl-874f0ad3"><span class="cl-874ee3ae">MEAN</span></p></td>
+<td class="cl-874f58d8"><p class="cl-874f0ad3"><span class="cl-874ee3ae">MAX</span></p></td>
+<td class="cl-874f58d8"><p class="cl-874f0ad3"><span class="cl-874ee3ae">MIN</span></p></td>
+<td class="cl-874f58d8"><p class="cl-874f0ad3"><span class="cl-874ee3ae">MEDIAN</span></p></td>
+<td class="cl-874f58d8"><p class="cl-874f0ad3"><span class="cl-874ee3ae">STD</span></p></td>
+<td class="cl-874f58d8"><p class="cl-874f0ad3"><span class="cl-874ee3ae">N</span></p></td>
 </tr></thead>
 <tbody>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-448025e3"><p class="cl-447fd7c3"><span class="cl-447fd7c2">Congestive heart failure</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">8.0</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">316.9</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">0.2</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">5.6</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">12.8</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">971</span></p></td>
+<td class="cl-874f58d5"><p class="cl-874f0ad2"><span class="cl-874ee3ae">Congestive heart failure</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">8.0</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">316.9</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">0.2</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">5.6</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">12.8</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">971</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-448025e3"><p class="cl-447fd7c3"><span class="cl-447fd7c2">Heart failure, unspecified</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">6.2</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">30.7</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">0.2</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">4.4</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">6.1</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">42</span></p></td>
+<td class="cl-874f58d5"><p class="cl-874f0ad2"><span class="cl-874ee3ae">Heart failure, unspecified</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">6.2</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">30.7</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">0.2</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">4.4</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">6.1</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">42</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-448025e3"><p class="cl-447fd7c3"><span class="cl-447fd7c2">Left ventricular failure</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">7.9</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">35.2</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">0.3</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">6.2</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">6.7</span></p></td>
-<td class="cl-448025e2"><p class="cl-447fd7c4"><span class="cl-447fd7c2">140</span></p></td>
+<td class="cl-874f58d5"><p class="cl-874f0ad2"><span class="cl-874ee3ae">Left ventricular failure</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">7.9</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">35.2</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">0.3</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">6.2</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">6.7</span></p></td>
+<td class="cl-874f58d4"><p class="cl-874f0ad3"><span class="cl-874ee3ae">140</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-448025e5"><p class="cl-447fd7c3"><span class="cl-447fd7c2">Total</span></p></td>
-<td class="cl-448025e4"><p class="cl-447fd7c4"><span class="cl-447fd7c2">7.9</span></p></td>
-<td class="cl-448025e4"><p class="cl-447fd7c4"><span class="cl-447fd7c2">316.9</span></p></td>
-<td class="cl-448025e4"><p class="cl-447fd7c4"><span class="cl-447fd7c2">0.2</span></p></td>
-<td class="cl-448025e4"><p class="cl-447fd7c4"><span class="cl-447fd7c2">5.6</span></p></td>
-<td class="cl-448025e4"><p class="cl-447fd7c4"><span class="cl-447fd7c2">12.1</span></p></td>
-<td class="cl-448025e4"><p class="cl-447fd7c4"><span class="cl-447fd7c2">1,153</span></p></td>
+<td class="cl-874f58d7"><p class="cl-874f0ad2"><span class="cl-874ee3ae">Total</span></p></td>
+<td class="cl-874f58d6"><p class="cl-874f0ad3"><span class="cl-874ee3ae">7.9</span></p></td>
+<td class="cl-874f58d6"><p class="cl-874f0ad3"><span class="cl-874ee3ae">316.9</span></p></td>
+<td class="cl-874f58d6"><p class="cl-874f0ad3"><span class="cl-874ee3ae">0.2</span></p></td>
+<td class="cl-874f58d6"><p class="cl-874f0ad3"><span class="cl-874ee3ae">5.6</span></p></td>
+<td class="cl-874f58d6"><p class="cl-874f0ad3"><span class="cl-874ee3ae">12.1</span></p></td>
+<td class="cl-874f58d6"><p class="cl-874f0ad3"><span class="cl-874ee3ae">1,153</span></p></td>
 </tr>
 </tbody>
 </table>
-</div></template><div class="flextable-shadow-host" id="a404818a-dab9-4cb0-a9eb-c55dd8f2b178"></div>
+</div></template><div class="flextable-shadow-host" id="73e29a33-8322-43b3-9b2e-a4ed0d395590"></div>
 <script>
-var dest = document.getElementById("a404818a-dab9-4cb0-a9eb-c55dd8f2b178");
-var template = document.getElementById("b4c9647c-2dc9-4001-b8db-0f3e68bae0e6");
+var dest = document.getElementById("73e29a33-8322-43b3-9b2e-a4ed0d395590");
+var template = document.getElementById("894ef2be-00e7-4e6a-9e63-b39b187be388");
 var caption = template.content.querySelector("caption");
 if(caption) {
   caption.style.cssText = "display:block;text-align:center;";
@@ -940,15 +992,29 @@ if(caption) {
 var fantome = dest.attachShadow({mode: 'open'});
 var templateContent = template.content;
 fantome.appendChild(templateContent);
-</script>
+</script><div id="comparison-with-casemix-app" class="section level2">
+<h2 class="hasAnchor">
+<a href="#comparison-with-casemix-app" class="anchor"></a>Comparison with CaseMix App</h2>
+<p>The above numbers were compared against the in-house <code>Admitted Patient CaseMix app</code> developed by the NSLHD Performance and Analytics team that shows the numbers of encounters and their characteristics of each ICD10 diagnosis.</p>
+<p>Figure @ref(fig:clinical-app-demo) shows that there are 1232 encounters with a primary heart failure ICD10 diagnosis over a similar period of time at <code>Royal North Shore</code>. Furthermore the distribution of ICD10 codes are comparable between the current cohort and the NSLHD Performance and Analytics team.</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># All defaults</span>
+<span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="op">)</span>,<span class="st">"vignettes/img/inpatient_hf_casemix.PNG"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<img src="img/inpatient_hf_casemix.PNG" alt=""><p class="caption">Distribution of ICD10 heart failure encounters using the `Admitted Patient CaseMix App.</p>
+</div>
+</div>
 </div>
 <div id="advanced-care-directive" class="section level1">
 <h1 class="hasAnchor">
 <a href="#advanced-care-directive" class="anchor"></a>Advanced Care Directive</h1>
 <p>The Advanced Care Directive is represented in the EMR as an alert with the string <strong>Known to Heart Failure Support Services</strong>.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">known_to_hf</span> <span class="op">&lt;-</span> <span class="va">problem</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">SOURCE_STRING</span>,<span class="st">"(?i)Known to heart failure"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">PERSON_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">BEG_EFFECTIVE_DT_TM</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">PERSON_ID</span>,<span class="va">BEG_EFFECTIVE_DT_TM</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>HAS_ALERT <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
@@ -1014,19 +1080,23 @@ TRUE
 </tr>
 </tbody>
 </table>
-<p>Table @ref(tab:acd-tab) shows a contingency table of the number of patients with a primary ICD10 code who also have an Advanced Care Directive. <strong>51.5</strong>% of patients with a primary HF ICD10 have an advanced care directive.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<p>Table @ref(tab:acd-tab) shows a contingency table of the number of patients with a primary ICD10 code who also have an Advanced Care Directive. <strong>51.6</strong>% of patients with a primary HF ICD10 have an advanced care directive.</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">primary_enc_alert</span> <span class="op">&lt;-</span> <span class="va">primary_enc</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">known_to_hf</span>,by<span class="op">=</span><span class="st">"PERSON_ID"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>ALERT_DELTA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/difftime.html">difftime</a></span><span class="op">(</span><span class="va">BEG_EFFECTIVE_DT_TM</span>,<span class="va">ARRIVE_DT_TM</span>,units<span class="op">=</span><span class="st">"days"</span><span class="op">)</span><span class="op">)</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>ALERT_DELTA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/difftime.html">difftime</a></span><span class="op">(</span><span class="va">BEG_EFFECTIVE_DT_TM</span>,<span class="va">ARRIVE_DT_TM</span>,units<span class="op">=</span><span class="st">"days"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">ALERT_DELTA</span><span class="op">)</span><span class="op">)</span>
 
-<span class="fu">plot_histogram</span><span class="op">(</span><span class="va">primary_enc_alert</span>,<span class="st">"ALERT_DELTA"</span>,<span class="st">"Time taken for ACD to be registered since arrival"</span>,<span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">primary_enc_alert</span><span class="op">$</span><span class="va">ALERT_DELTA</span>,na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time (days)"</span><span class="op">)</span></code></pre></div>
+<span class="fu">plot_histogram</span><span class="op">(</span>
+  <span class="va">primary_enc_alert</span>,
+  <span class="st">"ALERT_DELTA"</span>,<span class="st">"Time taken for ACD to be registered since arrival"</span>,
+  <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">primary_enc_alert</span><span class="op">$</span><span class="va">ALERT_DELTA</span>,na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>,n_suffix <span class="op">=</span> <span class="st">"encounters"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">200</span>,<span class="fl">200</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time (days)"</span><span class="op">)</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/alert-delta-plot-1.png" alt="Distribution of time taken to register Advanced Care Directive since admission for the encounter." width="700"><p class="caption">
 Distribution of time taken to register Advanced Care Directive since admission for the encounter.
 </p>
 </div>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">n_1_alert</span> <span class="op">&lt;-</span> <span class="va">primary_enc_alert</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ALERT_DELTA</span> <span class="op">&lt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="op">)</span>
@@ -1037,15 +1107,17 @@ Distribution of time taken to register Advanced Care Directive since admission f
 
 <span class="va">n_alert</span> <span class="op">&lt;-</span> <span class="va">primary_enc_alert</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">HAS_ALERT</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<p>Figure @ref(fig:alert-delta-plot) shows the distribution of the time taken for the ACD to be registered in the EMR since admission. The data shows that <strong>32.3</strong>% of alerts are registered within 1 day of admission and <strong>54.3</strong>% within 3 days of admission.</p>
+  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="op">)</span>
+
+<span class="va">median</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">primary_enc_alert</span><span class="op">$</span><span class="va">ALERT_DELTA</span>,na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>Figure @ref(fig:alert-delta-plot) shows the distribution of the time taken for the ACD to be registered in the EMR since admission with the median of <strong>2.3</strong> days being marked by the red dashed line. Time differences that are less than 0 means that the ACD was already present when that person was admitted. The data shows that <strong>34</strong>% of alerts are registered within 1 day of admission and <strong>57.2</strong>% within 3 days of admission.</p>
 </div>
 <div id="historical-diagnosis" class="section level1">
 <h1 class="hasAnchor">
 <a href="#historical-diagnosis" class="anchor"></a>Historical Diagnosis</h1>
 <p>A historical diagnosis for a patient is defined as a HF ICD10 diagnosis (either primary or secondary) that was coded within the last three years of the patient’s first HF diagnosis between <strong>2019</strong> to <strong>2021</strong>. For example, if a patient had been diagnosed with HF in 2018 and 2020, that patient would have been considered to have a historical HF diagnosis if they were diagnosed between 2015 and their encounter in 2018.</p>
 <p>Figure @ref(fig:his-diag-plot) shows whether or not a patient has has a historical diagnosis of HF and if so, the coded HF diagnosis. The plot demonstrates that most patients have had no previous HF diagnosis since entering the cohort.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">his_hf_diag</span> <span class="op">&lt;-</span> <span class="va">diagnosis_history</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">SOURCE_IDENTIFIER</span>,<span class="st">"(?i)I50"</span><span class="op">)</span> <span class="op">&amp;</span>
                   <span class="va">PERSON_ID</span> <span class="op">%in%</span> <span class="va">primary_cohort</span><span class="op">$</span><span class="va">PERSON_ID</span><span class="op">)</span>
@@ -1057,7 +1129,7 @@ Distribution of time taken to register Advanced Care Directive since admission f
   <span class="fu"><a href="https://rdrr.io/r/base/replace.html">replace</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span>,<span class="cn">FALSE</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>`No His. HF ICD10` <span class="op">=</span> <span class="op">!</span><span class="va">`Congestive heart failure`</span> <span class="op">&amp;</span> <span class="op">!</span><span class="va">`Heart failure, unspecified`</span>
                   <span class="op">&amp;</span> <span class="op">!</span><span class="va">`Left ventricular failure`</span><span class="op">)</span>
-<span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">summary_his_diag</span>,<span class="st">"ICD10"</span>,<span class="st">"Distribution of Historical ICD10"</span><span class="op">)</span></code></pre></div>
+<span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">summary_his_diag</span>,<span class="st">"ICD10"</span>,<span class="st">"Distribution of Historical ICD10"</span>,n_suffix<span class="op">=</span><span class="st">"patients"</span><span class="op">)</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/his-diag-plot-1.png" alt="Distribution of historical diagnosis." width="700"><p class="caption">
 Distribution of historical diagnosis.
@@ -1067,7 +1139,7 @@ Distribution of historical diagnosis.
 <div id="forms" class="section level1">
 <h1 class="hasAnchor">
 <a href="#forms" class="anchor"></a>Forms</h1>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">extract_form</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">string</span>,<span class="va">prefix</span><span class="op">)</span><span class="op">{</span>
   <span class="va">df</span> <span class="op">%&lt;&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">DESCRIPTION</span> <span class="op">==</span> <span class="va">string</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -1080,7 +1152,7 @@ Distribution of historical diagnosis.
   
   <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">form_primary_cohort</span> <span class="op">&lt;-</span> <span class="va">primary_cohort</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
     <span class="fu">extract_form</span><span class="op">(</span><span class="va">hf_form</span>,<span class="st">'Heart Failure - Management of Cardiac Function Enrolment'</span>,<span class="st">"ENROLMENT"</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"PERSON_ID"</span> <span class="op">=</span> <span class="st">"ENROLMENT_PERSON_ID"</span><span class="op">)</span>
@@ -1100,8 +1172,9 @@ Distribution of historical diagnosis.
 Proportion of Patients with an enrolment or referral form.
 </p>
 </div>
-<p>Figure @ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR. Figure @ref(fig:no-form-disch-plot) shows the discharge modes for patients without either a referral nor an enrolment form (n = <strong>420</strong>).</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<p>Figure @ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR.</p>
+<p>Figure @ref(fig:no-form-disch-plot) shows the discharge modes for patients without either a referral nor an enrolment form (n = <strong>420</strong>).</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">form_primary_cohort</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">NO_FORM</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">primary_enc</span>,by<span class="op">=</span><span class="st">"PERSON_ID"</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -1114,23 +1187,101 @@ Proportion of Patients with an enrolment or referral form.
       <span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="va">DISCH_DISPOSITION_CD</span> <span class="op">==</span> <span class="st">"Discharge by Hospital"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"Discharge by Hospital"</span>,
     <span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="st">"DISCH_MODE"</span>,<span class="st">"Discharge mode for patients without forms"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span></code></pre></div>
+  <span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="st">"DISCH_MODE"</span>,<span class="st">"Discharge mode for patients without forms"</span>,n_suffix<span class="op">=</span><span class="st">"patients"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/no-form-disch-plot-1.png" alt="Distribution of mode of discharge for patients without either a referral nor enrolment form." width="700"><p class="caption">
 Distribution of mode of discharge for patients without either a referral nor enrolment form.
 </p>
 </div>
 </div>
-<div id="medication" class="section level1">
+<div id="orders" class="section level1">
 <h1 class="hasAnchor">
-<a href="#medication" class="anchor"></a>Medication</h1>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<a href="#orders" class="anchor"></a>Orders</h1>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">echos</span> <span class="op">&lt;-</span> <span class="va">orders</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">CATALOG_CD</span>,<span class="st">"(?i)cardio - echo"</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">ENCNTR_ID</span> <span class="op">%in%</span> <span class="va">primary_enc</span><span class="op">$</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">STATUS_DT_TM</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span>,<span class="va">CATALOG_CD</span>,<span class="va">STATUS_DT_TM</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">right_join</a></span><span class="op">(</span>
+    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">primary_enc</span>,<span class="va">ENCNTR_ID</span>,<span class="va">ARRIVE_DT_TM</span><span class="op">)</span>,by<span class="op">=</span><span class="st">"ENCNTR_ID"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>HAS_ECHO <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">CATALOG_CD</span><span class="op">)</span>,ECHO_DELTA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/difftime.html">difftime</a></span><span class="op">(</span><span class="va">STATUS_DT_TM</span>,<span class="va">ARRIVE_DT_TM</span>,units <span class="op">=</span> <span class="st">"days"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">CATALOG_CD</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span>ECHO_START_DT_TM <span class="op">=</span> <span class="va">STATUS_DT_TM</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">extract_path_result</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">string</span>,<span class="va">prefix</span>,<span class="va">breaks</span><span class="op">=</span><span class="cn">NULL</span>,<span class="va">labels</span><span class="op">=</span><span class="cn">NULL</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">df</span> <span class="op">%&lt;&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">EVENT_CD</span> <span class="op">==</span> <span class="va">string</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span>,<span class="va">EVENT_START_DT_TM</span>,<span class="va">RESULT_VAL</span>,<span class="va">RESULT_UNITS_CD</span><span class="op">)</span> <span class="op">%&gt;%</span>
+    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>RESULT_VAL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html">str_remove_all</a></span><span class="op">(</span><span class="va">RESULT_VAL</span>, <span class="st">'\"'</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span>  <span class="op">%&gt;%</span> 
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="st">"{prefix}_EVENT_START_DT_TM"</span> <span class="op">:=</span> <span class="va">EVENT_START_DT_TM</span>,
+                
+                <span class="st">"{prefix}_RESULT_UNITS_CD"</span> <span class="op">:=</span> <span class="va">RESULT_UNITS_CD</span><span class="op">)</span>
+  
+  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">breaks</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">df</span> <span class="op">%&lt;&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="st">"{prefix}_BIN"</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="va">RESULT_VAL</span>,breaks<span class="op">=</span><span class="va">breaks</span>,labels<span class="op">=</span><span class="va">labels</span><span class="op">)</span><span class="op">)</span>
+  <span class="op">}</span>
+  <span class="va">df</span> <span class="op">%&lt;&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="st">"{prefix}_RESULT_VAL"</span> <span class="op">:=</span> <span class="va">RESULT_VAL</span><span class="op">)</span>
+  
+  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>
+<span class="op">}</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">path_tests</span> <span class="op">&lt;-</span> <span class="fu">execute_query</span><span class="op">(</span><span class="st">"SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'"</span><span class="op">)</span>
+
+<span class="va">path_tests</span> <span class="op">%&lt;&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span> <span class="op">%in%</span> <span class="va">primary_enc</span><span class="op">$</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span>,<span class="va">EVENT_CD</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">EVENT_START_DT_TM</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">hf_order</span><span class="op">&lt;-</span><span class="va">echos</span>  <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
+    <span class="fu">extract_path_result</span><span class="op">(</span><span class="va">path_tests</span>,<span class="st">"Brain Natriuretic peptide (BNP )"</span>, <span class="st">"BNP"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>,<span class="fl">450</span>,<span class="fl">900</span>,<span class="cn">Inf</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"&lt; 450"</span>,<span class="st">"450-900"</span>,<span class="st">"900+"</span><span class="op">)</span><span class="op">)</span>, by<span class="op">=</span><span class="st">"ENCNTR_ID"</span>
+  <span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
+    <span class="fu">extract_path_result</span><span class="op">(</span><span class="va">path_tests</span>,<span class="st">"Iron"</span>, <span class="st">"IRON"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>,<span class="fl">9</span>,<span class="fl">30.4</span>,<span class="cn">Inf</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"&lt; 9"</span>,<span class="st">"9-30.4"</span>,<span class="st">"30.4+"</span><span class="op">)</span><span class="op">)</span>, by<span class="op">=</span><span class="st">"ENCNTR_ID"</span>
+  <span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
+    <span class="fu">extract_path_result</span><span class="op">(</span><span class="va">path_tests</span>,<span class="st">"Transferrin Saturation"</span>, <span class="st">"TRANSFERRIN_SAT"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>,<span class="fl">20</span>,<span class="cn">Inf</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"&lt; 20"</span>,<span class="st">"20+"</span><span class="op">)</span><span class="op">)</span>, by<span class="op">=</span><span class="st">"ENCNTR_ID"</span>
+  <span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>HAS_BNP <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">BNP_EVENT_START_DT_TM</span><span class="op">)</span>,
+                HAS_IRON <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">IRON_EVENT_START_DT_TM</span><span class="op">)</span>,
+                HAS_TRANSFERRIN_SAT <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">TRANSFERRIN_SAT_EVENT_START_DT_TM</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">hf_order</span>,<span class="st">"ORDERS"</span>,<span class="st">"Proportion of Encounters with Order"</span>,n_suffix<span class="op">=</span><span class="st">"encounters"</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<img src="inpatient_analysis_files/figure-html/order-prop-plot-1.png" alt="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test." width="700"><p class="caption">
+Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test.
+</p>
+</div>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">mean_delta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">hf_order</span><span class="op">$</span><span class="va">ECHO_DELTA</span>,na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu">plot_histogram</span><span class="op">(</span><span class="va">hf_order</span> <span class="op">%&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ECHO_DELTA</span> <span class="op">&lt;</span> <span class="fl">75</span><span class="op">)</span>,
+               <span class="st">"ECHO_DELTA"</span>,<span class="st">"Distribution of time taken for Echo"</span>,
+               <span class="va">mean_delta</span>,n_suffix<span class="op">=</span><span class="st">"encounters"</span><span class="op">)</span> <span class="op">+</span> 
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time take for echo since admission (days)"</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<img src="inpatient_analysis_files/figure-html/echo-time-plot-1.png" alt="Distribution of the time taken for an echocardiogram." width="700"><p class="caption">
+Distribution of the time taken for an echocardiogram.
+</p>
+</div>
+<p>Figure @ref(fig:order-prop-plot) shows the proportion of encounters with a relevant heart failure order being echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure @ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a median time of <strong>2.2</strong> days.</p>
+</div>
+<div id="appendix" class="section level1">
+<h1 class="hasAnchor">
+<a href="#appendix" class="anchor"></a>Appendix</h1>
+<div id="medication-for-primary-hf-diagnosis" class="section level2">
+<h2 class="hasAnchor">
+<a href="#medication-for-primary-hf-diagnosis" class="anchor"></a>Medication for Primary HF Diagnosis</h2>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">primary_meds</span> <span class="op">&lt;-</span> <span class="va">medication_order</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span> <span class="op">%in%</span> <span class="va">primary_enc</span><span class="op">$</span><span class="va">ENCNTR_ID</span><span class="op">)</span>
 <span class="va">primary_enc_meds</span> <span class="op">&lt;-</span> <span class="va">primary_enc</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>HAS_DISCH_MED <span class="op">=</span> <span class="va">ENCNTR_ID</span> <span class="op">%in%</span> <span class="va">primary_meds</span><span class="op">$</span><span class="va">ENCNTR_ID</span><span class="op">)</span></code></pre></div>
 <p>Figure @ref(fig:med-type-plot)<strong>A</strong> show the proportion of medications that were either a home or one that was ordered for discharged. Figure @ref(fig:med-type-plot)<strong>B</strong> shows the proportion of the encounters that were given a discharge medication.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">primary_meds</span>,<span class="st">"ORIG_ORD_AS_FLAG"</span>,<span class="st">"Type of discharge medication\n"</span><span class="op">)</span>
 <span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">primary_enc_meds</span>,<span class="st">"HAS_DISCH_MED"</span>,<span class="st">"Encounters with Discharge Medications\n"</span><span class="op">)</span>
 
@@ -1141,7 +1292,7 @@ The type of medication whether home or discharge medication.
 </p>
 </div>
 <p>Table @ref(tab:med-class-tab) shows the top 15 medication classes given at discharge or home.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">primary_meds</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">MEDICATION_CLASS</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html">n_distinct</a></span><span class="op">(</span><span class="va">PERSON_ID</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
@@ -1333,85 +1484,10 @@ narcotic analgesics
 </tbody>
 </table>
 </div>
-<div id="appendix" class="section level1">
-<h1 class="hasAnchor">
-<a href="#appendix" class="anchor"></a>Appendix</h1>
-</div>
-<div id="orders-for-cohort-with-primary-hf-diagnosis" class="section level1">
-<h1 class="hasAnchor">
-<a href="#orders-for-cohort-with-primary-hf-diagnosis" class="anchor"></a>Orders for Cohort with Primary HF Diagnosis</h1>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">echos</span> <span class="op">&lt;-</span> <span class="va">orders</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">CATALOG_CD</span>,<span class="st">"(?i)cardio - echo"</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">ENCNTR_ID</span> <span class="op">%in%</span> <span class="va">primary_enc</span><span class="op">$</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">STATUS_DT_TM</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span>,<span class="va">CATALOG_CD</span>,<span class="va">STATUS_DT_TM</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">right_join</a></span><span class="op">(</span>
-    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">primary_enc</span>,<span class="va">ENCNTR_ID</span>,<span class="va">ARRIVE_DT_TM</span><span class="op">)</span>,by<span class="op">=</span><span class="st">"ENCNTR_ID"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>HAS_ECHO <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">CATALOG_CD</span><span class="op">)</span>,ECHO_DELTA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/difftime.html">difftime</a></span><span class="op">(</span><span class="va">STATUS_DT_TM</span>,<span class="va">ARRIVE_DT_TM</span>,units <span class="op">=</span> <span class="st">"days"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">CATALOG_CD</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span>ECHO_START_DT_TM <span class="op">=</span> <span class="va">STATUS_DT_TM</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">extract_path_result</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>,<span class="va">string</span>,<span class="va">prefix</span>,<span class="va">breaks</span><span class="op">=</span><span class="cn">NULL</span>,<span class="va">labels</span><span class="op">=</span><span class="cn">NULL</span><span class="op">)</span><span class="op">{</span>
-  <span class="va">df</span> <span class="op">%&lt;&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">EVENT_CD</span> <span class="op">==</span> <span class="va">string</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span>,<span class="va">EVENT_START_DT_TM</span>,<span class="va">RESULT_VAL</span>,<span class="va">RESULT_UNITS_CD</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>RESULT_VAL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html">str_remove_all</a></span><span class="op">(</span><span class="va">RESULT_VAL</span>, <span class="st">'\"'</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span>  <span class="op">%&gt;%</span> 
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="st">"{prefix}_EVENT_START_DT_TM"</span> <span class="op">:=</span> <span class="va">EVENT_START_DT_TM</span>,
-                
-                <span class="st">"{prefix}_RESULT_UNITS_CD"</span> <span class="op">:=</span> <span class="va">RESULT_UNITS_CD</span><span class="op">)</span>
-  
-  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">breaks</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
-    <span class="va">df</span> <span class="op">%&lt;&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="st">"{prefix}_BIN"</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="va">RESULT_VAL</span>,breaks<span class="op">=</span><span class="va">breaks</span>,labels<span class="op">=</span><span class="va">labels</span><span class="op">)</span><span class="op">)</span>
-  <span class="op">}</span>
-  <span class="va">df</span> <span class="op">%&lt;&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="st">"{prefix}_RESULT_VAL"</span> <span class="op">:=</span> <span class="va">RESULT_VAL</span><span class="op">)</span>
-  
-  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>
-<span class="op">}</span></code></pre></div>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">path_tests</span> <span class="op">&lt;-</span> <span class="fu">execute_query</span><span class="op">(</span><span class="st">"SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'"</span><span class="op">)</span>
-
-<span class="va">path_tests</span> <span class="op">%&lt;&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span> <span class="op">%in%</span> <span class="va">primary_enc</span><span class="op">$</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span>,<span class="va">EVENT_CD</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">EVENT_START_DT_TM</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">hf_order</span><span class="op">&lt;-</span><span class="va">echos</span>  <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
-    <span class="fu">extract_path_result</span><span class="op">(</span><span class="va">path_tests</span>,<span class="st">"Brain Natriuretic peptide (BNP )"</span>, <span class="st">"BNP"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>,<span class="fl">450</span>,<span class="fl">900</span>,<span class="cn">Inf</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"&lt; 450"</span>,<span class="st">"450-900"</span>,<span class="st">"900+"</span><span class="op">)</span><span class="op">)</span>, by<span class="op">=</span><span class="st">"ENCNTR_ID"</span>
-  <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
-    <span class="fu">extract_path_result</span><span class="op">(</span><span class="va">path_tests</span>,<span class="st">"Iron"</span>, <span class="st">"IRON"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>,<span class="fl">9</span>,<span class="fl">30.4</span>,<span class="cn">Inf</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"&lt; 9"</span>,<span class="st">"9-30.4"</span>,<span class="st">"30.4+"</span><span class="op">)</span><span class="op">)</span>, by<span class="op">=</span><span class="st">"ENCNTR_ID"</span>
-  <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
-    <span class="fu">extract_path_result</span><span class="op">(</span><span class="va">path_tests</span>,<span class="st">"Transferrin Saturation"</span>, <span class="st">"TRANSFERRIN_SAT"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>,<span class="fl">20</span>,<span class="cn">Inf</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"&lt; 20"</span>,<span class="st">"20+"</span><span class="op">)</span><span class="op">)</span>, by<span class="op">=</span><span class="st">"ENCNTR_ID"</span>
-  <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>HAS_BNP <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">BNP_EVENT_START_DT_TM</span><span class="op">)</span>,
-                HAS_IRON <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">IRON_EVENT_START_DT_TM</span><span class="op">)</span>,
-                HAS_TRANSFERRIN_SAT <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">TRANSFERRIN_SAT_EVENT_START_DT_TM</span><span class="op">)</span><span class="op">)</span>
-
-<span class="fu">plot_logical_columns</span><span class="op">(</span><span class="va">hf_order</span>,<span class="st">"ORDERS"</span>,<span class="st">"Proportion of Encounter with Order"</span><span class="op">)</span></code></pre></div>
-<div class="figure">
-<img src="inpatient_analysis_files/figure-html/order-prop-plot-1.png" alt="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test." width="700"><p class="caption">
-Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test.
-</p>
-</div>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">mean_delta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">hf_order</span><span class="op">$</span><span class="va">ECHO_DELTA</span>,na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="fu">plot_histogram</span><span class="op">(</span><span class="va">hf_order</span> <span class="op">%&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ECHO_DELTA</span> <span class="op">&lt;</span> <span class="fl">75</span><span class="op">)</span>,
-               <span class="st">"ECHO_DELTA"</span>,<span class="st">"Distribution of time taken for Echo"</span>,
-               <span class="va">mean_delta</span><span class="op">)</span> <span class="op">+</span> 
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time take for echo since admission (days)"</span><span class="op">)</span></code></pre></div>
-<div class="figure">
-<img src="inpatient_analysis_files/figure-html/echo-time-plot-1.png" alt="Distribution of the time taken for an echocardiogram." width="700"><p class="caption">
-Distribution of the time taken for an echocardiogram.
-</p>
-</div>
-<p>Figure @ref(fig:order-prop-plot) shows the proportion of encounters with a relevant heart failure order being echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure @ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a mean time of <strong>3.9</strong> days.</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div id="orders-for-cohort-with-primary-hf-diagnosis" class="section level2">
+<h2 class="hasAnchor">
+<a href="#orders-for-cohort-with-primary-hf-diagnosis" class="anchor"></a>Orders for Cohort with Primary HF Diagnosis</h2>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p1</span><span class="op">&lt;-</span><span class="fu">plot_pie_chart</span><span class="op">(</span><span class="va">hf_order</span>,<span class="st">"BNP_BIN"</span>,<span class="st">"BNP Results by Group"</span><span class="op">)</span>
 <span class="va">p2</span><span class="op">&lt;-</span><span class="fu">plot_pie_chart</span><span class="op">(</span><span class="va">hf_order</span>,<span class="st">"IRON_BIN"</span>,<span class="st">"BNP Results by Group"</span><span class="op">)</span>
 <span class="va">p3</span><span class="op">&lt;-</span><span class="fu">plot_pie_chart</span><span class="op">(</span><span class="va">hf_order</span>,<span class="st">"TRANSFERRIN_SAT_BIN"</span>,<span class="st">"BNP Results by Group"</span><span class="op">)</span>
@@ -1425,24 +1501,25 @@ Distribution of the time taken for an echocardiogram.
 Results of pathology tests.
 </p>
 </div>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p2</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/path-test-plot-2.png" alt="Results of pathology tests." width="700"><p class="caption">
 Results of pathology tests.
 </p>
 </div>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p3</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/path-test-plot-3.png" alt="Results of pathology tests." width="700"><p class="caption">
 Results of pathology tests.
 </p>
 </div>
-<div id="inclusion-of-primary-and-secondayr-hf-diagnosis" class="section level2">
+</div>
+<div id="inclusion-of-primary-and-secondary-hf-diagnosis" class="section level2">
 <h2 class="hasAnchor">
-<a href="#inclusion-of-primary-and-secondayr-hf-diagnosis" class="anchor"></a>Inclusion of Primary and Secondayr HF Diagnosis</h2>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<a href="#inclusion-of-primary-and-secondary-hf-diagnosis" class="anchor"></a>Inclusion of Primary and Secondary HF Diagnosis</h2>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">primary_cohort</span> <span class="op">&lt;-</span> <span class="va">cohort</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">PERSON_ID</span> <span class="op">%in%</span> <span class="va">qual_enc</span><span class="op">$</span><span class="va">PERSON_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>HAS_PRIMARY_HF <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
@@ -1457,7 +1534,7 @@ Results of pathology tests.
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>AGE_BINNED <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="va">AGE</span>, breaks <span class="op">=</span> <span class="va">AGE_breaks</span>, labels <span class="op">=</span> <span class="va">AGE_labels</span>,
                                    right <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>LOS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/difftime.html">difftime</a></span><span class="op">(</span><span class="va">DISCH_DT_TM</span>,<span class="va">ARRIVE_DT_TM</span>,units<span class="op">=</span><span class="st">"days"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">total</span><span class="op">&lt;-</span> <span class="fu">bind_rows</span><span class="op">(</span><span class="va">primary_enc</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">primary_enc</span>, SEX_CD <span class="op">=</span> <span class="st">"Total"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">SEX_CD</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">summarise</span><span class="op">(</span>
@@ -1478,7 +1555,7 @@ Results of pathology tests.
   <span class="fu"><a href="https://davidgohel.github.io/flextable/reference/set_header_labels.html">set_header_labels</a></span><span class="op">(</span>Group <span class="op">=</span> <span class="st">""</span>, p_Female <span class="op">=</span> <span class="st">"%"</span>, p_Male <span class="op">=</span> <span class="st">"%"</span>, N_Total <span class="op">=</span> <span class="st">"n"</span>,
                     Age_Female <span class="op">=</span> <span class="st">"Age (F)"</span>, Age_Male <span class="op">=</span> <span class="st">"Age (M)"</span>, Age_Total <span class="op">=</span> <span class="st">"Mean Age"</span><span class="op">)</span>
 <span class="va">total</span></code></pre></div>
-<template id="3384d479-ae10-4b7b-9506-8d52b7f67412"><style>
+<template id="35d6c86f-d5f9-42b2-a9df-37e7b1954f7d"><style>
 .tabwid table{
   border-spacing:0px !important;
   border-collapse:collapse;
@@ -1514,33 +1591,33 @@ background-color: transparent;
 }
 </style>
 <div class="tabwid">
-<style>.cl-491664ea{}.cl-490ca0b8{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-490ca0b9{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-490ceed8{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-490ceed9{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
-<table class="table cl-491664ea">
+<style>.cl-8c04b932{}.cl-8bf85cf0{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-8bf8840a{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-8bf8d20c{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-8bf8d20d{width:54pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
+<table class="table cl-8c04b932">
 <thead><tr style="overflow-wrap:break-word;">
-<td class="cl-490ceed9"><p class="cl-490ca0b9"><span class="cl-490ca0b8">Females</span></p></td>
-<td class="cl-490ceed9"><p class="cl-490ca0b9"><span class="cl-490ca0b8">%</span></p></td>
-<td class="cl-490ceed9"><p class="cl-490ca0b9"><span class="cl-490ca0b8">Males</span></p></td>
-<td class="cl-490ceed9"><p class="cl-490ca0b9"><span class="cl-490ca0b8">%</span></p></td>
-<td class="cl-490ceed9"><p class="cl-490ca0b9"><span class="cl-490ca0b8">n</span></p></td>
-<td class="cl-490ceed9"><p class="cl-490ca0b9"><span class="cl-490ca0b8">Age (F)</span></p></td>
-<td class="cl-490ceed9"><p class="cl-490ca0b9"><span class="cl-490ca0b8">Age (M)</span></p></td>
-<td class="cl-490ceed9"><p class="cl-490ca0b9"><span class="cl-490ca0b8">Mean Age</span></p></td>
+<td class="cl-8bf8d20d"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">Females</span></p></td>
+<td class="cl-8bf8d20d"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">%</span></p></td>
+<td class="cl-8bf8d20d"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">Males</span></p></td>
+<td class="cl-8bf8d20d"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">%</span></p></td>
+<td class="cl-8bf8d20d"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">n</span></p></td>
+<td class="cl-8bf8d20d"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">Age (F)</span></p></td>
+<td class="cl-8bf8d20d"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">Age (M)</span></p></td>
+<td class="cl-8bf8d20d"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">Mean Age</span></p></td>
 </tr></thead>
 <tbody><tr style="overflow-wrap:break-word;">
-<td class="cl-490ceed8"><p class="cl-490ca0b9"><span class="cl-490ca0b8">1,597</span></p></td>
-<td class="cl-490ceed8"><p class="cl-490ca0b9"><span class="cl-490ca0b8">45.1</span></p></td>
-<td class="cl-490ceed8"><p class="cl-490ca0b9"><span class="cl-490ca0b8">1,941</span></p></td>
-<td class="cl-490ceed8"><p class="cl-490ca0b9"><span class="cl-490ca0b8">54.9</span></p></td>
-<td class="cl-490ceed8"><p class="cl-490ca0b9"><span class="cl-490ca0b8">3,538</span></p></td>
-<td class="cl-490ceed8"><p class="cl-490ca0b9"><span class="cl-490ca0b8">81</span></p></td>
-<td class="cl-490ceed8"><p class="cl-490ca0b9"><span class="cl-490ca0b8">78</span></p></td>
-<td class="cl-490ceed8"><p class="cl-490ca0b9"><span class="cl-490ca0b8">79</span></p></td>
+<td class="cl-8bf8d20c"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">1,597</span></p></td>
+<td class="cl-8bf8d20c"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">45.1</span></p></td>
+<td class="cl-8bf8d20c"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">1,941</span></p></td>
+<td class="cl-8bf8d20c"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">54.9</span></p></td>
+<td class="cl-8bf8d20c"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">3,538</span></p></td>
+<td class="cl-8bf8d20c"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">81</span></p></td>
+<td class="cl-8bf8d20c"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">78</span></p></td>
+<td class="cl-8bf8d20c"><p class="cl-8bf8840a"><span class="cl-8bf85cf0">79</span></p></td>
 </tr></tbody>
 </table>
-</div></template><div class="flextable-shadow-host" id="3486907b-a89f-4828-85f1-25b40e4091e6"></div>
+</div></template><div class="flextable-shadow-host" id="38308563-507c-4c3d-b3fe-5c3f4c8fda13"></div>
 <script>
-var dest = document.getElementById("3486907b-a89f-4828-85f1-25b40e4091e6");
-var template = document.getElementById("3384d479-ae10-4b7b-9506-8d52b7f67412");
+var dest = document.getElementById("38308563-507c-4c3d-b3fe-5c3f4c8fda13");
+var template = document.getElementById("35d6c86f-d5f9-42b2-a9df-37e7b1954f7d");
 var caption = template.content.querySelector("caption");
 if(caption) {
   caption.style.cssText = "display:block;text-align:center;";
@@ -1552,7 +1629,7 @@ var fantome = dest.attachShadow({mode: 'open'});
 var templateContent = template.content;
 fantome.appendChild(templateContent);
 </script><p>Figure @ref(fig:age-sex-plot-sec) shows the distribution of sex according to age groups.</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">conditional_bar_plot</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"AGE_BINNED"</span>,<span class="st">"SEX_CD"</span>, <span class="st">"Age and Sex"</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html">scale_fill_discrete</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"SEX"</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"AGE"</span><span class="op">)</span></code></pre></div>
@@ -1562,7 +1639,7 @@ Distribution of Sex conditioned on Age.
 </p>
 </div>
 <p>Figure @ref(fig:los-dis-plot-sec) shows the distribution of the length of stay (LOS) marked with the average LOS (<strong>10.3</strong> days). Encounters with either a missing admission or discharge date have been excluded.</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">plot_histogram</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"LOS"</span>,<span class="st">"Distribution of LOS"</span>,<span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">primary_enc</span><span class="op">$</span><span class="va">LOS</span>,na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"LOS (days)"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">50</span><span class="op">)</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/los-dis-plot-sec-1.png" alt="Distribution of Length of Stay" width="700"><p class="caption">
@@ -1570,7 +1647,7 @@ Distribution of Length of Stay
 </p>
 </div>
 <p>Figure @ref(fig:encntr-type-plot-sec) shows the distribution of encounters types.</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">proportion_bar_plot</span><span class="op">(</span><span class="va">primary_enc</span>,<span class="st">"ENCNTR_TYPE_CD"</span>,<span class="st">"Distribution of Encounter Type."</span><span class="op">)</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/encntr-type-plot-sec-1.png" alt="Distribution of Encounter Type." width="700"><p class="caption">
@@ -1580,7 +1657,7 @@ Distribution of Encounter Type.
 <div id="advanced-care-directive-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#advanced-care-directive-1" class="anchor"></a>Advanced Care Directive</h3>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">known_to_hf</span> <span class="op">&lt;-</span> <span class="va">problem</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">SOURCE_STRING</span>,<span class="st">"(?i)Known to heart failure"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">PERSON_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -1653,7 +1730,7 @@ TRUE
 <div id="historical-diagnosis-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#historical-diagnosis-1" class="anchor"></a>Historical Diagnosis</h3>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">his_hf_diag</span> <span class="op">&lt;-</span> <span class="va">diagnosis_history</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">SOURCE_IDENTIFIER</span>,<span class="st">"(?i)I50"</span><span class="op">)</span> <span class="op">&amp;</span>
                   <span class="va">PERSON_ID</span> <span class="op">%in%</span> <span class="va">primary_cohort</span><span class="op">$</span><span class="va">PERSON_ID</span><span class="op">)</span>
@@ -1672,10 +1749,10 @@ Distribution of historical diagnosis.
 </p>
 </div>
 </div>
-<div id="orders" class="section level3">
+<div id="orders-1" class="section level3">
 <h3 class="hasAnchor">
-<a href="#orders" class="anchor"></a>Orders</h3>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<a href="#orders-1" class="anchor"></a>Orders</h3>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">echos</span> <span class="op">&lt;-</span> <span class="va">orders</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">CATALOG_CD</span>,<span class="st">"(?i)cardio - echo"</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">ENCNTR_ID</span> <span class="op">%in%</span> <span class="va">primary_enc</span><span class="op">$</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">ENCNTR_ID</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -1688,7 +1765,7 @@ Distribution of historical diagnosis.
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">CATALOG_CD</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span>ECHO_START_DT_TM <span class="op">=</span> <span class="va">STATUS_DT_TM</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">path_tests</span> <span class="op">&lt;-</span> <span class="fu">execute_query</span><span class="op">(</span><span class="st">"SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'"</span><span class="op">)</span>
 
 <span class="va">path_tests</span> <span class="op">%&lt;&gt;%</span>
@@ -1697,7 +1774,7 @@ Distribution of historical diagnosis.
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">EVENT_START_DT_TM</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">hf_order</span><span class="op">&lt;-</span><span class="va">echos</span>  <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
     <span class="fu">extract_path_result</span><span class="op">(</span><span class="va">path_tests</span>,<span class="st">"Brain Natriuretic peptide (BNP )"</span>, <span class="st">"BNP"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>,<span class="fl">450</span>,<span class="fl">900</span>,<span class="cn">Inf</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"&lt; 450"</span>,<span class="st">"450-900"</span>,<span class="st">"900+"</span><span class="op">)</span><span class="op">)</span>, by<span class="op">=</span><span class="st">"ENCNTR_ID"</span>
@@ -1718,7 +1795,7 @@ Distribution of historical diagnosis.
 Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test.
 </p>
 </div>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mean_delta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">hf_order</span><span class="op">$</span><span class="va">ECHO_DELTA</span>,na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu">plot_histogram</span><span class="op">(</span><span class="va">hf_order</span> <span class="op">%&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ECHO_DELTA</span> <span class="op">&lt;</span> <span class="fl">75</span><span class="op">)</span>,
                <span class="st">"ECHO_DELTA"</span>,<span class="st">"Distribution of time taken for Echo"</span>,
@@ -1730,7 +1807,7 @@ Distribution of the time taken for an echocardiogram.
 </p>
 </div>
 <p>Figure @ref(fig:order-prop-plot) shows the proportion of encounters with a relevant heart failure order being echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure @ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a mean time of <strong>5.2</strong> days.</p>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p1</span><span class="op">&lt;-</span><span class="fu">plot_pie_chart</span><span class="op">(</span><span class="va">hf_order</span>,<span class="st">"BNP_BIN"</span>,<span class="st">"BNP Results by Group"</span><span class="op">)</span>
 <span class="va">p2</span><span class="op">&lt;-</span><span class="fu">plot_pie_chart</span><span class="op">(</span><span class="va">hf_order</span>,<span class="st">"IRON_BIN"</span>,<span class="st">"BNP Results by Group"</span><span class="op">)</span>
 <span class="va">p3</span><span class="op">&lt;-</span><span class="fu">plot_pie_chart</span><span class="op">(</span><span class="va">hf_order</span>,<span class="st">"TRANSFERRIN_SAT_BIN"</span>,<span class="st">"BNP Results by Group"</span><span class="op">)</span>
@@ -1744,14 +1821,14 @@ Distribution of the time taken for an echocardiogram.
 Results of pathology tests.
 </p>
 </div>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p2</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/path-test-plot-sec-2.png" alt="Results of pathology tests." width="700"><p class="caption">
 Results of pathology tests.
 </p>
 </div>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p3</span></code></pre></div>
 <div class="figure">
 <img src="inpatient_analysis_files/figure-html/path-test-plot-sec-3.png" alt="Results of pathology tests." width="700"><p class="caption">
@@ -1762,7 +1839,7 @@ Results of pathology tests.
 <div id="forms-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#forms-1" class="anchor"></a>Forms</h3>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">form_primary_cohort</span> <span class="op">&lt;-</span> <span class="va">primary_cohort</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
     <span class="fu">extract_form</span><span class="op">(</span><span class="va">hf_form</span>,<span class="st">'Heart Failure - Management of Cardiac Function Enrolment'</span>,<span class="st">"ENROLMENT"</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"PERSON_ID"</span> <span class="op">=</span> <span class="st">"ENROLMENT_PERSON_ID"</span><span class="op">)</span>

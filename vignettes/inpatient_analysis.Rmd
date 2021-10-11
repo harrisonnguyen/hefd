@@ -1,6 +1,6 @@
 ---
 title: "Heart Failure Inpatient Analysis"
-author: "Harrison Nguyen"
+author: "Harrison Nguyen and Charmaine Tam"
 date: "10/11/2021"
 output:  
   bookdown::html_document2:
@@ -249,7 +249,7 @@ time_period <- round(difftime(max(qual_enc$DISCH_DT_TM,na.rm = TRUE), min(qual_e
 
 # Introduction
 
-This document will investigate encounters that have been coded with a heart failure related ICD10 code (I150) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus, in a **`r time_period`** year period, there are **`r nrow(qual_enc)`** encounters with unique **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and  type of  Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters types where the majority of encounters are **inpatient** encounters. 
+This document will investigate encounters that have been coded with a heart failure-related ICD10 code (I150; primary or secondary) at **`r location_string`** Hospital with discharge dates between **`r as.Date(min(qual_enc$DISCH_DT_TM,na.rm = TRUE))`** to **`r as.Date(max(qual_enc$DISCH_DT_TM,na.rm = TRUE))`**. Thus, in a **`r time_period`** year period, there are **`r nrow(qual_enc)`** encounters with unique **`r nrow(cohort)`** patients. Figure \@ref(fig:dist-enc-plot) shows the distribution of the number of encounters for each patient and  Figure \@ref(fig:encntr-type-plot) shows the distribution of encounters type where the majority of encounters are **inpatient** encounters. 
 
 The analysis of this cohort will be used to examine: 
 
@@ -342,7 +342,7 @@ hf_diag_secondary_count <- hf_diag_secondary %>%
   dplyr::filter(N > 1)
 ```  
 
-Figure \@ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnosis, (n = **`r nrow(hf_diag_primary_count)`**) and similarly with secondary diagnosis (n = **`r nrow(hf_diag_secondary_count)`**). 
+Figure \@ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnoses, (n = **`r nrow(hf_diag_primary_count)`**) and similarly with secondary diagnosis (n = **`r nrow(hf_diag_secondary_count)`**). 
 
 
 For the given diagnosis, **congestive heart failure** is most prevalent, followed by **left ventricular failure** then **heart failure, unspecified**.
@@ -387,10 +387,10 @@ prim_sec_merge <- primary_temp %>%
 diag_tab <- prop.table(table(prim_sec_merge$PRIMARY_DIAG,prim_sec_merge$SECONDARY_DIAG))
 ```
 
-An encounter can also be associated with both a primary and secondary heart failure ICD10, where **`r round(nrow(prim_sec_merge)/nrow(combined_temp)*100,1)`**\% (**`r nrow(prim_sec_merge)`**/**`r nrow(combined_temp)`**) of encounters have both a  primary and secondary heart failure ICD10 diagnosis . Table \@ref(tab:primary-sec-hf-diag) shows the encounters with both a primary and secondary HF diagnosis (n = **`r nrow(prim_sec_merge)`**) and the proportion of this selection with different combinations of primary and secondary diagnosis. For example, **`r round(diag_tab[1,1]*100,1)`**\% of these encounters have both a primary and secondary diagnosis of **congestive heart failure**.
+An encounter can also be associated with both a primary and secondary heart failure ICD10, where **`r round(nrow(prim_sec_merge)/nrow(combined_temp)*100,1)`**\% (**`r nrow(prim_sec_merge)`**/**`r nrow(combined_temp)`**) of encounters have both a  primary and secondary heart failure ICD10 diagnosis . Table \@ref(tab:primary-sec-hf-diag) shows the encounters with both a primary and secondary HF diagnosis (n = **`r nrow(prim_sec_merge)`**) and the proportion of this selection with different combinations of primary and secondary diagnosis. For example, **`r round(diag_tab[1,1]*100,1)`**\% of these encounters have both a primary and secondary diagnosis of **congestive heart failure**. This is explained by coding occurring at the episode level and encounters may have >1 episode.
 
 ```{r primary-sec-hf-diag}
-tab_caption <- paste0("Contigency table of Primary and Secondary HF Diagnosis (N = ",
+tab_caption <- paste0("Contingency table of Primary and Secondary HF Diagnosis (N = ",
                       nrow(prim_sec_merge),"/",nrow(combined_temp),")")
 diag_tab %>% 
   knitr::kable(caption = tab_caption,digits=2) %>%
@@ -405,10 +405,10 @@ only_secondary <- secondary_temp %>%
 n_only_prim <-  nrow(only_secondary)
 ```
 
-Table @\ref(tab:primary-diag-secondary-hf-tab) shows the primary diagnosis of those encounters with **ONLY** secondary heart failure diagnosis (n = **`r n_only_prim`**). The data shows that these encounters are also commonly associated with **pneumonia**, as well as some other heart related issue such as **atrial fibrillation** or a **myocardial infarction**.
 
-```{r primary-diag-secondary-hf-tab}
+Table \@ref(tab:prim-sec-tab) shows the primary diagnosis of those encounters with **ONLY** secondary heart failure diagnosis (n = **`r n_only_prim`**). The data shows that these encounters are also commonly associated with **pneumonia**, as well as some other heart related issue such as **atrial fibrillation** or a **myocardial infarction**.
 
+```{r}
 primary_diag_of_secondary <- diagnosis %>%
   dplyr::filter(!stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & 
                   ENCNTR_ID %in% only_secondary$ENCNTR_ID &
@@ -417,11 +417,13 @@ primary_diag_of_secondary <- diagnosis %>%
 
 tab_cap <- paste(
   "Top 15 primary diagnosis for those with only a secondary heart failure diagnosis (N =",
-  dplyr::n_distinct(primary_diag_of_secondary$PERSON_ID),
-  "patients).",
+  n_only_prim,
+  "encounters).",
   sep=" "
 )
+```
 
+```{r prim-sec-tab}
 primary_diag_of_secondary %>%
   dplyr::group_by(SOURCE_STRING) %>%
   dplyr::summarise(N = dplyr::n_distinct(ENCNTR_ID)) %>% 
@@ -461,7 +463,7 @@ primary_enc <- encounter %>%
 
 The cohort that will be analysed for the rest of this document are those encounters with a primary heart failure diagnosis. 
 
-# Demographics
+# Demographics in patients with encounters containing a primary HF ICD10 code
 
 With these selection and exclusion criteria, the cohort for this analysis will include  **`r nrow(hf_diag_primary)`** number of encounters for **`r nrow(primary_cohort)`** unique patients with the following demographics.
 
@@ -506,9 +508,9 @@ Figure \@ref(fig:admit-disch-mode-plot) shows the distribution of admission and 
 
 ```{r admit-disch-mode-plot,fig.cap="Admission and Discharge mode of encounters with primary HF diagnosis."}
 
-p1 <- proportion_bar_plot(primary_enc,"ADMIT_MODE_CD","Distribution of Mode of Admission",n_suffix="encounters",vjust=0.25) + ylim(0,800) +xlab("")  + coord_flip()
+p1 <- proportion_bar_plot(primary_enc,"ADMIT_MODE_CD","Mode of Admission",n_suffix="encounters",vjust=0.25) + ylim(0,800) +xlab("")  + coord_flip()
 
-p2 <- proportion_bar_plot(primary_enc,"DISCH_DISPOSITION_CD","Distribution of Mode of Separation",n_suffix="encounters",vjust=0.25)  + ylim(0,1100) +xlab("")  + coord_flip()
+p2 <- proportion_bar_plot(primary_enc,"DISCH_DISPOSITION_CD","Mode of Separation",n_suffix="encounters",vjust=0.25)  + ylim(0,1100) +xlab("")  + coord_flip()
 
 
 ggpubr::ggarrange(p1,p2,nrow=2,ncol = 1, labels=c("A","B"))
@@ -540,6 +542,18 @@ primary_enc %>%
   set_caption("Statistics of LOS by HF diagnosis.")
 ```
 
+## Comparison with CaseMix App
+
+The above numbers were compared against the in-house `Admitted Patient CaseMix app` developed by the NSLHD Performance and Analytics team that shows the numbers of encounters and their characteristics of each ICD10 diagnosis. 
+
+Figure \@ref(fig:clinical-app-demo) shows that there are 1232 encounters with a primary heart failure ICD10 diagnosis over a similar period of time at `Royal North Shore`. Furthermore the distribution of ICD10 codes are comparable between the current cohort and the NSLHD Performance and Analytics team.
+
+
+```{r clinical-app-demo, fig.cap="Distribution of ICD10 heart failure encounters using the `Admitted Patient CaseMix App."}
+# All defaults
+knitr::include_graphics(file.path(here::here(),"vignettes/img/inpatient_hf_casemix.PNG"))
+```
+
 # Advanced Care Directive
 
 The Advanced Care Directive is represented in the EMR as an alert with the string **Known to Heart Failure Support Services**.
@@ -547,6 +561,9 @@ The Advanced Care Directive is represented in the EMR as an alert with the strin
 ```{r acd-tab}
 known_to_hf <- problem %>%
   dplyr::filter(stringr::str_detect(SOURCE_STRING,"(?i)Known to heart failure")) %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::arrange(BEG_EFFECTIVE_DT_TM) %>%
+  dplyr::slice(1) %>%
   dplyr::select(PERSON_ID,BEG_EFFECTIVE_DT_TM) %>%
   dplyr::mutate(HAS_ALERT = TRUE)
 
@@ -562,18 +579,19 @@ prop_tab %>%
 
 ```
 
-Table \@ref(tab:acd-tab) shows a contingency table of the number of patients with a primary ICD10 code who also have an Advanced Care Directive. **`r round(prop_tab[2,1]/sum(prop_tab[2,])*100,1)`**\% of patients with a primary HF ICD10 have an advanced care directive.
+Table \@ref(tab:acd-tab) shows a contingency table of the number of patients with a primary ICD10 code who also have an Advanced Care Directive. **`r round(prop_tab[2,1]/sum(prop_tab[2,])*100,1)`**\% of patients with a primary HF ICD10 have an advanced care directive. 
 
 
 ```{r alert-delta-plot,fig.cap="Distribution of time taken to register Advanced Care Directive since admission for the encounter."}
 primary_enc_alert <- primary_enc %>%
   dplyr::left_join(known_to_hf,by="PERSON_ID") %>%
-  dplyr::mutate(ALERT_DELTA = difftime(BEG_EFFECTIVE_DT_TM,ARRIVE_DT_TM,units="days"))
+  dplyr::mutate(ALERT_DELTA = difftime(BEG_EFFECTIVE_DT_TM,ARRIVE_DT_TM,units="days")) %>%
+  dplyr::filter(!is.na(ALERT_DELTA))
 
 plot_histogram(
   primary_enc_alert,
   "ALERT_DELTA","Time taken for ACD to be registered since arrival",
-  median(primary_enc_alert$ALERT_DELTA,na.rm=TRUE),n_suffix = "patients") + xlim(-100,100) + xlab("Time (days)")
+  median(primary_enc_alert$ALERT_DELTA,na.rm=TRUE),n_suffix = "encounters") + xlim(-200,200) + xlab("Time (days)")
 ```
 ```{r}
 n_1_alert <- primary_enc_alert %>%
@@ -591,7 +609,7 @@ n_alert <- primary_enc_alert %>%
 median <- as.numeric(median(primary_enc_alert$ALERT_DELTA,na.rm=TRUE))
 ```
 
-Figure \@ref(fig:alert-delta-plot) shows the distribution of the time taken for the ACD to be registered in the EMR since admission with the median of **`r round(median,1)`** days being marked by the red dashed line. The data shows that **`r round(n_1_alert/n_alert*100,1)`**\% of alerts are registered within 1 day of admission and **`r round(n_3_alert/n_alert*100,1)`**\% within 3 days of admission.
+Figure \@ref(fig:alert-delta-plot) shows the distribution of the time taken for the ACD to be registered in the EMR since admission with the median of **`r round(median,1)`** days being marked by the red dashed line. Time differences that are less than 0 means that the ACD was already present when that person was admitted. The data shows that **`r round(n_1_alert/n_alert*100,1)`**\% of alerts are registered within 1 day of admission and **`r round(n_3_alert/n_alert*100,1)`**\% within 3 days of admission.
 
 # Historical Diagnosis
 
@@ -654,7 +672,9 @@ form_primary_cohort %>%
  labs(x="")
 ```
 
-Figure \@ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR. Figure \@ref(fig:no-form-disch-plot) shows the discharge modes for patients without either a referral nor an enrolment form (n = **`r sum(form_primary_cohort$NO_FORM)`**).
+Figure \@ref(fig:form-plot) shows the proportion of patients who have had a referral form or enrolment form completed in the EMR. 
+
+Figure \@ref(fig:no-form-disch-plot) shows the discharge modes for patients without either a referral nor an enrolment form (n = **`r sum(form_primary_cohort$NO_FORM)`**).
 
 ```{r no-form-disch-plot,fig.cap="Distribution of mode of discharge for patients without either a referral nor enrolment form."}
 form_primary_cohort %>%
@@ -746,7 +766,7 @@ plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_s
 
 ```{r echo-time-plot,fig.cap="Distribution of the time taken for an echocardiogram."}
 
-mean_delta <- mean(hf_order$ECHO_DELTA,na.rm = TRUE)
+mean_delta <- median(hf_order$ECHO_DELTA,na.rm = TRUE)
 plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
                "ECHO_DELTA","Distribution of time taken for Echo",
                mean_delta,n_suffix="encounters") + 
@@ -754,12 +774,12 @@ plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
 ```
 
 Figure \@ref(fig:order-prop-plot) shows the proportion of encounters with a relevant heart failure order being echocardiogram, 
-brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure \@ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a mean time of **`r round(mean_delta,1)`** days.
+brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure \@ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a median time of **`r round(mean_delta,1)`** days.
 
 
 # Appendix
 
-# Medication for Primary HF Diagnosis
+## Medication for Primary HF Diagnosis
 
 ```{r}
 primary_meds <- medication_order %>%
@@ -790,7 +810,7 @@ primary_meds %>%
   knitr::kable(caption = "Top 15 discharge medication class.")
 ```
 
-# Orders for Cohort with Primary HF Diagnosis
+## Orders for Cohort with Primary HF Diagnosis
 
 
 
@@ -811,7 +831,7 @@ p3
 ```
 
 
-## Inclusion of Primary and Secondayr HF Diagnosis
+## Inclusion of Primary and Secondary HF Diagnosis
 
 ```{r}
 primary_cohort <- cohort %>%

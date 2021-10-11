@@ -23,24 +23,38 @@ library(hefd)
 
 ## -----------------------------------------------------------------------------
 
-proportion_bar_plot <- function(df,column,title){
+proportion_bar_plot <- function(df,column,title,n_suffix = NULL,vjust=-0.25){
+  if(is.null(n_suffix)){
+    title <- paste0(title, " (N = ",nrow(df), ")") 
+  }
+  else{
+    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
+  }
+  
   plot<- df %>%
      ggplot2::ggplot(., aes(x=!!rlang::sym(column),fill=!!rlang::sym(column))) +
     ggplot2::geom_bar(aes(y = ..count..),stat="count",alpha=0.5,show.legend = FALSE) +
     ggplot2::xlab(title) + 
     ggplot2::ylab("Count") + 
-    ggtitle(paste0(title, " (n = ",nrow(df), ")")) +
+    ggtitle(title) +
     geom_text(
        aes(label=paste(round((..count..)/sum(..count..)*100,0),"%",sep=""),y= ..count..),
        stat='count',
-       vjust=-0.25
+       vjust=vjust
    ) + 
   theme_minimal()
+  
   
   return(plot)
 }
 
-conditional_bar_plot <- function(df,var1,var2,title){
+conditional_bar_plot <- function(df,var1,var2,title,n_suffix = NULL){
+  if(is.null(n_suffix)){
+    title <- paste0(title, " (N = ",nrow(df), ")") 
+  }
+  else{
+    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
+  }
   
   var1<- rlang::sym(var1)
   var2<- rlang::sym(var2)
@@ -51,14 +65,21 @@ conditional_bar_plot <- function(df,var1,var2,title){
   ggplot2::ggplot(., aes(x=!!var1,y=n,fill=!!var2)) + 
   geom_bar(stat="identity",position=position_dodge(0.7),width=0.7,alpha=0.5) +
   geom_text(aes(label= paste(round(prop,0),"%",sep=""),y=n),position=position_dodge(0.7),vjust=-0.5) +
-  labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")")) +
+  labs(y="Count",x=var1, title = title) +
   scale_fill_discrete(name = var2) + 
   theme_minimal()
   
   return(plot)
 }
 
-plot_histogram <- function(df,column, title,threshold = NULL){
+plot_histogram <- function(df,column, title,threshold = NULL,n_suffix=NULL){
+  if(is.null(n_suffix)){
+    title <- paste0(title, " (N = ",nrow(df), ")") 
+  }
+  else{
+    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
+  }
+  
   var1<- rlang::sym(column)
 
   df %<>% dplyr::filter(!is.na(!!var1))
@@ -67,7 +88,7 @@ plot_histogram <- function(df,column, title,threshold = NULL){
   plot <- df %>%
   ggplot2::ggplot(., aes(x=!!var1,fill=!!var1)) + 
    geom_histogram(fill="lightblue",alpha=0.5) +
-  labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")"))+
+  labs(y="Count",x=var1, title = title)+
     scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
     stat_bin(aes(y=..count.., label=ifelse(..count..==0,"",..count..)), geom="text", vjust=-.5) +
   theme_minimal()
@@ -82,7 +103,15 @@ plot_histogram <- function(df,column, title,threshold = NULL){
   return(plot)
 }
 
-plot_histogram_group <- function(df,var1,var2,title){
+plot_histogram_group <- function(df,var1,var2,title,n_suffix){
+  
+  if(is.null(n_suffix)){
+    title <- paste0(title, " (N = ",nrow(df), ")") 
+  }
+  else{
+    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
+  }
+  
   var1<- rlang::sym(var1)
   var2<- rlang::sym(var2)
 
@@ -94,7 +123,7 @@ plot_histogram_group <- function(df,var1,var2,title){
   ggplot2::ggplot(., aes(x=!!var1,fill=!!var2,color=!!var2)) + 
    geom_histogram(aes(y=..density..),alpha=0.5, position="identity") +
     geom_density(alpha=0.3)+
-  labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")"))+
+  labs(y="Count",x=var1, title = title)+
     scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
   theme_minimal()
     
@@ -102,7 +131,14 @@ plot_histogram_group <- function(df,var1,var2,title){
   return(plot)
 }
 
-plot_logical_columns <- function(df,var1,title){
+plot_logical_columns <- function(df,var1,title,n_suffix=NULL){
+  if(is.null(n_suffix)){
+    title <- paste0(title, " (N = ",nrow(df), ")") 
+  }
+  else{
+    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
+  }
+  
   var1<- rlang::sym(var1)
   
   plot_data <- df %>% 
@@ -114,14 +150,21 @@ plot_logical_columns <- function(df,var1,title){
        ggplot2::ggplot(., aes(x=!!var1,y=N,fill=!!var1)) +
       ggplot2::geom_bar(position="dodge", stat="identity",show.legend = FALSE) +
     geom_text(aes(label= paste(round(prop,0),"%",sep=""),y=N),vjust=-0.5) + 
-    labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")"))
+    labs(y="Count",x=var1, title = title)
   
   return(plot)
 }
 
 
 ## -----------------------------------------------------------------------------
-plot_pie_chart <- function(df,var1,title){
+plot_pie_chart <- function(df,var1,title,n_suffix = NULL){
+  if(is.null(n_suffix)){
+    title <- paste0(title, " (N = ",nrow(df), ")") 
+  }
+  else{
+    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
+  }
+  
   var1<- rlang::sym(var1)
   df %<>% 
     filter(!is.na(!!var1)) %>%
@@ -137,7 +180,7 @@ plot_pie_chart <- function(df,var1,title){
     geom_text(aes(label = labels),
               position = position_stack(vjust = 0.5)) +
     coord_polar(theta = "y")
-    labs(y="Count",x=var1, title = paste0(title, " (N = ",nrow(df), ")"))
+    labs(y="Count",x=var1, title = title)
     
   return(plot)
 }
@@ -180,10 +223,10 @@ counts <- qual_enc %>%
   dplyr::group_by(PERSON_ID) %>%
   dplyr::summarise(N = dplyr::n())
 
-proportion_bar_plot(counts,"N", "Number of encounters per patient")
+proportion_bar_plot(counts,"N", "Number of encounters per patient",n_suffix="patients") + xlab("")
 
 ## ----encntr-type-plot, fig.cap="Distribution of Encounter Type."--------------
-proportion_bar_plot(qual_enc,"ENCNTR_TYPE_CD","Distribution of Encounter Type.")
+proportion_bar_plot(qual_enc,"ENCNTR_TYPE_CD","Distribution of Encounter Type",n_suffix = "encounters") + xlab("")
 
 ## -----------------------------------------------------------------------------
 extract_hf_diagnosis <- function(df,group_cols = "ENCNTR_ID"){
@@ -238,17 +281,17 @@ hf_diag_secondary_count <- hf_diag_secondary %>%
 
 ## ----icd10-dist-plot, fig.cap="Distribution of primary and secondary ICD10 diagnosis."----
 
-p1 <- plot_logical_columns(primary_temp,"ICD10","Primary HF ICD10") + 
+p1 <- plot_logical_columns(primary_temp,"ICD10","Primary HF ICD10",n_suffix="patients") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2)) + 
-  ggplot2::ylim(0,1400)
+  ggplot2::ylim(0,2000)
 
-p2 <- plot_logical_columns(secondary_temp,"ICD10","Secondary HF ICD10") + 
+p2 <- plot_logical_columns(secondary_temp,"ICD10","Secondary HF ICD10",n_suffix="patients") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
-  ggplot2::ylim(0,2600)
+  ggplot2::ylim(0,3500)
 
-p3 <- plot_logical_columns(combined_temp,"ICD10","Combined Primary & Secondary HF ICD10") + 
+p3 <- plot_logical_columns(combined_temp,"ICD10","Combined Primary & Secondary HF ICD10",n_suffix="patients") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
-  ggplot2::ylim(0,4500)
+  ggplot2::ylim(0,5000)
 
 ggpubr::ggarrange(p1,p2,p3,labels= c("A","B","C"), ncol = 1, nrow = 3)
 
@@ -273,8 +316,10 @@ prim_sec_merge <- primary_temp %>%
 diag_tab <- prop.table(table(prim_sec_merge$PRIMARY_DIAG,prim_sec_merge$SECONDARY_DIAG))
 
 ## ----primary-sec-hf-diag------------------------------------------------------
+tab_caption <- paste0("Contingency table of Primary and Secondary HF Diagnosis (N = ",
+                      nrow(prim_sec_merge),"/",nrow(combined_temp),")")
 diag_tab %>% 
-  knitr::kable(caption = "Contigency table of Primary and Secondary HF Diagnosis.",digits=2) %>%
+  knitr::kable(caption = tab_caption,digits=2) %>%
   kableExtra::add_header_above(c("Primary ICD10"=1,"Secondary ICD10"=3))%>%
   kable_styling(position = "center",full_width = FALSE)
 
@@ -284,21 +329,28 @@ only_secondary <- secondary_temp %>%
   dplyr::filter(!ENCNTR_ID %in% primary_temp$ENCNTR_ID)
 n_only_prim <-  nrow(only_secondary)
 
-## ----primary-diag-secondary-hf-tab--------------------------------------------
-
+## -----------------------------------------------------------------------------
 primary_diag_of_secondary <- diagnosis %>%
   dplyr::filter(!stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & 
                   ENCNTR_ID %in% only_secondary$ENCNTR_ID &
                   DIAG_PRIORITY == 1 &
                   SOURCE_VOCABULARY_CD == "ICD10-AM") 
 
+tab_cap <- paste(
+  "Top 15 primary diagnosis for those with only a secondary heart failure diagnosis (N =",
+  n_only_prim,
+  "encounters).",
+  sep=" "
+)
+
+## ----prim-sec-tab-------------------------------------------------------------
 primary_diag_of_secondary %>%
   dplyr::group_by(SOURCE_STRING) %>%
   dplyr::summarise(N = dplyr::n_distinct(ENCNTR_ID)) %>% 
   dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_diag_of_secondary$PERSON_ID)*100,1)) %>%
   dplyr::arrange(desc(N)) %>% 
   dplyr::top_n(15) %>%
-  knitr::kable(caption = "Top 15 primary diagnosis for those with only a secondary heart failure diagnosis.")
+  knitr::kable(caption = tab_cap)
 
 
 ## -----------------------------------------------------------------------------
@@ -356,24 +408,24 @@ total<- bind_rows(primary_demo, mutate(primary_demo, SEX_CD = "Total")) %>%
 total
 
 ## ----age-sex-plot, fig.cap="Distribution of Sex conditioned on Age."----------
-conditional_bar_plot(primary_demo,"AGE_BINNED","SEX_CD", "Age and Sex") +
+conditional_bar_plot(primary_demo,"AGE_BINNED","SEX_CD", "Age and Sex",n_suffix="patients") +
   scale_fill_discrete(name = "SEX") + 
   xlab("AGE")
 
 ## ----admit-disch-mode-plot,fig.cap="Admission and Discharge mode of encounters with primary HF diagnosis."----
 
-p1 <- proportion_bar_plot(primary_enc,"ADMIT_MODE_CD","Distribution of Mode of Admission") + ylim(0,800) +  scale_x_discrete(guide = guide_axis(n.dodge=3))
+p1 <- proportion_bar_plot(primary_enc,"ADMIT_MODE_CD","Mode of Admission",n_suffix="encounters",vjust=0.25) + ylim(0,800) +xlab("")  + coord_flip()
 
-p2 <- proportion_bar_plot(primary_enc,"DISCH_DISPOSITION_CD","Distribution of Mode of Separation")  + ylim(0,1100) +  scale_x_discrete(guide = guide_axis(n.dodge=3))
+p2 <- proportion_bar_plot(primary_enc,"DISCH_DISPOSITION_CD","Mode of Separation",n_suffix="encounters",vjust=0.25)  + ylim(0,1100) +xlab("")  + coord_flip()
 
 
 ggpubr::ggarrange(p1,p2,nrow=2,ncol = 1, labels=c("A","B"))
 
 ## ----los-dis-plot, fig.cap="Distribution of Length of Stay"-------------------
 
-p1 <- plot_histogram(primary_enc,"LOS","Distribution of LOS",mean(primary_enc$LOS,na.rm=TRUE)) + xlab("LOS (days)") + xlim(0,40) + ylim(0,250)
+p1 <- plot_histogram(primary_enc,"LOS","Distribution of LOS",mean(primary_enc$LOS,na.rm=TRUE),n_suffix = "encounters") + xlab("LOS (days)") + xlim(0,40) + ylim(0,250)
 
-p2 <- plot_histogram_group(primary_enc,"LOS","PRIMARY_DIAG","Distribution of LOS by Diagnosis") + xlab("LOS (days)") + xlim(0,40)
+p2 <- plot_histogram_group(primary_enc,"LOS","PRIMARY_DIAG","Distribution of LOS by Diagnosis",n_suffix = "encounters") + xlab("LOS (days)") + xlim(0,40)
 
 ggpubr::ggarrange(p1,p2,nrow=2,ncol = 1, labels=c("A","B"))
 
@@ -391,9 +443,16 @@ primary_enc %>%
   flextable() %>%
   set_caption("Statistics of LOS by HF diagnosis.")
 
+## ----clinical-app-demo, fig.cap="Distribution of ICD10 heart failure encounters using the `Admitted Patient CaseMix App."----
+# All defaults
+knitr::include_graphics(file.path(here::here(),"vignettes/img/inpatient_hf_casemix.PNG"))
+
 ## ----acd-tab------------------------------------------------------------------
 known_to_hf <- problem %>%
   dplyr::filter(stringr::str_detect(SOURCE_STRING,"(?i)Known to heart failure")) %>%
+  dplyr::group_by(PERSON_ID) %>%
+  dplyr::arrange(BEG_EFFECTIVE_DT_TM) %>%
+  dplyr::slice(1) %>%
   dplyr::select(PERSON_ID,BEG_EFFECTIVE_DT_TM) %>%
   dplyr::mutate(HAS_ALERT = TRUE)
 
@@ -411,9 +470,13 @@ prop_tab %>%
 ## ----alert-delta-plot,fig.cap="Distribution of time taken to register Advanced Care Directive since admission for the encounter."----
 primary_enc_alert <- primary_enc %>%
   dplyr::left_join(known_to_hf,by="PERSON_ID") %>%
-  dplyr::mutate(ALERT_DELTA = difftime(BEG_EFFECTIVE_DT_TM,ARRIVE_DT_TM,units="days"))
+  dplyr::mutate(ALERT_DELTA = difftime(BEG_EFFECTIVE_DT_TM,ARRIVE_DT_TM,units="days")) %>%
+  dplyr::filter(!is.na(ALERT_DELTA))
 
-plot_histogram(primary_enc_alert,"ALERT_DELTA","Time taken for ACD to be registered since arrival",mean(primary_enc_alert$ALERT_DELTA,na.rm=TRUE)) + xlim(-100,100) + xlab("Time (days)")
+plot_histogram(
+  primary_enc_alert,
+  "ALERT_DELTA","Time taken for ACD to be registered since arrival",
+  median(primary_enc_alert$ALERT_DELTA,na.rm=TRUE),n_suffix = "encounters") + xlim(-200,200) + xlab("Time (days)")
 
 ## -----------------------------------------------------------------------------
 n_1_alert <- primary_enc_alert %>%
@@ -428,6 +491,8 @@ n_alert <- primary_enc_alert %>%
   dplyr::filter(!is.na(HAS_ALERT)) %>%
   nrow()
 
+median <- as.numeric(median(primary_enc_alert$ALERT_DELTA,na.rm=TRUE))
+
 ## ----his-diag-plot, fig.cap="Distribution of historical diagnosis."-----------
 his_hf_diag <- diagnosis_history %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
@@ -440,7 +505,7 @@ summary_his_diag <- his_hf_diag %>%
   replace(is.na(.),FALSE) %>%
     dplyr::mutate(`No His. HF ICD10` = !`Congestive heart failure` & !`Heart failure, unspecified`
                   & !`Left ventricular failure`)
-plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10")
+plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10",n_suffix="patients")
 
 ## -----------------------------------------------------------------------------
 extract_form <- function(df,string,prefix){
@@ -490,30 +555,8 @@ form_primary_cohort %>%
       any(DISCH_DISPOSITION_CD == "Discharge by Hospital") ~ "Discharge by Hospital",
     )
   ) %>%
-  proportion_bar_plot("DISCH_MODE","Discharge mode for patients without forms") + xlab("")
+  proportion_bar_plot("DISCH_MODE","Discharge mode for patients without forms",n_suffix="patients") + xlab("")
 
-
-## -----------------------------------------------------------------------------
-primary_meds <- medication_order %>%
-  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID)
-primary_enc_meds <- primary_enc %>%
-  dplyr::mutate(HAS_DISCH_MED = ENCNTR_ID %in% primary_meds$ENCNTR_ID)
-
-
-## ----med-type-plot, fig.cap="The type of medication whether home or discharge medication."----
-p1 <- proportion_bar_plot(primary_meds,"ORIG_ORD_AS_FLAG","Type of discharge medication\n")
-p2 <- proportion_bar_plot(primary_enc_meds,"HAS_DISCH_MED","Encounters with Discharge Medications\n")
-
-ggpubr::ggarrange(p1,p2,ncol=2,nrow=1,labels=c("A","B"))
-
-## ----med-class-tab------------------------------------------------------------
-primary_meds %>%
-  dplyr::group_by(MEDICATION_CLASS) %>%
-  dplyr::summarise(N = dplyr::n_distinct(PERSON_ID)) %>% 
-  dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_meds$PERSON_ID)*100,1)) %>%
-  dplyr::arrange(desc(N)) %>% 
-  dplyr::top_n(15) %>%
-  knitr::kable(caption = "Top 15 discharge medication class.")
 
 ## -----------------------------------------------------------------------------
 
@@ -577,17 +620,39 @@ hf_order<-echos  %>%
                 HAS_IRON = !is.na(IRON_EVENT_START_DT_TM),
                 HAS_TRANSFERRIN_SAT = !is.na(TRANSFERRIN_SAT_EVENT_START_DT_TM))
 
-plot_logical_columns(hf_order,"ORDERS","Proportion of Encounter with Order")
+plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters")
 
 
 
 ## ----echo-time-plot,fig.cap="Distribution of the time taken for an echocardiogram."----
 
-mean_delta <- mean(hf_order$ECHO_DELTA,na.rm = TRUE)
+mean_delta <- median(hf_order$ECHO_DELTA,na.rm = TRUE)
 plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
                "ECHO_DELTA","Distribution of time taken for Echo",
-               mean_delta) + 
+               mean_delta,n_suffix="encounters") + 
     xlab("Time take for echo since admission (days)")
+
+## -----------------------------------------------------------------------------
+primary_meds <- medication_order %>%
+  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID)
+primary_enc_meds <- primary_enc %>%
+  dplyr::mutate(HAS_DISCH_MED = ENCNTR_ID %in% primary_meds$ENCNTR_ID)
+
+
+## ----med-type-plot, fig.cap="The type of medication whether home or discharge medication."----
+p1 <- proportion_bar_plot(primary_meds,"ORIG_ORD_AS_FLAG","Type of discharge medication\n")
+p2 <- proportion_bar_plot(primary_enc_meds,"HAS_DISCH_MED","Encounters with Discharge Medications\n")
+
+ggpubr::ggarrange(p1,p2,ncol=2,nrow=1,labels=c("A","B"))
+
+## ----med-class-tab------------------------------------------------------------
+primary_meds %>%
+  dplyr::group_by(MEDICATION_CLASS) %>%
+  dplyr::summarise(N = dplyr::n_distinct(PERSON_ID)) %>% 
+  dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_meds$PERSON_ID)*100,1)) %>%
+  dplyr::arrange(desc(N)) %>% 
+  dplyr::top_n(15) %>%
+  knitr::kable(caption = "Top 15 discharge medication class.")
 
 ## ----path-test-plot,fig.cap="Results of pathology tests."---------------------
 
