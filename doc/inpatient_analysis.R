@@ -508,6 +508,88 @@ summary_his_diag <- his_hf_diag %>%
 plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10",n_suffix="patients")
 
 ## -----------------------------------------------------------------------------
+
+echos <- orders %>%
+  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::group_by(ENCNTR_ID) %>%
+  dplyr::arrange(desc(STATUS_DT_TM)) %>%
+  dplyr::slice(1) %>%
+  dplyr::select(ENCNTR_ID,CATALOG_CD,STATUS_DT_TM) %>%
+  dplyr::right_join(
+    dplyr::select(primary_enc,ENCNTR_ID,ARRIVE_DT_TM),by="ENCNTR_ID") %>%
+  dplyr::mutate(HAS_ECHO = !is.na(CATALOG_CD),ECHO_DELTA = difftime(STATUS_DT_TM,ARRIVE_DT_TM,units = "days")) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(-CATALOG_CD) %>%
+  dplyr::rename(ECHO_START_DT_TM = STATUS_DT_TM)
+
+
+## -----------------------------------------------------------------------------
+
+extract_path_result <- function(df,string,prefix,breaks=NULL,labels=NULL){
+  df %<>% dplyr::filter(EVENT_CD == string) %>%
+  dplyr::select(ENCNTR_ID,EVENT_START_DT_TM,RESULT_VAL,RESULT_UNITS_CD) %>%
+    dplyr::mutate(RESULT_VAL = as.numeric(stringr::str_remove_all(RESULT_VAL, '\"')) )  %>% 
+  dplyr::rename("{prefix}_EVENT_START_DT_TM" := EVENT_START_DT_TM,
+                
+                "{prefix}_RESULT_UNITS_CD" := RESULT_UNITS_CD)
+  
+  if(!is.null(breaks)){
+    df %<>% dplyr::mutate("{prefix}_BIN" := cut(RESULT_VAL,breaks=breaks,labels=labels))
+  }
+  df %<>% dplyr::rename("{prefix}_RESULT_VAL" := RESULT_VAL)
+  
+  return(df)
+}
+
+## -----------------------------------------------------------------------------
+path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'")
+
+path_tests %<>%
+  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::group_by(ENCNTR_ID,EVENT_CD) %>%
+  dplyr::arrange(desc(EVENT_START_DT_TM)) %>%
+  dplyr::slice(1) %>%
+  dplyr::ungroup()
+
+
+
+
+## ----echo-string-tab----------------------------------------------------------
+orders %>%
+  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::distinct(CATALOG_CD) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("List of strings containing the term 'cardio - echo'")
+
+## ----order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."----
+hf_order<-echos  %>%
+  dplyr::left_join(
+    extract_path_result(path_tests,"Brain Natriuretic peptide (BNP )", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
+  ) %>%
+  dplyr::left_join(
+    extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")), by="ENCNTR_ID"
+  ) %>%
+  dplyr::left_join(
+    extract_path_result(path_tests,"Transferrin Saturation", "TRANSFERRIN_SAT",c(-Inf,20,Inf),c("< 20","20+")), by="ENCNTR_ID"
+  ) %>%
+  dplyr::mutate(HAS_BNP = !is.na(BNP_EVENT_START_DT_TM),
+                HAS_IRON = !is.na(IRON_EVENT_START_DT_TM),
+                HAS_TRANSFERRIN_SAT = !is.na(TRANSFERRIN_SAT_EVENT_START_DT_TM))
+
+plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters")
+
+
+
+## ----echo-time-plot,fig.cap="Distribution of the time taken for an echocardiogram."----
+
+mean_delta <- median(hf_order$ECHO_DELTA,na.rm = TRUE)
+plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
+               "ECHO_DELTA","Distribution of time taken for Echo",
+               mean_delta,n_suffix="encounters") + 
+    xlab("Time take for echo since admission (days)")
+
+## -----------------------------------------------------------------------------
 extract_form <- function(df,string,prefix){
   df %<>%
   dplyr::filter(DESCRIPTION == string) %>%
@@ -557,80 +639,6 @@ form_primary_cohort %>%
   ) %>%
   proportion_bar_plot("DISCH_MODE","Discharge mode for patients without forms",n_suffix="patients") + xlab("")
 
-
-## -----------------------------------------------------------------------------
-
-echos <- orders %>%
-  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
-  dplyr::group_by(ENCNTR_ID) %>%
-  dplyr::arrange(desc(STATUS_DT_TM)) %>%
-  dplyr::slice(1) %>%
-  dplyr::select(ENCNTR_ID,CATALOG_CD,STATUS_DT_TM) %>%
-  dplyr::right_join(
-    dplyr::select(primary_enc,ENCNTR_ID,ARRIVE_DT_TM),by="ENCNTR_ID") %>%
-  dplyr::mutate(HAS_ECHO = !is.na(CATALOG_CD),ECHO_DELTA = difftime(STATUS_DT_TM,ARRIVE_DT_TM,units = "days")) %>%
-  dplyr::ungroup() %>%
-  dplyr::select(-CATALOG_CD) %>%
-  dplyr::rename(ECHO_START_DT_TM = STATUS_DT_TM)
-
-
-## -----------------------------------------------------------------------------
-
-extract_path_result <- function(df,string,prefix,breaks=NULL,labels=NULL){
-  df %<>% dplyr::filter(EVENT_CD == string) %>%
-  dplyr::select(ENCNTR_ID,EVENT_START_DT_TM,RESULT_VAL,RESULT_UNITS_CD) %>%
-    dplyr::mutate(RESULT_VAL = as.numeric(stringr::str_remove_all(RESULT_VAL, '\"')) )  %>% 
-  dplyr::rename("{prefix}_EVENT_START_DT_TM" := EVENT_START_DT_TM,
-                
-                "{prefix}_RESULT_UNITS_CD" := RESULT_UNITS_CD)
-  
-  if(!is.null(breaks)){
-    df %<>% dplyr::mutate("{prefix}_BIN" := cut(RESULT_VAL,breaks=breaks,labels=labels))
-  }
-  df %<>% dplyr::rename("{prefix}_RESULT_VAL" := RESULT_VAL)
-  
-  return(df)
-}
-
-## -----------------------------------------------------------------------------
-path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'")
-
-path_tests %<>%
-  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
-  dplyr::group_by(ENCNTR_ID,EVENT_CD) %>%
-  dplyr::arrange(desc(EVENT_START_DT_TM)) %>%
-  dplyr::slice(1) %>%
-  dplyr::ungroup()
-
-
-
-
-## ----order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."----
-hf_order<-echos  %>%
-  dplyr::left_join(
-    extract_path_result(path_tests,"Brain Natriuretic peptide (BNP )", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
-  ) %>%
-  dplyr::left_join(
-    extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")), by="ENCNTR_ID"
-  ) %>%
-  dplyr::left_join(
-    extract_path_result(path_tests,"Transferrin Saturation", "TRANSFERRIN_SAT",c(-Inf,20,Inf),c("< 20","20+")), by="ENCNTR_ID"
-  ) %>%
-  dplyr::mutate(HAS_BNP = !is.na(BNP_EVENT_START_DT_TM),
-                HAS_IRON = !is.na(IRON_EVENT_START_DT_TM),
-                HAS_TRANSFERRIN_SAT = !is.na(TRANSFERRIN_SAT_EVENT_START_DT_TM))
-
-plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters")
-
-
-
-## ----echo-time-plot,fig.cap="Distribution of the time taken for an echocardiogram."----
-
-mean_delta <- median(hf_order$ECHO_DELTA,na.rm = TRUE)
-plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
-               "ECHO_DELTA","Distribution of time taken for Echo",
-               mean_delta,n_suffix="encounters") + 
-    xlab("Time take for echo since admission (days)")
 
 ## -----------------------------------------------------------------------------
 primary_meds <- medication_order %>%
