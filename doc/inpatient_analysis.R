@@ -281,15 +281,15 @@ hf_diag_secondary_count <- hf_diag_secondary %>%
 
 ## ----icd10-dist-plot, fig.cap="Distribution of primary and secondary ICD10 diagnosis."----
 
-p1 <- plot_logical_columns(primary_temp,"ICD10","Primary HF ICD10",n_suffix="patients") + 
+p1 <- plot_logical_columns(primary_temp,"ICD10","Primary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2)) + 
   ggplot2::ylim(0,2000)
 
-p2 <- plot_logical_columns(secondary_temp,"ICD10","Secondary HF ICD10",n_suffix="patients") + 
+p2 <- plot_logical_columns(secondary_temp,"ICD10","Secondary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
   ggplot2::ylim(0,3500)
 
-p3 <- plot_logical_columns(combined_temp,"ICD10","Combined Primary & Secondary HF ICD10",n_suffix="patients") + 
+p3 <- plot_logical_columns(combined_temp,"ICD10","Combined Primary & Secondary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
   ggplot2::ylim(0,5000)
 
@@ -423,9 +423,9 @@ ggpubr::ggarrange(p1,p2,nrow=2,ncol = 1, labels=c("A","B"))
 
 ## ----los-dis-plot, fig.cap="Distribution of Length of Stay"-------------------
 
-p1 <- plot_histogram(primary_enc,"LOS","Distribution of LOS",mean(primary_enc$LOS,na.rm=TRUE),n_suffix = "encounters") + xlab("LOS (days)") + xlim(0,40) + ylim(0,250)
+p1 <- plot_histogram(primary_enc %>% dplyr::filter(!is.na(LOS)),"LOS","Distribution of LOS",median(primary_enc$LOS,na.rm=TRUE),n_suffix = "encounters") + xlab("LOS (days)") + xlim(0,40) + ylim(0,250)
 
-p2 <- plot_histogram_group(primary_enc,"LOS","PRIMARY_DIAG","Distribution of LOS by Diagnosis",n_suffix = "encounters") + xlab("LOS (days)") + xlim(0,40)
+p2 <- plot_histogram_group(primary_enc %>% dplyr::filter(!is.na(LOS)),"LOS","PRIMARY_DIAG","Distribution of LOS by Diagnosis",n_suffix = "encounters") + xlab("LOS (days)") + xlim(0,40)
 
 ggpubr::ggarrange(p1,p2,nrow=2,ncol = 1, labels=c("A","B"))
 
@@ -461,7 +461,8 @@ kk<- primary_cohort %>%
   replace(is.na(.), FALSE)
 
 prop_tab <- prop.table(table(kk$HAS_PRIMARY_HF,kk$HAS_ALERT))
-prop_tab %>% 
+tab <- table(kk$HAS_PRIMARY_HF,kk$HAS_ALERT)
+tab  %>% 
   knitr::kable(caption = "Contigency table of Primary HF ICD10 and Advanced Care directive (ACD).",digits=2) %>%
   kableExtra::add_header_above(c("Has Primary\n ICD10"=1,"Has ACD"=2))%>%
   kable_styling(position = "center",full_width = FALSE)
@@ -525,8 +526,8 @@ echos <- orders %>%
 
 ## -----------------------------------------------------------------------------
 
-extract_path_result <- function(df,string,prefix,breaks=NULL,labels=NULL){
-  df %<>% dplyr::filter(EVENT_CD == string) %>%
+extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
+  df %<>% dplyr::filter(stringr::str_detect(EVENT_CD,regex)) %>%
   dplyr::select(ENCNTR_ID,EVENT_START_DT_TM,RESULT_VAL,RESULT_UNITS_CD) %>%
     dplyr::mutate(RESULT_VAL = as.numeric(stringr::str_remove_all(RESULT_VAL, '\"')) )  %>% 
   dplyr::rename("{prefix}_EVENT_START_DT_TM" := EVENT_START_DT_TM,
@@ -542,7 +543,7 @@ extract_path_result <- function(df,string,prefix,breaks=NULL,labels=NULL){
 }
 
 ## -----------------------------------------------------------------------------
-path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'")
+path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level' or CATALOG_CD = 'Iron Studies' or CATALOG_CD = 'N Terminal Pro Brain Natriuretic Peptide'")
 
 path_tests %<>%
   dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
@@ -552,20 +553,10 @@ path_tests %<>%
   dplyr::ungroup()
 
 
-
-
-## ----echo-string-tab----------------------------------------------------------
-orders %>%
-  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
-  dplyr::distinct(CATALOG_CD) %>%
-  flextable() %>%
-  autofit() %>%
-  set_caption("List of strings containing the term 'cardio - echo'")
-
 ## ----order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."----
 hf_order<-echos  %>%
   dplyr::left_join(
-    extract_path_result(path_tests,"Brain Natriuretic peptide (BNP )", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
+    extract_path_result(path_tests,"(Brain Natriuretic peptide)|(N Terminal pro BNP)|(NT-ProBNP)", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
   ) %>%
   dplyr::left_join(
     extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")), by="ENCNTR_ID"
@@ -588,6 +579,15 @@ plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
                "ECHO_DELTA","Distribution of time taken for Echo",
                mean_delta,n_suffix="encounters") + 
     xlab("Time take for echo since admission (days)")
+
+## ----echo-string-tab----------------------------------------------------------
+orders %>%
+  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::group_by(CATALOG_CD) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("List of strings containing the term 'cardio - echo' and number of occurences.")
 
 ## -----------------------------------------------------------------------------
 extract_form <- function(df,string,prefix){
@@ -621,7 +621,7 @@ form_primary_cohort <- primary_cohort %>%
 
 form_primary_cohort %>%
   dplyr::select(-HAS_PRIMARY_HF) %>%
-  plot_logical_columns("Form","Proportion with HF Form") +
+  plot_logical_columns("Form","Proportion with HF Form",n_suffix="patients") +
  labs(x="")
 
 ## ----no-form-disch-plot,fig.cap="Distribution of mode of discharge for patients without either a referral nor enrolment form."----
@@ -774,10 +774,14 @@ echos <- orders %>%
 
 
 ## -----------------------------------------------------------------------------
-path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level'")
+path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level' or CATALOG_CD = 'Iron Studies' or CATALOG_CD = 'N Terminal Pro Brain Natriuretic Peptide'")
 
 path_tests %<>%
   dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::mutate(EVENT_CD = dplyr::case_when(
+    stringr::str_detect(EVENT_CD,"(Brain Natriuretic peptide)|(N Terminal pro BNP)|(NT-ProBNP)") ~ "BNP",
+    TRUE ~ EVENT_CD
+  )) %>%
   dplyr::group_by(ENCNTR_ID,EVENT_CD) %>%
   dplyr::arrange(desc(EVENT_START_DT_TM)) %>%
   dplyr::slice(1) %>%
@@ -789,7 +793,7 @@ path_tests %<>%
 ## ----order-prop-plot-sec, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."----
 hf_order<-echos  %>%
   dplyr::left_join(
-    extract_path_result(path_tests,"Brain Natriuretic peptide (BNP )", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
+    extract_path_result(path_tests,"BNP", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
   ) %>%
   dplyr::left_join(
     extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")), by="ENCNTR_ID"
