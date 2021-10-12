@@ -678,6 +678,10 @@ path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'B
 
 path_tests %<>%
   dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::mutate(EVENT_CD = dplyr::case_when(
+    stringr::str_detect(EVENT_CD,"(Brain Natriuretic peptide)|(N Terminal pro BNP)|(NT-ProBNP)") ~ "BNP",
+    TRUE ~ EVENT_CD
+  )) %>%
   dplyr::group_by(ENCNTR_ID,EVENT_CD) %>%
   dplyr::arrange(desc(EVENT_START_DT_TM)) %>%
   dplyr::slice(1) %>%
@@ -690,7 +694,7 @@ path_tests %<>%
 ```{r order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."}
 hf_order<-echos  %>%
   dplyr::left_join(
-    extract_path_result(path_tests,"(Brain Natriuretic peptide)|(N Terminal pro BNP)|(NT-ProBNP)", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
+    extract_path_result(path_tests,"BNP", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
   ) %>%
   dplyr::left_join(
     extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")), by="ENCNTR_ID"
