@@ -206,7 +206,7 @@ medication_order <- execute_query(query)
 hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = 'Heart Failure (MACARF) Referral Form' or DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
 
 ## -----------------------------------------------------------------------------
-location_string <- "Royal North Shore"
+location_string <- "Ryde"
 hf_diag <- diagnosis %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & DIAG_TYPE_CD == "Final")
 
@@ -543,9 +543,9 @@ extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
 }
 
 ## -----------------------------------------------------------------------------
-path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level' or CATALOG_CD = 'Iron Studies' or CATALOG_CD = 'N Terminal Pro Brain Natriuretic Peptide'")
+path_tests_full <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level' or CATALOG_CD = 'Iron Studies' or CATALOG_CD = 'N Terminal Pro Brain Natriuretic Peptide'")
 
-path_tests %<>%
+path_tests  <-  path_tests_full %>%
   dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
   dplyr::mutate(EVENT_CD = dplyr::case_when(
     stringr::str_detect(EVENT_CD,"(Brain Natriuretic peptide)|(N Terminal pro BNP)|(NT-ProBNP)") ~ "BNP",
@@ -556,6 +556,15 @@ path_tests %<>%
   dplyr::slice(1) %>%
   dplyr::ungroup()
 
+
+## ----path-count-tab-----------------------------------------------------------
+
+path_tests %>%
+  dplyr::group_by(EVENT_CD) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("List of strings related to iron and BNP and their counts.")
 
 ## ----order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."----
 hf_order<-echos  %>%

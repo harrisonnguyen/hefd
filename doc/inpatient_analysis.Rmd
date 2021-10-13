@@ -234,7 +234,7 @@ hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = '
 ```
 
 ```{r}
-location_string <- "Royal North Shore"
+location_string <- "Ryde"
 hf_diag <- diagnosis %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & DIAG_TYPE_CD == "Final")
 
@@ -580,7 +580,7 @@ tab  %>%
 
 ```
 
-Table \@ref(tab:acd-tab) shows a contingency table of the number of patients with a primary ICD10 code who also have an Advanced Care Directive. The right-most column shows number of patients with a ACD (n = **`r nrow(known_to_hf)`**) and the bottom-most row shows the number of people with a primary HF diagnosis (n = **`r nrow(primary_cohort)`**). The combination of the rows and columns show the number of people who have either a ACD or diagnosis, or both or none. 
+Table \@ref(tab:acd-tab) shows a contingency table of the number of patients with a primary ICD10 code who also have an Advanced Care Directive. The right-most column shows number of patients with a ACD across NSLHD (n = **`r nrow(known_to_hf)`**) and the bottom-most row shows the number of people with a primary HF diagnosis (n = **`r nrow(primary_cohort)`**). The combination of the rows and columns show the number of people who have either a ACD or diagnosis, or both or none. 
 
 For example, there are **`r tab[2,2]`** patients with both a ACD **AND** a primary heart failure diagnosis. Thus there are **`r round(prop_tab[2,2]/sum(prop_tab[2,])*100,1)`**\% of patients (**`r tab[2,2]`/`r tab[2,1]` + `r tab[2,2]`**) with a primary HF ICD10 that have an advanced care directive. 
 
@@ -674,9 +674,9 @@ extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
 ```
 
 ```{r}
-path_tests <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level' or CATALOG_CD = 'Iron Studies' or CATALOG_CD = 'N Terminal Pro Brain Natriuretic Peptide'")
+path_tests_full <- execute_query("SELECT * from PATHOLOGY_EVENT where CATALOG_CD = 'Brain Natriuretic Peptide' or CATALOG_CD = 'Iron Level' or CATALOG_CD = 'Iron Studies' or CATALOG_CD = 'N Terminal Pro Brain Natriuretic Peptide'")
 
-path_tests %<>%
+path_tests  <-  path_tests_full %>%
   dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
   dplyr::mutate(EVENT_CD = dplyr::case_when(
     stringr::str_detect(EVENT_CD,"(Brain Natriuretic peptide)|(N Terminal pro BNP)|(NT-ProBNP)") ~ "BNP",
@@ -689,6 +689,15 @@ path_tests %<>%
 
 ```
 
+```{r path-count-tab}
+
+path_tests %>%
+  dplyr::group_by(EVENT_CD) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("List of strings related to iron and BNP and their counts.")
+```
 
 
 ```{r order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."}
@@ -732,7 +741,7 @@ orders %>%
   set_caption("List of strings containing the term 'cardio - echo' and number of occurences.")
 ```
 
-Table \@ref(tab:echo-string-tab) shows a list of orders in the EMR containing the term `cardio- echo`.
+Table \@ref(tab:echo-string-tab) shows a list of orders in the EMR containing the term `cardio- echo` and similarly Table \@ref(tab:path-count-tab) shows a list of pathology tests and their counts for this cohort.
 
 Figure \@ref(fig:order-prop-plot) shows the proportion of encounters with a relevant heart failure order being echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure \@ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a median time of **`r round(mean_delta,1)`** days.
 
