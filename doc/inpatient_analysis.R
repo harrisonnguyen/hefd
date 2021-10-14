@@ -206,7 +206,7 @@ medication_order <- execute_query(query)
 hf_form <- execute_query("SELECT * from DCP_FORMS_ACTIVITY where DESCRIPTION = 'Heart Failure (MACARF) Referral Form' or DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
 
 ## -----------------------------------------------------------------------------
-location_string <- "Ryde"
+location_string <- "Royal North Shore"
 hf_diag <- diagnosis %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & DIAG_TYPE_CD == "Final")
 
@@ -229,17 +229,35 @@ proportion_bar_plot(counts,"N", "Number of encounters per patient",n_suffix="pat
 proportion_bar_plot(qual_enc,"ENCNTR_TYPE_CD","Distribution of Encounter Type",n_suffix = "encounters") + xlab("")
 
 ## -----------------------------------------------------------------------------
-extract_hf_diagnosis <- function(df,group_cols = "ENCNTR_ID"){
+extract_hf_diagnosis <- function(df,group_cols = "ENCNTR_ID",split_priority = FALSE){
   
   group_cols <- rlang::sym(group_cols)
-  df %<>%
-  dplyr::group_by(!!group_cols) %>%
-  dplyr::summarise(
-    `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
-    `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
-    `Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1")
-  ) %>%
-  replace(is.na(.), FALSE)
+  
+  if(!split_priority){
+     df %<>%
+      dplyr::group_by(!!group_cols) %>%
+      dplyr::summarise(
+        `Congestive heart failure` = any(SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50"),
+        `Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9"),
+        `Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1")
+      ) %>%
+      replace(is.na(.), FALSE)
+  }
+  else{
+     df %<>%
+      dplyr::group_by(!!group_cols) %>%
+      dplyr::summarise(
+        `Primary Congestive heart failure` = any((SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50") & DIAG_PRIORITY == 1),
+        `Primary Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9" & DIAG_PRIORITY == 1),
+        `Primary Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1" & DIAG_PRIORITY == 1),
+        `Secondary Congestive heart failure` = any((SOURCE_IDENTIFIER == "I50.0" | SOURCE_IDENTIFIER == "I50") 
+                                                 & DIAG_PRIORITY != 1),
+        `Secondary Heart failure, unspecified` = any(SOURCE_IDENTIFIER == "I50.9" & DIAG_PRIORITY != 1),
+        `Secondary Left ventricular failure` = any(SOURCE_IDENTIFIER == "I50.1" & DIAG_PRIORITY != 1)
+      ) %>%
+      replace(is.na(.), FALSE)
+  }
+ 
   
   return(df)
 }
@@ -495,10 +513,11 @@ tab  %>%
 primary_enc_alert <- primary_enc %>%
   dplyr::left_join(known_to_hf,by="PERSON_ID") %>%
   dplyr::mutate(ALERT_DELTA = difftime(BEG_EFFECTIVE_DT_TM,ARRIVE_DT_TM,units="days")) %>%
-  dplyr::filter(!is.na(ALERT_DELTA))
+  tidyr::replace_na(list(HAS_ALERT=FALSE))
 
 plot_histogram(
-  primary_enc_alert,
+  primary_enc_alert %>%
+    dplyr::filter(!is.na(ALERT_DELTA)),
   "ALERT_DELTA","Time taken for ACD to be registered since arrival",
   median(primary_enc_alert$ALERT_DELTA,na.rm=TRUE),n_suffix = "encounters") + xlim(-200,200) + xlab("Time (days)")
 
@@ -517,19 +536,51 @@ n_alert <- primary_enc_alert %>%
 
 median <- as.numeric(median(primary_enc_alert$ALERT_DELTA,na.rm=TRUE))
 
+## ----alert-by-age-plot,fig.cap="Boxplot of Age and whether patient has had a ACD or not."----
+
+
+primary_enc_no_deaths<-primary_enc_alert %>%
+  dplyr::filter(DISCH_DISPOSITION_CD != "Pt Death without Autopsy") 
+
+primary_enc_no_deaths %>%
+  ggpubr::ggboxplot(x = "HAS_ALERT", y = "AGE", 
+          color = "HAS_ALERT", palette = c("#00AFBB", "#E7B800"),
+          ylab = "AGE", xlab = "HAS_ALERT",title=paste0("Age vs ACD (N = ",nrow(primary_enc_no_deaths),")"))
+
+## -----------------------------------------------------------------------------
+mean <- primary_enc_no_deaths %>% 
+    dplyr::group_by(HAS_ALERT) %>% 
+    dplyr::summarise(mean = mean(AGE))
+
+## ----age-alert-plot,fig.cap="Likelihood of having an ACD given the patient's age."----
+conditional_bar_plot(primary_enc_no_deaths,"AGE_BINNED","HAS_ALERT","Age vs Alert")
+
+
+## ----age-alert-anova-tab------------------------------------------------------
+res.aov <- aov(AGE ~ HAS_ALERT, data = primary_enc_no_deaths)
+summary_results <- summary(res.aov)[[1]]
+summary_results %>%
+  round(2) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("One-way ANOVA test of age against having a ACD or not.")
+
+
 ## ----his-diag-plot, fig.cap="Distribution of historical diagnosis."-----------
 his_hf_diag <- diagnosis_history %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") &
                   PERSON_ID %in% primary_cohort$PERSON_ID)
 
 summary_his_diag <- his_hf_diag %>%
-  extract_hf_diagnosis(group_cols = "PERSON_ID") %>%
+  extract_hf_diagnosis(group_cols = "PERSON_ID",split_priority = TRUE) %>%
   dplyr::right_join(primary_cohort,by="PERSON_ID") %>%
   dplyr::select(-HAS_PRIMARY_HF) %>%
   replace(is.na(.),FALSE) %>%
-    dplyr::mutate(`No His. HF ICD10` = !`Congestive heart failure` & !`Heart failure, unspecified`
-                  & !`Left ventricular failure`)
-plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10",n_suffix="patients")
+    dplyr::mutate(`No His. HF ICD10` = !`Primary Congestive heart failure` & !`Primary Heart failure, unspecified`
+                  & !`Primary Left ventricular failure` & !`Secondary Congestive heart failure` & 
+                    !`Secondary Heart failure, unspecified`
+                  & !`Secondary Left ventricular failure`)
+plot_logical_columns(summary_his_diag,"ICD10","Distribution of Historical ICD10",n_suffix="patients") +coord_flip()
 
 ## -----------------------------------------------------------------------------
 
@@ -538,7 +589,7 @@ echos <- orders %>%
   dplyr::group_by(ENCNTR_ID) %>%
   dplyr::arrange(desc(STATUS_DT_TM)) %>%
   dplyr::slice(1) %>%
-  dplyr::select(ENCNTR_ID,CATALOG_CD,STATUS_DT_TM) %>%
+  dplyr::select(ENCNTR_ID,PERSON_ID,CATALOG_CD,STATUS_DT_TM) %>%
   dplyr::right_join(
     dplyr::select(primary_enc,ENCNTR_ID,ARRIVE_DT_TM),by="ENCNTR_ID") %>%
   dplyr::mutate(HAS_ECHO = !is.na(CATALOG_CD),ECHO_DELTA = difftime(STATUS_DT_TM,ARRIVE_DT_TM,units = "days")) %>%
@@ -551,7 +602,7 @@ echos <- orders %>%
 
 extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
   df %<>% dplyr::filter(stringr::str_detect(EVENT_CD,regex)) %>%
-  dplyr::select(ENCNTR_ID,EVENT_START_DT_TM,RESULT_VAL,RESULT_UNITS_CD) %>%
+  dplyr::select(ENCNTR_ID,PERSON_ID,EVENT_START_DT_TM,RESULT_VAL,RESULT_UNITS_CD) %>%
     dplyr::mutate(RESULT_VAL = as.numeric(stringr::str_remove_all(RESULT_VAL, '\"')) )  %>% 
   dplyr::rename("{prefix}_EVENT_START_DT_TM" := EVENT_START_DT_TM,
                 
@@ -591,21 +642,26 @@ path_tests_full %>%
   set_caption("List of strings related to iron and BNP and their counts.")
 
 ## ----order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."----
+
+bnp <- extract_path_result(path_tests,"BNP", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+"))
+iron <- extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")) 
+trans_sat <- extract_path_result(path_tests,"Transferrin Saturation", "TRANSFERRIN_SAT",c(-Inf,20,Inf),c("< 20","20+"))
+
 hf_order<-echos  %>%
   dplyr::left_join(
-    extract_path_result(path_tests,"BNP", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+")), by="ENCNTR_ID"
+    bnp, by="ENCNTR_ID"
   ) %>%
   dplyr::left_join(
-    extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")), by="ENCNTR_ID"
+    iron, by="ENCNTR_ID"
   ) %>%
   dplyr::left_join(
-    extract_path_result(path_tests,"Transferrin Saturation", "TRANSFERRIN_SAT",c(-Inf,20,Inf),c("< 20","20+")), by="ENCNTR_ID"
+    trans_sat, by="ENCNTR_ID"
   ) %>%
   dplyr::mutate(HAS_BNP = !is.na(BNP_EVENT_START_DT_TM),
                 HAS_IRON = !is.na(IRON_EVENT_START_DT_TM),
                 HAS_TRANSFERRIN_SAT = !is.na(TRANSFERRIN_SAT_EVENT_START_DT_TM))
 
-plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters")
+plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters") + coord_flip()
 
 
 
@@ -625,6 +681,48 @@ orders %>%
   flextable() %>%
   autofit() %>%
   set_caption("List of strings containing the term 'cardio - echo' and number of occurences.")
+
+## -----------------------------------------------------------------------------
+order_year_join <- function(cohort,df,time_col){
+  time_col <- rlang::sym(time_col)
+  cohort %<>%
+    dplyr::select(PERSON_ID,ARRIVE_DT_TM,ENCNTR_ID) %>%
+    dplyr::left_join(df,by="PERSON_ID",suffix=c("","_ORDER")) %>%
+    dplyr::mutate(DELTA = difftime(!!time_col,ARRIVE_DT_TM,units="days")) %>%
+    dplyr::filter((DELTA >= -365.25 & DELTA <= 0) | ENCNTR_ID == ENCNTR_ID_ORDER)
+    
+  return(cohort)
+}
+
+## -----------------------------------------------------------------------------
+
+cardio_echo_orders <- orders %>%
+  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo"))
+
+
+echo_year <-  primary_enc %>%
+  order_year_join(cardio_echo_orders,"STATUS_DT_TM")
+
+
+
+
+bnp_year <- primary_enc %>%
+  order_year_join(bnp,"BNP_EVENT_START_DT_TM")
+iron_year <- primary_enc %>%
+  order_year_join(iron,"IRON_EVENT_START_DT_TM")
+transferrin_sat_year <- primary_enc %>%
+  order_year_join(trans_sat,"TRANSFERRIN_SAT_EVENT_START_DT_TM")
+
+primary_orders_in_year<-hf_order %>%
+  dplyr::mutate(HAS_ECHO_YEAR = ENCNTR_ID %in% echo_year$ENCNTR_ID,
+                HAS_BNP_YEAR = ENCNTR_ID %in% bnp_year$ENCNTR_ID,
+                HAS_IRON_YEAR = ENCNTR_ID %in% iron_year$ENCNTR_ID,
+                HAS_TRANSFERRIN_SAT_YEAR = ENCNTR_ID %in% transferrin_sat_year$ENCNTR_ID)
+
+## ----order-year-plot,fig.cap="Proportion of encounters with an order during the encounter OR within the last year of admission."----
+primary_orders_in_year %>%
+  dplyr::select(contains("_YEAR")) %>%
+plot_logical_columns("ORDERS","Encounters with Order within 1 Year",n_suffix="encounters") + coord_flip()
 
 ## -----------------------------------------------------------------------------
 extract_form <- function(df,string,prefix){
@@ -676,6 +774,63 @@ form_primary_cohort %>%
   ) %>%
   proportion_bar_plot("DISCH_MODE","Discharge mode for patients without forms",n_suffix="patients") + xlab("")
 
+
+## -----------------------------------------------------------------------------
+convert_year_half_period <- function(df,date_col){
+  date_col <- rlang::sym(date_col)
+  df %<>% 
+    dplyr::mutate(YEAR_HALF = as.character(zoo::as.yearqtr(!!date_col)),
+                HAS_FORM=TRUE) %>%
+    dplyr::mutate(YEAR_HALF = stringr::str_replace(YEAR_HALF,"Q(1|2)","P1"),
+                YEAR_HALF = stringr::str_replace(YEAR_HALF,"Q(3|4)","P2"))
+  
+  return(df)
+  
+}
+
+extract_form_with_year_period <- function(df,string,prefix){
+  df %<>% dplyr::filter(DESCRIPTION == string) %>%
+    convert_year_half_period("FORM_DT_TM") %>%
+  dplyr::select(PERSON_ID,ENCNTR_ID,PARENT_ENTITY_ID,FORM_DT_TM,YEAR_HALF,HAS_FORM) %>%
+  dplyr::group_by(PERSON_ID,YEAR_HALF) %>%
+  dplyr::arrange(desc(FORM_DT_TM)) %>%
+  dplyr::slice(1) %>%
+    dplyr::rename_with(.fn = ~ paste0(prefix,"_",.x))
+  
+  return(df)
+}
+
+
+## ----form-by-month-plot,fig.cap="Proportion of encounters with a form by half year periods."----
+enrolment_form <- hf_form %>%
+  extract_form_with_year_period('Heart Failure - Management of Cardiac Function Enrolment',"ENROLMENT")
+
+
+referral_form <- hf_form %>%
+   extract_form_with_year_period('Heart Failure (MACARF) Referral Form',"REFERRAL")
+  
+ 
+
+temp <- primary_enc %>%
+   convert_year_half_period("DISCH_DT_TM")%>%
+  dplyr::left_join(enrolment_form,by=c("PERSON_ID" = "ENROLMENT_PERSON_ID",
+                                       "YEAR_HALF" = "ENROLMENT_YEAR_HALF")) %>%
+  dplyr::left_join(referral_form,by=c("PERSON_ID"= "REFERRAL_PERSON_ID",
+                                       "YEAR_HALF" = "REFERRAL_YEAR_HALF")) %>%
+   tidyr::replace_na(list(ENROLMENT_HAS_FORM = FALSE, REFERRAL_HAS_FORM = FALSE)) %>%
+  dplyr::mutate(NO_FORM = !ENROLMENT_HAS_FORM & !REFERRAL_HAS_FORM) 
+
+p1 <- temp %>%
+conditional_bar_plot("YEAR_HALF","REFERRAL_HAS_FORM","Referral form by Half Year") + xlab("") + ylim(0,250)
+
+
+p2 <- temp %>%
+conditional_bar_plot("YEAR_HALF","ENROLMENT_HAS_FORM","Enrolment form by Half Year") + xlab("") + ylim(0,350)
+
+p3 <- temp %>%
+conditional_bar_plot("YEAR_HALF","NO_FORM","No form by Half Year") + xlab("") + ylim(0,250)
+
+ggpubr::ggarrange(p1, p2, p3, nrow = 3, ncol=1, labels=c("A","B","C"))
 
 ## -----------------------------------------------------------------------------
 primary_meds <- medication_order %>%

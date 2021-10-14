@@ -588,7 +588,7 @@ primary_enc %>%
 
 The above numbers were compared against the in-house `Admitted Patient CaseMix app` developed by the NSLHD Performance and Analytics team that shows the numbers of encounters and their characteristics of each ICD10 diagnosis. 
 
-Figure \@ref(fig:clinical-app-demo) shows that there are a similar number of encounters with a primary heart failure ICD10 diagnosis over a the same period of time at **`r location_string``**. Furthermore the distribution of ICD10 codes are comparable between the current cohort and the NSLHD Performance and Analytics team.
+Figure \@ref(fig:clinical-app-demo) shows that there are a similar number of encounters with a primary heart failure ICD10 diagnosis over a the same period of time at **`r location_string`**. Furthermore the distribution of ICD10 codes are comparable between the current cohort and the NSLHD Performance and Analytics team.
 
 
 ```{r clinical-app-demo, fig.cap="Distribution of ICD10 heart failure encounters using the `Admitted Patient CaseMix App."}
@@ -679,11 +679,11 @@ mean <- primary_enc_no_deaths %>%
 ```
 
 
-Figure \@ref(fig:alert-by-age-plot) shows a boxplot of `AGE` against whether the patient has had an ACD or not (`HAS_ALERT`). The plot suggests that the means the `AGE` of the group with an ACD is higher compared to the group without an ACD (**`r mean[2,2]`** vs **`r mean[2,1]`**, respectively). Furthermore the group without an ACD has larger variance w.r.t `AGE`. 
+Figure \@ref(fig:alert-by-age-plot) shows a boxplot of `AGE` against whether the patient has had an ACD or not (`HAS_ALERT`). The plot suggests that the means the `AGE` of the group with an ACD is higher compared to the group without an ACD (**`r round(mean[2,2],1)`** vs **`r round(mean[1,2],1)`**, respectively). Furthermore the group without an ACD has larger variance w.r.t `AGE`. 
 
 Figure \@ref(fig:age-alert-plot) shows the conditional distribution of the cohort's age and the likelihood that they will have an ACD. The plot suggests that older members are more likely to have an alert and less likely to have an alert if the patient is in the younger age groups, `19-24`,`25-44` and `45-64`.
 
-```{r age-alert-plot,"Likelihood of having an ACD given the patient's age."}
+```{r age-alert-plot,fig.cap="Likelihood of having an ACD given the patient's age."}
 conditional_bar_plot(primary_enc_no_deaths,"AGE_BINNED","HAS_ALERT","Age vs Alert")
 
 ```
@@ -692,7 +692,11 @@ conditional_bar_plot(primary_enc_no_deaths,"AGE_BINNED","HAS_ALERT","Age vs Aler
 res.aov <- aov(AGE ~ HAS_ALERT, data = primary_enc_no_deaths)
 summary_results <- summary(res.aov)[[1]]
 summary_results %>%
-  knitr::kable(digits=2,caption="One-way ANOVA test of age against having a ACD or not.")
+  round(2) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("One-way ANOVA test of age against having a ACD or not.")
+
 ```
 
 Table \@ref(tab:age-alert-anova-tab) shows the results of a one-way ANOVA with the null hypothesis being that there is no difference in the means of ages between the group that has an ACD to one that does not have an ACD. With a p value of **`r round(summary_results[1,5],3)`**, the test suggests that there is a statistically significant difference between the two groups to reject the null.
@@ -808,7 +812,7 @@ hf_order<-echos  %>%
                 HAS_IRON = !is.na(IRON_EVENT_START_DT_TM),
                 HAS_TRANSFERRIN_SAT = !is.na(TRANSFERRIN_SAT_EVENT_START_DT_TM))
 
-plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters")
+plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters") + coord_flip()
 
 
 ```
@@ -871,14 +875,19 @@ transferrin_sat_year <- primary_enc %>%
   order_year_join(trans_sat,"TRANSFERRIN_SAT_EVENT_START_DT_TM")
 
 primary_orders_in_year<-hf_order %>%
-  dplyr::mutate(HAS_ECHO_YEAR = ENCNTR_ID %in% echo_in_year_temp$ENCNTR_ID,
+  dplyr::mutate(HAS_ECHO_YEAR = ENCNTR_ID %in% echo_year$ENCNTR_ID,
                 HAS_BNP_YEAR = ENCNTR_ID %in% bnp_year$ENCNTR_ID,
                 HAS_IRON_YEAR = ENCNTR_ID %in% iron_year$ENCNTR_ID,
                 HAS_TRANSFERRIN_SAT_YEAR = ENCNTR_ID %in% transferrin_sat_year$ENCNTR_ID)
 ```
 
-```{r}
-plot_logical_columns(primary_orders_in_year,"ORDERS","Proportion of Encounters with Order within 1 Year",n_suffix="encounters")
+
+Figure \@ref(fig:order-year-plot) shows the proportion of encounters with an order during the encounter OR within one last year of the beginning of the encounter's admission. These proportions for all of these orders is slightly higher compared to Figure \@ref(fig:order-prop-plot).
+
+```{r order-year-plot,fig.cap="Proportion of encounters with an order during the encounter OR within the last year of admission."}
+primary_orders_in_year %>%
+  dplyr::select(contains("_YEAR")) %>%
+plot_logical_columns("ORDERS","Encounters with Order within 1 Year",n_suffix="encounters") + coord_flip()
 ```
 
 # Forms
@@ -942,12 +951,23 @@ form_primary_cohort %>%
 ```
 
 ```{r}
-extract_form_with_year_quarter <- function(df,string,prefix){
-  df %<>% dplyr::filter(DESCRIPTION == string) %>%
-  dplyr::mutate(YEAR_QUARTER = zoo::as.yearqtr(FORM_DT_TM),
+convert_year_half_period <- function(df,date_col){
+  date_col <- rlang::sym(date_col)
+  df %<>% 
+    dplyr::mutate(YEAR_HALF = as.character(zoo::as.yearqtr(!!date_col)),
                 HAS_FORM=TRUE) %>%
-  dplyr::select(PERSON_ID,ENCNTR_ID,PARENT_ENTITY_ID,FORM_DT_TM,YEAR_QUARTER,HAS_FORM) %>%
-  dplyr::group_by(PERSON_ID,YEAR_QUARTER) %>%
+    dplyr::mutate(YEAR_HALF = stringr::str_replace(YEAR_HALF,"Q(1|2)","P1"),
+                YEAR_HALF = stringr::str_replace(YEAR_HALF,"Q(3|4)","P2"))
+  
+  return(df)
+  
+}
+
+extract_form_with_year_period <- function(df,string,prefix){
+  df %<>% dplyr::filter(DESCRIPTION == string) %>%
+    convert_year_half_period("FORM_DT_TM") %>%
+  dplyr::select(PERSON_ID,ENCNTR_ID,PARENT_ENTITY_ID,FORM_DT_TM,YEAR_HALF,HAS_FORM) %>%
+  dplyr::group_by(PERSON_ID,YEAR_HALF) %>%
   dplyr::arrange(desc(FORM_DT_TM)) %>%
   dplyr::slice(1) %>%
     dplyr::rename_with(.fn = ~ paste0(prefix,"_",.x))
@@ -957,35 +977,38 @@ extract_form_with_year_quarter <- function(df,string,prefix){
 
 ```
 
-```{r}
+Figure \@ref(fig:form-by-month-plot) shows the proportion of encounters with either an enrolment, referral form or neither by periods of 6 months. Figure \@ref(fig:form-by-month-plot)**B** shows that the proportion with enrolment forms is increasing over the **`r time_period`** year period.
+
+```{r form-by-month-plot,fig.cap="Proportion of encounters with a form by half year periods."}
 enrolment_form <- hf_form %>%
-  extract_form_with_year_quarter('Heart Failure - Management of Cardiac Function Enrolment',"ENROLMENT")
+  extract_form_with_year_period('Heart Failure - Management of Cardiac Function Enrolment',"ENROLMENT")
 
 
 referral_form <- hf_form %>%
-   extract_form_with_year_quarter('Heart Failure (MACARF) Referral Form',"REFERRAL")
+   extract_form_with_year_period('Heart Failure (MACARF) Referral Form',"REFERRAL")
   
  
 
 temp <- primary_enc %>%
-  dplyr::mutate(YEAR_QUARTER = zoo::as.yearqtr(DISCH_DT_TM)) %>%
+   convert_year_half_period("DISCH_DT_TM")%>%
   dplyr::left_join(enrolment_form,by=c("PERSON_ID" = "ENROLMENT_PERSON_ID",
-                                       "YEAR_QUARTER" = "ENROLMENT_YEAR_QUARTER")) %>%
+                                       "YEAR_HALF" = "ENROLMENT_YEAR_HALF")) %>%
   dplyr::left_join(referral_form,by=c("PERSON_ID"= "REFERRAL_PERSON_ID",
-                                       "YEAR_QUARTER" = "REFERRAL_YEAR_QUARTER")) %>%
+                                       "YEAR_HALF" = "REFERRAL_YEAR_HALF")) %>%
    tidyr::replace_na(list(ENROLMENT_HAS_FORM = FALSE, REFERRAL_HAS_FORM = FALSE)) %>%
-  dplyr::mutate(NO_FORM = !ENROLMENT_HAS_FORM & !REFERRAL_HAS_FORM) %>%
-  dplyr::mutate(YEAR_QUARTER = as.character(YEAR_QUARTER))
+  dplyr::mutate(NO_FORM = !ENROLMENT_HAS_FORM & !REFERRAL_HAS_FORM) 
 
-temp %>%
-conditional_bar_plot("YEAR_QUARTER","REFERRAL_HAS_FORM","Referral form by Quarter") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + xlab("")
+p1 <- temp %>%
+conditional_bar_plot("YEAR_HALF","REFERRAL_HAS_FORM","Referral form by Half Year") + xlab("") + ylim(0,250)
 
 
-temp %>%
-conditional_bar_plot("YEAR_QUARTER","ENROLMENT_HAS_FORM","Enrolment form by Quarter") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + xlab("")
+p2 <- temp %>%
+conditional_bar_plot("YEAR_HALF","ENROLMENT_HAS_FORM","Enrolment form by Half Year") + xlab("") + ylim(0,350)
 
-temp %>%
-conditional_bar_plot("YEAR_QUARTER","NO_FORM","No form by Quarter") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + xlab("")
+p3 <- temp %>%
+conditional_bar_plot("YEAR_HALF","NO_FORM","No form by Half Year") + xlab("") + ylim(0,250)
+
+ggpubr::ggarrange(p1, p2, p3, nrow = 3, ncol=1, labels=c("A","B","C"))
 ```
 
 # Appendix
