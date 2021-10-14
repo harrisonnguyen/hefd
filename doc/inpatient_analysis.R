@@ -279,19 +279,22 @@ hf_diag_secondary_count <- hf_diag_secondary %>%
   dplyr::summarise(N = dplyr::n()) %>%
   dplyr::filter(N > 1)
 
+## -----------------------------------------------------------------------------
+diag_count <- sort(colSums(combined_temp) )
+
 ## ----icd10-dist-plot, fig.cap="Distribution of primary and secondary ICD10 diagnosis."----
 
 p1 <- plot_logical_columns(primary_temp,"ICD10","Primary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2)) + 
-  ggplot2::ylim(0,2000)
+  ggplot2::ylim(0,nrow(primary_temp)*1.5)
 
 p2 <- plot_logical_columns(secondary_temp,"ICD10","Secondary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
-  ggplot2::ylim(0,3500)
+  ggplot2::ylim(0,nrow(secondary_temp)*1.5)
 
 p3 <- plot_logical_columns(combined_temp,"ICD10","Combined Primary & Secondary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
-  ggplot2::ylim(0,5000)
+  ggplot2::ylim(0,nrow(combined_temp)*1.5)
 
 ggpubr::ggarrange(p1,p2,p3,labels= c("A","B","C"), ncol = 1, nrow = 3)
 
@@ -329,7 +332,6 @@ only_secondary <- secondary_temp %>%
   dplyr::filter(!ENCNTR_ID %in% primary_temp$ENCNTR_ID)
 n_only_prim <-  nrow(only_secondary)
 
-## -----------------------------------------------------------------------------
 primary_diag_of_secondary <- diagnosis %>%
   dplyr::filter(!stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & 
                   ENCNTR_ID %in% only_secondary$ENCNTR_ID &
@@ -343,13 +345,20 @@ tab_cap <- paste(
   sep=" "
 )
 
-## ----prim-sec-tab-------------------------------------------------------------
-primary_diag_of_secondary %>%
+tab <- primary_diag_of_secondary %>%
   dplyr::group_by(SOURCE_STRING) %>%
   dplyr::summarise(N = dplyr::n_distinct(ENCNTR_ID)) %>% 
   dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_diag_of_secondary$PERSON_ID)*100,1)) %>%
   dplyr::arrange(desc(N)) %>% 
-  dplyr::top_n(15) %>%
+  dplyr::top_n(15)
+
+
+tab_names <- tab %>%
+  dplyr::filter(!stringr::str_detect(SOURCE_STRING,"(?i)awaiting admission"))
+
+## ----prim-sec-tab-------------------------------------------------------------
+  
+tab %>%
   knitr::kable(caption = tab_cap)
 
 
@@ -412,6 +421,19 @@ conditional_bar_plot(primary_demo,"AGE_BINNED","SEX_CD", "Age and Sex",n_suffix=
   scale_fill_discrete(name = "SEX") + 
   xlab("AGE")
 
+## -----------------------------------------------------------------------------
+admission_mode_count <- primary_enc %>%
+  dplyr::group_by(ADMIT_MODE_CD) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  dplyr::arrange(desc(N)) %>%
+  dplyr::filter(ADMIT_MODE_CD != "NDF")
+
+sep_mode_count <- primary_enc %>%
+  dplyr::group_by(DISCH_DISPOSITION_CD) %>%
+  dplyr::summarise(N = dplyr::n())%>%
+  dplyr::arrange(desc(N))%>%
+  dplyr::filter(DISCH_DISPOSITION_CD != "NDF")
+
 ## ----admit-disch-mode-plot,fig.cap="Admission and Discharge mode of encounters with primary HF diagnosis."----
 
 p1 <- proportion_bar_plot(primary_enc,"ADMIT_MODE_CD","Mode of Admission",n_suffix="encounters",vjust=0.25) + ylim(0,800) +xlab("")  + coord_flip()
@@ -445,7 +467,8 @@ primary_enc %>%
 
 ## ----clinical-app-demo, fig.cap="Distribution of ICD10 heart failure encounters using the `Admitted Patient CaseMix App."----
 # All defaults
-knitr::include_graphics(file.path(here::here(),"vignettes/img/inpatient_hf_casemix.PNG"))
+file <-paste0("vignettes/img/inpatient_hf_casemix_",tolower(stringr::str_replace_all(location_string," ","_")),".PNG")
+knitr::include_graphics(file.path(here::here(),file))
 
 ## ----acd-tab------------------------------------------------------------------
 known_to_hf <- problem %>%
@@ -559,8 +582,9 @@ path_tests  <-  path_tests_full %>%
 
 ## ----path-count-tab-----------------------------------------------------------
 
-path_tests %>%
+path_tests_full %>%
   dplyr::group_by(EVENT_CD) %>%
+  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
   dplyr::summarise(N = dplyr::n()) %>%
   flextable() %>%
   autofit() %>%

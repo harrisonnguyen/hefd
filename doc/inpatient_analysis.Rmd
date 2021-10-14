@@ -345,22 +345,26 @@ hf_diag_secondary_count <- hf_diag_secondary %>%
 Figure \@ref(fig:icd10-dist-plot) shows the distribution of primary and secondary heart failure ICD10 codes. In some cases, there are encounters with multiple heart failure primary diagnoses, (n = **`r nrow(hf_diag_primary_count)`**) and similarly with secondary diagnosis (n = **`r nrow(hf_diag_secondary_count)`**). 
 
 
-For the given diagnosis, **congestive heart failure** is most prevalent, followed by **left ventricular failure** then **heart failure, unspecified**.
+```{r}
+diag_count <- sort(colSums(combined_temp) )
+```
+
+For the given diagnosis, **`r tolower(names(diag_count)[3])`** is most prevalent, followed by **`r tolower(names(diag_count)[2])`** then **`r tolower(names(diag_count)[1])`**.
  
 
 ```{r icd10-dist-plot, fig.cap="Distribution of primary and secondary ICD10 diagnosis." }
 
 p1 <- plot_logical_columns(primary_temp,"ICD10","Primary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2)) + 
-  ggplot2::ylim(0,2000)
+  ggplot2::ylim(0,nrow(primary_temp)*1.5)
 
 p2 <- plot_logical_columns(secondary_temp,"ICD10","Secondary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
-  ggplot2::ylim(0,3500)
+  ggplot2::ylim(0,nrow(secondary_temp)*1.5)
 
 p3 <- plot_logical_columns(combined_temp,"ICD10","Combined Primary & Secondary HF ICD10",n_suffix="encounters") + 
   scale_x_discrete(guide = guide_axis(n.dodge=2))+ 
-  ggplot2::ylim(0,5000)
+  ggplot2::ylim(0,nrow(combined_temp)*1.5)
 
 ggpubr::ggarrange(p1,p2,p3,labels= c("A","B","C"), ncol = 1, nrow = 3)
 ```
@@ -403,12 +407,7 @@ diag_tab %>%
 only_secondary <- secondary_temp %>%
   dplyr::filter(!ENCNTR_ID %in% primary_temp$ENCNTR_ID)
 n_only_prim <-  nrow(only_secondary)
-```
 
-
-Table \@ref(tab:prim-sec-tab) shows the primary diagnosis of those encounters with **ONLY** secondary heart failure diagnosis (n = **`r n_only_prim`**). The data shows that these encounters are also commonly associated with **pneumonia**, as well as some other heart related issue such as **atrial fibrillation** or a **myocardial infarction**.
-
-```{r}
 primary_diag_of_secondary <- diagnosis %>%
   dplyr::filter(!stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & 
                   ENCNTR_ID %in% only_secondary$ENCNTR_ID &
@@ -421,15 +420,26 @@ tab_cap <- paste(
   "encounters).",
   sep=" "
 )
-```
 
-```{r prim-sec-tab}
-primary_diag_of_secondary %>%
+tab <- primary_diag_of_secondary %>%
   dplyr::group_by(SOURCE_STRING) %>%
   dplyr::summarise(N = dplyr::n_distinct(ENCNTR_ID)) %>% 
   dplyr::mutate(prop = round(N/dplyr::n_distinct(primary_diag_of_secondary$PERSON_ID)*100,1)) %>%
   dplyr::arrange(desc(N)) %>% 
-  dplyr::top_n(15) %>%
+  dplyr::top_n(15)
+
+
+tab_names <- tab %>%
+  dplyr::filter(!stringr::str_detect(SOURCE_STRING,"(?i)awaiting admission"))
+```
+
+
+Table \@ref(tab:prim-sec-tab) shows the primary diagnosis of those encounters with **ONLY** secondary heart failure diagnosis (n = **`r n_only_prim`**). The data shows that these encounters are also commonly associated with **`r tolower(tab_names[1,1])`**, as well as diagnoses such as **`r tolower(tab_names[2,1])`** or a **`r tolower(tab_names[3,1])`**.
+
+
+```{r prim-sec-tab}
+  
+tab %>%
   knitr::kable(caption = tab_cap)
 
 ```
@@ -504,7 +514,21 @@ conditional_bar_plot(primary_demo,"AGE_BINNED","SEX_CD", "Age and Sex",n_suffix=
   xlab("AGE")
 ```
 
-Figure \@ref(fig:admit-disch-mode-plot) shows the distribution of admission and discharges modes for these encounters with a primary HF diagnosis. Arrival by **State Ambulance Vehicle** is the most prevalent mode of admission followed by **Private Car** then **No transport**. On the other hand, the top 3 discharge modes were, **Discharge by hospital**, followed by **Transfer to Hospital in area/region** then **Pt death without autopsy**.
+```{r}
+admission_mode_count <- primary_enc %>%
+  dplyr::group_by(ADMIT_MODE_CD) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  dplyr::arrange(desc(N)) %>%
+  dplyr::filter(ADMIT_MODE_CD != "NDF")
+
+sep_mode_count <- primary_enc %>%
+  dplyr::group_by(DISCH_DISPOSITION_CD) %>%
+  dplyr::summarise(N = dplyr::n())%>%
+  dplyr::arrange(desc(N))%>%
+  dplyr::filter(DISCH_DISPOSITION_CD != "NDF")
+```
+
+Figure \@ref(fig:admit-disch-mode-plot) shows the distribution of admission and discharges modes for these encounters with a primary HF diagnosis. Arrival by **`r admission_mode_count[1,1]`** is the most prevalent mode of admission followed by **`r admission_mode_count[2,1]`** then **`r admission_mode_count[3,1]`**. On the other hand, the top 3 discharge modes were, **`r sep_mode_count[1,1]`**, followed by **`r sep_mode_count[2,1]`** then **`r sep_mode_count[3,1]`**.
 
 ```{r admit-disch-mode-plot,fig.cap="Admission and Discharge mode of encounters with primary HF diagnosis."}
 
@@ -546,12 +570,13 @@ primary_enc %>%
 
 The above numbers were compared against the in-house `Admitted Patient CaseMix app` developed by the NSLHD Performance and Analytics team that shows the numbers of encounters and their characteristics of each ICD10 diagnosis. 
 
-Figure \@ref(fig:clinical-app-demo) shows that there are 1232 encounters with a primary heart failure ICD10 diagnosis over a similar period of time at `Royal North Shore`. Furthermore the distribution of ICD10 codes are comparable between the current cohort and the NSLHD Performance and Analytics team.
+Figure \@ref(fig:clinical-app-demo) shows that there are a similar number of encounters with a primary heart failure ICD10 diagnosis over a the same period of time at **`r location_string``**. Furthermore the distribution of ICD10 codes are comparable between the current cohort and the NSLHD Performance and Analytics team.
 
 
 ```{r clinical-app-demo, fig.cap="Distribution of ICD10 heart failure encounters using the `Admitted Patient CaseMix App."}
 # All defaults
-knitr::include_graphics(file.path(here::here(),"vignettes/img/inpatient_hf_casemix.PNG"))
+file <-paste0("vignettes/img/inpatient_hf_casemix_",tolower(stringr::str_replace_all(location_string," ","_")),".PNG")
+knitr::include_graphics(file.path(here::here(),file))
 ```
 
 # Advanced Care Directive
@@ -691,8 +716,9 @@ path_tests  <-  path_tests_full %>%
 
 ```{r path-count-tab}
 
-path_tests %>%
+path_tests_full %>%
   dplyr::group_by(EVENT_CD) %>%
+  dplyr::filter(ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
   dplyr::summarise(N = dplyr::n()) %>%
   flextable() %>%
   autofit() %>%
