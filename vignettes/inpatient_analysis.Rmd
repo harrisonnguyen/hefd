@@ -154,7 +154,7 @@ plot_histogram_group <- function(df,var1,var2,title,n_suffix){
   return(plot)
 }
 
-plot_logical_columns <- function(df,var1,title,n_suffix=NULL){
+plot_logical_columns <- function(df,var1,title,n_suffix=NULL,vjust=-0.5){
   if(is.null(n_suffix)){
     title <- paste0(title, " (N = ",nrow(df), ")") 
   }
@@ -172,7 +172,7 @@ plot_logical_columns <- function(df,var1,title,n_suffix=NULL){
   plot <- plot_data %>%
        ggplot2::ggplot(., aes(x=!!var1,y=N,fill=!!var1)) +
       ggplot2::geom_bar(position="dodge", stat="identity",show.legend = FALSE) +
-    geom_text(aes(label= paste(round(prop,0),"%",sep=""),y=N),vjust=-0.5) + 
+    geom_text(aes(label= paste(round(prop,0),"%",sep=""),y=N),vjust=vjust) + 
     labs(y="Count",x=var1, title = title)
   
   return(plot)
@@ -246,6 +246,14 @@ cohort <- qual_enc %>%
 
 time_period <- round(difftime(max(qual_enc$DISCH_DT_TM,na.rm = TRUE), min(qual_enc$DISCH_DT_TM,na.rm = TRUE),units="days")/362.2425,1)
 ```
+
+#### Change log
+
+- 15/10/2021 
+  - added comparison of ACD with age
+  - split historical diagnoses into primary and secondary
+  - added figure of forms over time
+  - added plot of `ferric carboxymaltose` against LOS
 
 # Introduction
 
@@ -474,7 +482,7 @@ AGE_breaks <- c(-Inf,18, 25, 45, 65, 80, Inf)
 primary_enc <- encounter %>%
   dplyr::filter(ENCNTR_ID %in% hf_diag_primary$ENCNTR_ID) %>%
   dplyr::left_join(patient, by = "PERSON_ID") %>%
-  dplyr::mutate(AGE = as.integer(difftime(ACTIVE_STATUS_DT_TM,BIRTH_DT_TM, units="weeks")/52.25)) %>%
+  dplyr::mutate(AGE = as.integer(difftime(ACTIVE_STATUS_DT_TM,BIRTH_DT_TM, units="weeks")/52.25))%>%
   dplyr::mutate(AGE_BINNED = cut(AGE, breaks = AGE_breaks, labels = AGE_labels,
                                    right = FALSE)) %>%
     dplyr::mutate(LOS = difftime(DISCH_DT_TM,ARRIVE_DT_TM,units="days")) %>%
@@ -583,6 +591,35 @@ primary_enc %>%
   flextable() %>%
   set_caption("Statistics of LOS by HF diagnosis.")
 ```
+```{r ferric-count-tab}
+ferric_carboxy <- execute_query("select * from MEDICATION_ORDERS 
+where CATALOG_CD like '%carboxy%'")
+
+ferric_carboxy %>%
+  dplyr::group_by(ORDERED_AS_MNEMONIC) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("Ferric carboxymaltose orders in the NSLHD EMR and the total number of counts.")
+
+```
+
+```{r}
+
+primary_enc_iv <- primary_enc %>%
+  dplyr::mutate(HAS_FERRIC = ENCNTR_ID %in% ferric_carboxy$ENCNTR_ID) %>%
+  dplyr::mutate(BELOW_MEDIAN_LOS = LOS < median(LOS,na.rm=TRUE))
+```
+
+```{r ferric-los-plot,fig.cap="Proportion of encounters with LOS below the median with an ferric carboxymaltose IV infusion."}
+primary_enc_iv %>%
+  dplyr::filter(!is.na(BELOW_MEDIAN_LOS)) %>%
+conditional_bar_plot("BELOW_MEDIAN_LOS", "HAS_FERRIC","LOS vs Ferric Carboxymaltose Infusion")
+```
+Table \@ref(fig:ferric-count-tab) shows the types of orders and counts of `Ferric carboxymaltose IV infusion` in the NSLHD
+EMR. 
+
+Figure \@ref(tab:ferric-los-plot) shows the proportion of encounters that are either above or below the median LOS that also might have a `Ferric carboxymaltose IV infusion`. Encounters with either a missing admission or discharge date have been excluded. The plot demonstrates that if the encounter is **NOT** below the median LOS, they are more likely to have a `Ferric carboxymaltose IV infusion` and are less likely to have an infusion if the LOS is below the median.
 
 ## Comparison with CaseMix App
 
@@ -657,20 +694,27 @@ n_alert <- primary_enc_alert %>%
   nrow()
 
 median <- as.numeric(median(primary_enc_alert$ALERT_DELTA,na.rm=TRUE))
+
+
 ```
 
 Figure \@ref(fig:alert-delta-plot) shows the distribution of the time taken for the ACD to be registered in the EMR since admission with the median of **`r round(median,1)`** days being marked by the red dashed line. Time differences that are less than 0 means that the ACD was already present when that person was admitted. The data shows that **`r round(n_1_alert/n_alert*100,1)`**\% of alerts are registered within 1 day of admission and **`r round(n_3_alert/n_alert*100,1)`**\% within 3 days of admission.
 
-```{r alert-by-age-plot,fig.cap="Boxplot of Age and whether patient has had a ACD or not."}
+```{r alert-by-age-plot,fig.cap="Boxplot of Age and whether the encounter has had a ACD or not. Encounters that resulted in patient being deceased are excluded."}
 
-
+primary_alert_before_during_enc <- primary_enc_alert %>%
+  dplyr::filter(DEPART_DT_TM >= BEG_EFFECTIVE_DT_TM | ALERT_DELTA <= 0)
+# ALERT_DELTA <= 0  | ACTIVE_STATUS_DT_TM <=  BEG_EFFECTIVE_DT_TM &  
 primary_enc_no_deaths<-primary_enc_alert %>%
-  dplyr::filter(DISCH_DISPOSITION_CD != "Pt Death without Autopsy") 
+  dplyr::filter(DISCH_DISPOSITION_CD != "Pt Death without Autopsy") %>%
+  dplyr::mutate(HAS_ALERT = ENCNTR_ID %in% primary_alert_before_during_enc$ENCNTR_ID)
+  
+ 
 
 primary_enc_no_deaths %>%
   ggpubr::ggboxplot(x = "HAS_ALERT", y = "AGE", 
           color = "HAS_ALERT", palette = c("#00AFBB", "#E7B800"),
-          ylab = "AGE", xlab = "HAS_ALERT",title=paste0("Age vs ACD (N = ",nrow(primary_enc_no_deaths),")"))
+          ylab = "AGE", xlab = "HAS_ALERT",title=paste0("Age vs ACD (N = ",nrow(primary_enc_no_deaths)," encounters)"))
 ```
 ```{r}
 mean <- primary_enc_no_deaths %>% 
@@ -679,12 +723,12 @@ mean <- primary_enc_no_deaths %>%
 ```
 
 
-Figure \@ref(fig:alert-by-age-plot) shows a boxplot of `AGE` against whether the patient has had an ACD or not (`HAS_ALERT`). The plot suggests that the means the `AGE` of the group with an ACD is higher compared to the group without an ACD (**`r round(mean[2,2],1)`** vs **`r round(mean[1,2],1)`**, respectively). Furthermore the group without an ACD has larger variance w.r.t `AGE`. 
+Figure \@ref(fig:alert-by-age-plot) shows a boxplot of `AGE` against whether the patient has had an ACD or not (`HAS_ALERT`). The presence of an ACD is determined as by whether the ACD was registered before the beginning of the admission or during the admission.  The plot suggests that the means the `AGE` of the group with an ACD is higher compared to the group without an ACD (**`r round(mean[[2,2]],1)`** vs **`r round(mean[[1,2]],1)`**, respectively). Furthermore the group without an ACD has larger variance w.r.t `AGE`. 
 
 Figure \@ref(fig:age-alert-plot) shows the conditional distribution of the cohort's age and the likelihood that they will have an ACD. The plot suggests that older members are more likely to have an alert and less likely to have an alert if the patient is in the younger age groups, `19-24`,`25-44` and `45-64`.
 
 ```{r age-alert-plot,fig.cap="Likelihood of having an ACD given the patient's age."}
-conditional_bar_plot(primary_enc_no_deaths,"AGE_BINNED","HAS_ALERT","Age vs Alert")
+conditional_bar_plot(primary_enc_no_deaths,"AGE_BINNED","HAS_ALERT","Age vs Alert",n_suffix = "encounters")
 
 ```
 
@@ -699,7 +743,7 @@ summary_results %>%
 
 ```
 
-Table \@ref(tab:age-alert-anova-tab) shows the results of a one-way ANOVA with the null hypothesis being that there is no difference in the means of ages between the group that has an ACD to one that does not have an ACD. With a p value of **`r round(summary_results[1,5],3)`**, the test suggests that there is a statistically significant difference between the two groups to reject the null.
+Table \@ref(tab:age-alert-anova-tab) shows the results of a one-way ANOVA with the null hypothesis being that there is no difference in the means of ages between the group that has an ACD to one that does not have an ACD. With a p value of **`r round(summary_results[1,5],3)`**, the test suggests that there is no statistically significant difference between the two groups to reject the null.
 
 
 
@@ -792,7 +836,7 @@ path_tests_full %>%
 ```
 
 
-```{r order-prop-plot, fig.cap="Number and proportion of Encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test."}
+```{r order-prop-plot}
 
 bnp <- extract_path_result(path_tests,"BNP", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+"))
 iron <- extract_path_result(path_tests,"Iron", "IRON",c(-Inf,9,30.4,Inf),c("< 9","9-30.4","30.4+")) 
@@ -812,37 +856,9 @@ hf_order<-echos  %>%
                 HAS_IRON = !is.na(IRON_EVENT_START_DT_TM),
                 HAS_TRANSFERRIN_SAT = !is.na(TRANSFERRIN_SAT_EVENT_START_DT_TM))
 
-plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters") + coord_flip()
 
 
-```
 
-
-```{r echo-time-plot,fig.cap="Distribution of the time taken for an echocardiogram."}
-
-mean_delta <- median(hf_order$ECHO_DELTA,na.rm = TRUE)
-plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
-               "ECHO_DELTA","Distribution of time taken for Echo",
-               mean_delta,n_suffix="encounters") + 
-    xlab("Time take for echo since admission (days)")
-```
-
-
-```{r echo-string-tab}
-orders %>%
-  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
-  dplyr::group_by(CATALOG_CD) %>%
-  dplyr::summarise(N = dplyr::n()) %>%
-  flextable() %>%
-  autofit() %>%
-  set_caption("List of strings containing the term 'cardio - echo' and number of occurences.")
-```
-
-Table \@ref(tab:echo-string-tab) shows a list of orders in the EMR containing the term `cardio- echo` and similarly Table \@ref(tab:path-count-tab) shows a list of pathology tests and their counts for this cohort.
-
-Figure \@ref(fig:order-prop-plot) shows the proportion of encounters with a relevant heart failure order being echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test. Furthermore Figure \@ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a median time of **`r round(mean_delta,1)`** days.
-
-```{r}
 order_year_join <- function(cohort,df,time_col){
   time_col <- rlang::sym(time_col)
   cohort %<>%
@@ -882,13 +898,45 @@ primary_orders_in_year<-hf_order %>%
 ```
 
 
-Figure \@ref(fig:order-year-plot) shows the proportion of encounters with an order during the encounter OR within one last year of the beginning of the encounter's admission. These proportions for all of these orders is slightly higher compared to Figure \@ref(fig:order-prop-plot).
+Figure \@ref(fig:order-year-plot)**A** shows the proportion of encounters with a relevant heart failure order being echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test of encounters with an order during the encounter. On the other hand, Figure \@ref(fig:order-year-plot)**B** shows the proportion of encounters with an order during the encounter  OR within one last year of the beginning of the encounter's admission. These proportions in Figure \@ref(fig:order-year-plot)**B** for all of these orders is slightly higher compared to Figure \@ref(fig:order-year-plot)**A**.
 
-```{r order-year-plot,fig.cap="Proportion of encounters with an order during the encounter OR within the last year of admission."}
-primary_orders_in_year %>%
+```{r order-year-plot,fig.cap="Number and proportion of encounters with a relevant heart failure order, echocardiogram, brain natriuretic peptide test, serum iron test and transferrin saturation test during the encounter or within 1 year of the encounter."}
+p1<-plot_logical_columns(hf_order,"ORDERS","Proportion of Encounters with Order",n_suffix="encounters",vjust=0) + coord_flip() + xlab("")
+
+p2<- primary_orders_in_year %>%
   dplyr::select(contains("_YEAR")) %>%
-plot_logical_columns("ORDERS","Encounters with Order within 1 Year",n_suffix="encounters") + coord_flip()
+  plot_logical_columns("ORDERS","Encounters with Order within 1 Year",n_suffix="encounters",vjust=0) + coord_flip() + xlab("")
+
+
+
+ggpubr::ggarrange(p1,p2,nrow=2,ncol=1,labels=c("A","B"))
 ```
+
+
+```{r echo-time-plot,fig.cap="Distribution of the time taken for an echocardiogram."}
+
+mean_delta <- median(hf_order$ECHO_DELTA,na.rm = TRUE)
+plot_histogram(hf_order %>% dplyr::filter(ECHO_DELTA < 75),
+               "ECHO_DELTA","Distribution of time taken for Echo",
+               mean_delta,n_suffix="encounters") + 
+    xlab("Time take for echo since admission (days)")
+```
+
+
+```{r echo-string-tab}
+orders %>%
+  dplyr::filter(stringr::str_detect(CATALOG_CD,"(?i)cardio - echo") & ENCNTR_ID %in% primary_enc$ENCNTR_ID) %>%
+  dplyr::group_by(CATALOG_CD) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("List of strings containing the term 'cardio - echo' and number of occurences.")
+```
+
+Table \@ref(tab:echo-string-tab) shows a list of orders in the EMR containing the term `cardio - echo` and similarly Table \@ref(tab:path-count-tab) shows a list of pathology tests and their counts for this cohort.
+
+Furthermore Figure \@ref(fig:echo-time-plot) shows the distribution of the time taken for an echocardiogram with a median time of **`r round(mean_delta,1)`** days.
+
 
 # Forms
 
@@ -977,7 +1025,7 @@ extract_form_with_year_period <- function(df,string,prefix){
 
 ```
 
-Figure \@ref(fig:form-by-month-plot) shows the proportion of encounters with either an enrolment, referral form or neither by periods of 6 months. Figure \@ref(fig:form-by-month-plot)**B** shows that the proportion with enrolment forms is increasing over the **`r time_period`** year period.
+Figure \@ref(fig:form-by-month-plot) shows the proportion of encounters with either an enrolment, referral form or neither by periods of 6 months where `P1` represents `Jan-Jun` and `P2` represents `Jul-Dec`. Figure \@ref(fig:form-by-month-plot) shows that the proportion with enrolment forms is increasing over the **`r time_period`** year period and that particularly in `2021 P1` an increasing percentage of referrals also have an enrolment form.
 
 ```{r form-by-month-plot,fig.cap="Proportion of encounters with a form by half year periods."}
 enrolment_form <- hf_form %>%
@@ -996,19 +1044,19 @@ temp <- primary_enc %>%
   dplyr::left_join(referral_form,by=c("PERSON_ID"= "REFERRAL_PERSON_ID",
                                        "YEAR_HALF" = "REFERRAL_YEAR_HALF")) %>%
    tidyr::replace_na(list(ENROLMENT_HAS_FORM = FALSE, REFERRAL_HAS_FORM = FALSE)) %>%
-  dplyr::mutate(NO_FORM = !ENROLMENT_HAS_FORM & !REFERRAL_HAS_FORM) 
+  
+  dplyr::mutate(FORM_STATUS = 
+                  dplyr::case_when(
+                    !ENROLMENT_HAS_FORM & !REFERRAL_HAS_FORM ~ "No form",
+                    REFERRAL_HAS_FORM &  !ENROLMENT_HAS_FORM ~ "Only Referral",
+                    !REFERRAL_HAS_FORM &  ENROLMENT_HAS_FORM ~ "Only Enrolment",
+                    REFERRAL_HAS_FORM &  ENROLMENT_HAS_FORM ~ "Referral & Enrolment"
+                  ))
 
-p1 <- temp %>%
-conditional_bar_plot("YEAR_HALF","REFERRAL_HAS_FORM","Referral form by Half Year") + xlab("") + ylim(0,250)
+ temp %>%
+   dplyr::filter(YEAR_HALF != "2021 P2") %>%
+conditional_bar_plot("YEAR_HALF","FORM_STATUS","Forms by Half Year") + xlab("") + ylim(0,175)
 
-
-p2 <- temp %>%
-conditional_bar_plot("YEAR_HALF","ENROLMENT_HAS_FORM","Enrolment form by Half Year") + xlab("") + ylim(0,350)
-
-p3 <- temp %>%
-conditional_bar_plot("YEAR_HALF","NO_FORM","No form by Half Year") + xlab("") + ylim(0,250)
-
-ggpubr::ggarrange(p1, p2, p3, nrow = 3, ncol=1, labels=c("A","B","C"))
 ```
 
 # Appendix

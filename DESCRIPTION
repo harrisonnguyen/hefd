@@ -10,4 +10,26 @@ License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
+Imports:
+	dplyr,
+	ggplot2,
+	ggpubr,
+	glue,
+	here,
+	kableExtra,
+	rlang,
+    scales,
+	stringr,
+	tidyr,
+	zoo,
+    magrittr,
+    targets,
+	tidyverse,
+	RODBCDBI,
+	config,
+	lubridate,
+	odbc,
+	purrr,
+	flextable
 Suggests: knitr, rmarkdown
+RoxygenNote: 7.1.1
