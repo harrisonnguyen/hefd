@@ -1,0 +1,115 @@
+---
+title: "Heart Failure Inpatient Analysis"
+author: "Harrison Nguyen and Charmaine Tam"
+date: "10/11/2021"
+output:  
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    number_sections: true
+bibliography: references.bib
+link-citations: true
+linkcolor: blue
+vignette: >
+  %\VignetteIndexEntry{Heart Failure Inpatient Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning=FALSE, message=FALSE
+)
+knitr::opts_knit$set(
+  root.dir = here::here()
+)
+```
+
+```{r import}
+
+library(magrittr)
+library(targets)
+library(tidyverse)
+library(kableExtra)
+library(ggplot2)
+library(ggpubr)
+library(acs)
+library(flextable)
+
+library(hefd)
+
+```
+
+
+```{r}
+location_encounters <- execute_query("select * from ENCOUNTER
+where LOC_NURSE_UNIT_CD like 'Heart Fail Nurse%' or LOC_NURSE_UNIT_CD like 'Heart Failure Rev%'")
+
+enrolment_forms <- execute_query("select * from DCP_FORMS_ACTIVITY
+where DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
+```
+
+
+
+```{r}
+location_encounters %>%
+proportion_bar_plot(column = "LOCATION_CD","Heart Failure Clinics",n_suffix = "encounters",vjust=0.25) + coord_flip()
+```
+```{r}
+
+location_w_enrolments <- location_encounters %>%
+  dplyr::mutate(HAS_FORM = ENCNTR_ID %in% enrolment_forms$ENCNTR_ID)
+```
+
+```{r}
+location_w_enrolments %>%
+conditional_bar_plot("LOCATION_CD","HAS_FORM",title = "Enrolment by Location","encounters",vjust=0.25) + coord_flip()
+```
+
+```{r}
+
+enrolment_forms <- execute_query("select * from DCP_FORMS_ACTIVITY as x
+left join ENCOUNTER as y
+on x.ENCNTR_ID = y.ENCNTR_ID
+where DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
+```
+```{r}
+convert_year_half_period <- function(df,date_col){
+  date_col <- rlang::sym(date_col)
+  df %<>% 
+    dplyr::mutate(YEAR_HALF = as.character(zoo::as.yearqtr(!!date_col)),
+                HAS_FORM=TRUE) %>%
+    dplyr::mutate(YEAR_HALF = stringr::str_replace(YEAR_HALF,"Q(1|2)","P1"),
+                YEAR_HALF = stringr::str_replace(YEAR_HALF,"Q(3|4)","P2"))
+  
+  return(df)
+  
+}
+
+```
+```{r}
+non_heartfail_enc <- as.tibble(enrolment_forms, .name_repair = "universal") %>%
+  dplyr::distinct(ENCNTR_ID...1,ACTIVE_STATUS_DT_TM,DCP_FORMS_ACTIVITY_ID,LOC_FACILITY_CD,LOCATION_CD,LOC_NURSE_UNIT_CD) %>%
+  dplyr::filter(!stringr::str_detect(LOCATION_CD,"(?i)(heart failure)|(heart fail nurse)")) %>%
+  convert_year_half_period("ACTIVE_STATUS_DT_TM")
+
+non_heartfail_enc %>%
+  conditional_bar_plot("YEAR_HALF","LOC_FACILITY_CD",
+                       title = "Facilities for HF Enrolments with no HF clinic- related location",
+                       vjust=0.25)
+
+
+ non_heartfail_enc %>%
+ dplyr::group_by(LOC_NURSE_UNIT_CD) %>%
+  dplyr::summarise(N = dplyr::n()) %>%
+  dplyr::arrange(desc(N)) %>%
+  dplyr::top_n(20) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("List of top 20 locations for enrolments without Heart failure clinic location.")
+```

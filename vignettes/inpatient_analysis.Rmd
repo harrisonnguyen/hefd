@@ -42,174 +42,11 @@ library(acs)
 library(flextable)
 
 library(hefd)
+
+source('R/plot_utils.R')
 ```
 
-```{r}
 
-proportion_bar_plot <- function(df,column,title,n_suffix = NULL,vjust=-0.25){
-  if(is.null(n_suffix)){
-    title <- paste0(title, " (N = ",nrow(df), ")") 
-  }
-  else{
-    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
-  }
-  
-  plot<- df %>%
-     ggplot2::ggplot(., aes(x=!!rlang::sym(column),fill=!!rlang::sym(column))) +
-    ggplot2::geom_bar(aes(y = ..count..),stat="count",alpha=0.5,show.legend = FALSE) +
-    ggplot2::xlab(title) + 
-    ggplot2::ylab("Count") + 
-    ggtitle(title) +
-    geom_text(
-       aes(label=paste(round((..count..)/sum(..count..)*100,0),"%",sep=""),y= ..count..),
-       stat='count',
-       vjust=vjust
-   ) + 
-  theme_minimal()
-  
-  
-  return(plot)
-}
-
-conditional_bar_plot <- function(df,var1,var2,title,n_suffix = NULL){
-  if(is.null(n_suffix)){
-    title <- paste0(title, " (N = ",nrow(df), ")") 
-  }
-  else{
-    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
-  }
-  
-  var1<- rlang::sym(var1)
-  var2<- rlang::sym(var2)
-  plot <- df%>%
-  dplyr::count(!!var1,!!var2) %>%
-  dplyr::group_by(!!var1) %>%
-  dplyr::mutate(prop = prop.table(n)*100) %>%
-  ggplot2::ggplot(., aes(x=!!var1,y=n,fill=!!var2)) + 
-  geom_bar(stat="identity",position=position_dodge(0.7),width=0.7,alpha=0.5) +
-  geom_text(aes(label= paste(round(prop,0),"%",sep=""),y=n),position=position_dodge(0.7),vjust=-0.5) +
-  labs(y="Count",x=var1, title = title) +
-  scale_fill_discrete(name = var2) + 
-  theme_minimal()
-  
-  return(plot)
-}
-
-plot_histogram <- function(df,column, title,threshold = NULL,n_suffix=NULL){
-  if(is.null(n_suffix)){
-    title <- paste0(title, " (N = ",nrow(df), ")") 
-  }
-  else{
-    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
-  }
-  
-  var1<- rlang::sym(column)
-
-  df %<>% dplyr::filter(!is.na(!!var1))
-  
-  
-  plot <- df %>%
-  ggplot2::ggplot(., aes(x=!!var1,fill=!!var1)) + 
-   geom_histogram(fill="lightblue",alpha=0.5) +
-  labs(y="Count",x=var1, title = title)+
-    scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
-    stat_bin(aes(y=..count.., label=ifelse(..count..==0,"",..count..)), geom="text", vjust=-.5) +
-  theme_minimal()
-    
-
-  
-  if(!is.null(threshold)){
-    plot <- plot + geom_vline(aes(xintercept=threshold),
-            color="red", linetype="dashed", size=1)
-  }
-  
-  return(plot)
-}
-
-plot_histogram_group <- function(df,var1,var2,title,n_suffix){
-  
-  if(is.null(n_suffix)){
-    title <- paste0(title, " (N = ",nrow(df), ")") 
-  }
-  else{
-    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
-  }
-  
-  var1<- rlang::sym(var1)
-  var2<- rlang::sym(var2)
-
-  df %<>% dplyr::filter(!is.na(!!var1)) %>%
-    dplyr::filter(!is.na(!!var2))
-  
-  
-  plot <- df %>%
-  ggplot2::ggplot(., aes(x=!!var1,fill=!!var2,color=!!var2)) + 
-   geom_histogram(aes(y=..density..),alpha=0.5, position="identity") +
-    geom_density(alpha=0.3)+
-  labs(y="Count",x=var1, title = title)+
-    scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
-  theme_minimal()
-    
-  
-  return(plot)
-}
-
-plot_logical_columns <- function(df,var1,title,n_suffix=NULL,vjust=-0.5){
-  if(is.null(n_suffix)){
-    title <- paste0(title, " (N = ",nrow(df), ")") 
-  }
-  else{
-    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
-  }
-  
-  var1<- rlang::sym(var1)
-  
-  plot_data <- df %>% 
-    dplyr::summarise_if(is.logical,sum) %>%
-   tidyr::pivot_longer(everything(),values_to = "N",names_to = rlang::as_string(var1)) %>%
-  dplyr::mutate(prop = N/nrow(df)*100)
-
-  plot <- plot_data %>%
-       ggplot2::ggplot(., aes(x=!!var1,y=N,fill=!!var1)) +
-      ggplot2::geom_bar(position="dodge", stat="identity",show.legend = FALSE) +
-    geom_text(aes(label= paste(round(prop,0),"%",sep=""),y=N),vjust=vjust) + 
-    labs(y="Count",x=var1, title = title)
-  
-  return(plot)
-}
-
-```
-
-```{r}
-plot_pie_chart <- function(df,var1,title,n_suffix = NULL){
-  if(is.null(n_suffix)){
-    title <- paste0(title, " (N = ",nrow(df), ")") 
-  }
-  else{
-    title <- paste0(title, " (N = ",nrow(df), " ",n_suffix, ")")
-  }
-  
-  var1<- rlang::sym(var1)
-  df %<>% 
-    filter(!is.na(!!var1)) %>%
-    group_by(!!var1) %>% # Variable to be transformed
-    count() %>% 
-    ungroup() %>% 
-    mutate(perc = `n` / sum(`n`)) %>% 
-    arrange(perc) %>%
-    mutate(labels = scales::percent(perc))
-  
-  plot <- ggplot(df, aes(x = "", y = n, fill = !!var1)) +
-    geom_col() +
-    geom_text(aes(label = labels),
-              position = position_stack(vjust = 0.5)) +
-    coord_polar(theta = "y")
-    labs(y="Count",x=var1, title = title)
-    
-  return(plot)
-}
-
-```
 
 ```{r data-load}
 encounter_ref <- load_data("encounter_reference")
@@ -239,6 +76,7 @@ hf_diag <- diagnosis %>%
   dplyr::filter(stringr::str_detect(SOURCE_IDENTIFIER,"(?i)I50") & DIAG_TYPE_CD == "Final")
 
 qual_enc <- encounter %>%
+  dplyr::filter(DISCH_DT_TM <= as.Date("2021-7-31") & DISCH_DT_TM >= as.Date("2019-1-1")) %>%
   dplyr::filter(ENCNTR_ID %in% hf_diag$ENCNTR_ID & LOC_FACILITY_CD == location_string)
 
 cohort <- qual_enc %>%
@@ -1057,6 +895,86 @@ temp <- primary_enc %>%
    dplyr::filter(YEAR_HALF != "2021 P2") %>%
 conditional_bar_plot("YEAR_HALF","FORM_STATUS","Forms by Half Year") + xlab("") + ylim(0,175)
 
+```
+
+
+
+```{r}
+disch_meds_query <- paste0("select * from ENCOUNTER as x
+left join MEDICATION_HOME_ORDERS as y
+on x.PERSON_ID = y.PERSON_ID  and y.CURRENT_START_DT_TM <= x.DISCH_DT_TM and
+(ORDER_STATUS_CD = 'Completed' and STATUS_DT_TM > x.DISCH_DT_TM or 
+	ORDER_STATUS_CD = 'Ordered' or
+	ORDER_STATUS_CD = 'Discontinued' and DISCONTINUE_EFFECTIVE_DT_TM > x.DISCH_DT_TM or 
+	ORDER_STATUS_CD = 'Deleted' and STATUS_DT_TM > x.DISCH_DT_TM)
+ LEFT JOIN MEDICATION_LIST as z
+    
+  on CATALOG_CD = MEDICATION_NAME
+  left join MEDICATION_GROUP as q
+	on z.MEDICATION_GROUP_ID = q.MEDICATION_GROUP_ID
+where x.ENCNTR_ID in (",paste(primary_enc$ENCNTR_ID,collapse=","),") and q.MEDICATION_GROUP is not NULL;")
+
+
+
+discharge_meds <- execute_query(disch_meds_query)
+
+
+prescribed_meds_query <- paste0("select * from ENCOUNTER as x
+  left join MEDICATION_ORDERS as y
+  on x.ENCNTR_ID = y.ENCNTR_ID 
+   LEFT JOIN MEDICATION_LIST as z
+    on CATALOG_CD = MEDICATION_NAME
+    left join MEDICATION_GROUP as q
+  	on z.MEDICATION_GROUP_ID = q.MEDICATION_GROUP_ID
+  where y.ORIG_ORD_AS_FLAG =  1 and x.ENCNTR_ID in (",paste(primary_enc$ENCNTR_ID,collapse=","),") and q.MEDICATION_GROUP is not NULL;")
+prescribe_meds <- execute_query(prescribed_meds_query)
+
+
+```
+
+```{r}
+med_group <- load_db("medication_group")
+
+```
+
+```{r} 
+# 84209843 has ACE/beta blocker discontinued 1 year after discharge
+# 84432221
+# 84002906
+# 89084556
+# 84344812 has ACE discontinued 1 day after discharge
+# 84451934 
+# 94466534
+# 90274372
+# 94443909
+# 98084016
+discharge_med_summary <- as.tibble(discharge_meds, .name_repair = "universal") %>% 
+  dplyr::bind_rows(as.tibble(prescribe_meds, .name_repair = "universal")) %>%
+  dplyr::mutate(IS_DISCHARGE = TRUE) %>%
+  dplyr::select(ENCNTR_ID...2,MEDICATION_GROUP,IS_DISCHARGE) %>%
+  dplyr::group_by(ENCNTR_ID...2) %>%
+  tidyr::pivot_wider(id_cols = ENCNTR_ID...2,
+                     names_from = MEDICATION_GROUP,
+                     values_from = IS_DISCHARGE, 
+                     values_fn = any,
+                     values_fill = FALSE) %>%
+  dplyr::rename(ENCNTR_ID = ENCNTR_ID...2) %>% 
+  dplyr::ungroup()
+
+missing_col <- setdiff(med_group$MEDICATION_GROUP,colnames(discharge_med_summary))
+discharge_med_summary[missing_col] <- FALSE
+
+
+discharge_med_summary %<>%
+ dplyr::right_join(select(primary_enc,ENCNTR_ID), by = "ENCNTR_ID") %>%
+  dplyr::mutate(
+    across(everything(), ~replace_na(.x, FALSE))
+  )
+
+```
+```{r}
+plot_logical_columns(discharge_med_summary, "MEDICATION",title = "Discharge Medications",n_suffix = "encounters",vjust = 0.25) +
+  coord_flip()
 ```
 
 # Appendix
