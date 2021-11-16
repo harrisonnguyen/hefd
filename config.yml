@@ -16,3 +16,4 @@ default:
   hfmanagement_encounter_file:
     file1: "macarf_2019-01-01_2021-06-01_20210602093056_visit.csv"
     file2: "macarf_2019-01-01_2021-06-01_20210602085626_visit.csv"
+  output_dir: "D:/FTP/Checkley/HF/Test/Weekly_1AUG_2020_to_7AUG_2020"

@@ -48,7 +48,7 @@ library(hefd)
 
 ```{r}
 location_encounters <- execute_query("select * from ENCOUNTER
-where LOC_NURSE_UNIT_CD like 'Heart Fail Nurse%' or LOC_NURSE_UNIT_CD like 'Heart Failure Rev%'")
+where (LOC_NURSE_UNIT_CD like 'Heart Fail Nurse%' or LOC_NURSE_UNIT_CD like 'Heart Failure Rev%') and BEG_EFFECTIVE_DT_TM >= '2021-01-01'")
 
 enrolment_forms <- execute_query("select * from DCP_FORMS_ACTIVITY
 where DESCRIPTION = 'Heart Failure - Management of Cardiac Function Enrolment'")
@@ -67,8 +67,20 @@ location_w_enrolments <- location_encounters %>%
 ```
 
 ```{r}
-location_w_enrolments %>%
-conditional_bar_plot("LOCATION_CD","HAS_FORM",title = "Enrolment by Location","encounters",vjust=0.25) + coord_flip()
+
+hf_nurse <-location_w_enrolments %>%
+  dplyr::filter(stringr::str_detect(LOCATION_CD,"(?i)heart fail nurse")) 
+ hf_nurse %>%
+  dplyr::mutate(MONTH = factor(format(BEG_EFFECTIVE_DT_TM,'%b'),levels=month.abb)) %>%
+  dplyr::group_by(MONTH,LOCATION_CD) %>%
+  dplyr::summarise(PROP = round(sum(HAS_FORM)/dplyr::n()*100,0),N = sum(HAS_FORM)) %>%
+  ggplot2::ggplot(., aes(x=MONTH,y=N,fill=LOCATION_CD)) +
+    geom_bar(stat="identity",position=position_dodge(0.7),width=0.7,alpha=0.5) +
+    geom_text(aes(label= paste(PROP,"%",sep=""),y=N),position=position_dodge(0.7),vjust=0) +
+  ggplot2::labs(title = paste0("Encounters by Location with proportion of Forms (N = ",nrow(hf_nurse)," encounters)"))
+
+
+#conditional_bar_plot("LOCATION_CD","HAS_FORM",title = "Enrolment by Location","encounters",vjust=0.25) + coord_flip()
 ```
 
 ```{r}
@@ -94,7 +106,7 @@ convert_year_half_period <- function(df,date_col){
 ```
 ```{r}
 non_heartfail_enc <- as.tibble(enrolment_forms, .name_repair = "universal") %>%
-  dplyr::distinct(ENCNTR_ID...1,ACTIVE_STATUS_DT_TM,DCP_FORMS_ACTIVITY_ID,LOC_FACILITY_CD,LOCATION_CD,LOC_NURSE_UNIT_CD) %>%
+  dplyr::distinct(ENCNTR_ID...1,PERSON_ID...2,ALIAS_MRN,ALIAS_VISIT_ID,ACTIVE_STATUS_DT_TM,DCP_FORMS_ACTIVITY_ID,LOC_FACILITY_CD,LOCATION_CD,LOC_NURSE_UNIT_CD) %>%
   dplyr::filter(!stringr::str_detect(LOCATION_CD,"(?i)(heart failure)|(heart fail nurse)")) %>%
   convert_year_half_period("ACTIVE_STATUS_DT_TM")
 
@@ -112,4 +124,11 @@ non_heartfail_enc %>%
   flextable() %>%
   autofit() %>%
   set_caption("List of top 20 locations for enrolments without Heart failure clinic location.")
+```
+```{r}
+non_heartfail_enc %>% 
+  dplyr::filter(LOC_FACILITY_CD == 'Ryde' | LOC_FACILITY_CD == 'Royal North Shore') %>%
+  dplyr::group_by(LOC_FACILITY_CD) %>%
+  sample_n(.,5) %>%
+  write.csv(.,"enrolment_forms.csv",row.names=FALSE)
 ```

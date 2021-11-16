@@ -45,6 +45,24 @@ get_hf_symptoms <- function(df){
 }
 
 #' @export
+extract_hf_symptoms <- function(df,column="HEART_FAILURE_SYMPTOMS"){
+  column <- rlang::sym(column)
+
+  visit <- df %>%
+    dplyr::mutate(DEPENDENT_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(!!column, "(?i)Dependent Oedema"),
+                  FATIGUE_HEARTFAILURESYMPTOMS = stringr::str_detect(!!column, "(?i)fatigue"),
+                  LETHARGY_HEARTFAILURESYMPTOMS  = stringr::str_detect(!!column, "(?i)lethargy"),
+                  ANKLE_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(!!column, "(?i)Ankle Oedema"),
+                  ABDOMINAL_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(!!column, "(?i)Abdominal Oedema"),
+                  DYSPNOEA_HEARTFAILURESYMPTOMS  = stringr::str_detect(!!column, "(?i)Dyspnoea"),
+                  LOWER_LEG_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(!!column, "(?i)Lower leg Oedema"),
+                  NAUSEA_HEARTFAILURESYMPTOMS  = stringr::str_detect(!!column, "(?i)Nausea"))
+
+
+  return(visit)
+}
+
+#' @export
 get_nyha_classification <- function(df){
   visit <- df %>% dplyr::filter(TASK_ASSAY_CD == "NYHA Classification" | TASK_ASSAY_CD == "MACARF Visit Type") %>%
     dplyr::select(PARENT_EVENT_ID,ENCNTR_ID,PERSON_ID,TASK_ASSAY_CD,RESULT_VAL) %>%
@@ -89,20 +107,20 @@ create_visit_trajectory <- function(hfhomevisit) {
     dplyr::group_by(PERSON_ID) %>%
     dplyr::summarise(
       N_CONTACT = dplyr::n_distinct(PARENT_EVENT_ID),
-      N_HOMEVISIT = sum(RESULT_VAL == "Home Visit" & TASK_ASSAY_CD == "MACARF Visit Type",na.rm=TRUE))
+      N_HOMEVISIT = sum(MACARF_VISIT_TYPE == "Home Visit",na.rm=TRUE))
 
 
   homevisit_trajectory <- hfhomevisit %>%
     dplyr::group_by(PERSON_ID) %>%
-    dplyr::mutate(HAS_HOME_VISIT = any(RESULT_VAL == "Home Visit" & TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE)) %>%
-    dplyr::mutate(HAS_PHONE_CALL_1_12_VISIT = any(RESULT_VAL == "Phone Call 1/12"& TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE)) %>%
-    dplyr::mutate(HAS_PHONE_CALL_3_12_VISIT = any(RESULT_VAL == "Phone Call 3/12"& TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE)) %>%
-    dplyr::mutate(HAS_PHONE_CALL_6_12_VISIT = any(RESULT_VAL == "Phone Call 6/12"& TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE)) %>%
-    dplyr::mutate(OTHER_VISIT = any(stringr::str_detect(RESULT_VAL, "(?i)other") & TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE) &
-                    !any(stringr::str_detect(RESULT_VAL, "(?i)12/12")& TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE) &
-                    !any(stringr::str_detect(RESULT_VAL, "(?i)10/12")& TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE)) %>%
-    dplyr::mutate(HAS_PHONE_CALL_12_12_VISIT = any(stringr::str_detect(RESULT_VAL, "(?i)12/12") & TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE)) %>%
-    dplyr::mutate(HAS_PHONE_CALL_10_12_VISIT = any(stringr::str_detect(RESULT_VAL, "(?i)10/12") & TASK_ASSAY_CD == "MACARF Visit Type", na.rm = TRUE)) %>%
+    dplyr::mutate(HAS_HOME_VISIT = any(MACARF_VISIT_TYPE == "Home Visit", na.rm = TRUE)) %>%
+    dplyr::mutate(HAS_PHONE_CALL_1_12_VISIT = any(MACARF_VISIT_TYPE == "Phone Call 1/12", na.rm = TRUE)) %>%
+    dplyr::mutate(HAS_PHONE_CALL_3_12_VISIT = any(MACARF_VISIT_TYPE == "Phone Call 3/12", na.rm = TRUE)) %>%
+    dplyr::mutate(HAS_PHONE_CALL_6_12_VISIT = any(MACARF_VISIT_TYPE == "Phone Call 6/12", na.rm = TRUE)) %>%
+    dplyr::mutate(OTHER_VISIT = any(stringr::str_detect(MACARF_VISIT_TYPE, "(?i)other"), na.rm = TRUE) &
+                    !any(stringr::str_detect(MACARF_VISIT_TYPE, "(?i)12/12"), na.rm = TRUE) &
+                    !any(stringr::str_detect(MACARF_VISIT_TYPE, "(?i)10/12"), na.rm = TRUE)) %>%
+    dplyr::mutate(HAS_PHONE_CALL_12_12_VISIT = any(stringr::str_detect(MACARF_VISIT_TYPE, "(?i)12/12"), na.rm = TRUE)) %>%
+    dplyr::mutate(HAS_PHONE_CALL_10_12_VISIT = any(stringr::str_detect(MACARF_VISIT_TYPE, "(?i)10/12"), na.rm = TRUE)) %>%
     dplyr::select(PERSON_ID,HAS_HOME_VISIT,HAS_PHONE_CALL_1_12_VISIT,
                   HAS_PHONE_CALL_3_12_VISIT,HAS_PHONE_CALL_6_12_VISIT,OTHER_VISIT,
                   HAS_PHONE_CALL_12_12_VISIT,HAS_PHONE_CALL_10_12_VISIT) %>%
@@ -141,20 +159,61 @@ get_homevisit_forms <- function(forms = NULL,dcp_forms_activity = NULL){
 process_homevisit_form <- function(forms = NULL,dcp_forms_activity  = NULL){
   df <- get_homevisit_forms(forms,dcp_forms_activity)
 
-
-  form_cohort <- df %>%
-    dplyr::distinct(PERSON_ID) %>%
-    dplyr::left_join(df %>%
-                       get_hf_symptoms(),
-                      by=c("PERSON_ID"="SYMPTOMS_PERSON_ID")) %>%
-    dplyr::left_join(df %>%
-                       get_nyha_classification(),
-                     by=c("PERSON_ID" = "NYHA_PERSON_ID")) %>%
-    dplyr::left_join(df %>%
-                       create_visit_trajectory(), by="PERSON_ID")
+  df %<>%
+    dplyr::filter(TASK_ASSAY_CD == "MACARF Visit Type" | TASK_ASSAY_CD == "NYHA Classification"
+                  |  TASK_ASSAY_CD == "Heart Failure Symptoms") %>%
+    tidyr::pivot_wider(names_from = TASK_ASSAY_CD,values_from = RESULT_VAL) %>%
+    dplyr::rename_all(.funs = ~toupper(gsub(" ","_",.x))) %>%
+    extract_hf_symptoms()
 
 
-  return(form_cohort)
+
+  return(df)
 
 
 }
+
+#' @export
+create_visit_journey <- function(visit_form){
+  cohort <- visit_form %>%
+    dplyr::distinct(PERSON_ID,.keep_all = FALSE)
+
+  visit <- visit_form %>%
+    dplyr::group_by(PERSON_ID) %>%
+    dplyr::arrange(desc(FORM_DT_TM)) %>%
+    dplyr::slice(c(1,dplyr::n())) %>%
+    dplyr::mutate(MOST_RECENT_VISIT  = order(dplyr::desc(FORM_DT_TM)) == 1)
+
+  visit_first<- visit %>%
+    dplyr::filter(!MOST_RECENT_VISIT)
+
+
+
+  visit %<>% dplyr::filter(MOST_RECENT_VISIT) %>%
+    dplyr::right_join(visit_first, by = 'PERSON_ID', suffix = c("_RECENT","_FIRST")) %>%
+    dplyr::mutate(NYHA_CLASSIFICATION_FIRST =
+                    dplyr::case_when(
+                      PARENT_EVENT_ID_FIRST == PARENT_EVENT_ID_RECENT ~ 'Only 1 Contact',
+                      TRUE ~ NYHA_CLASSIFICATION_FIRST),
+                  MACARF_VISIT_TYPE_FIRST =
+                    dplyr::case_when(
+                      PARENT_EVENT_ID_FIRST == PARENT_EVENT_ID_RECENT ~ 'Only 1 Contact',
+                      TRUE ~ MACARF_VISIT_TYPE_FIRST))
+  cohort %<>%
+    dplyr::left_join(
+      visit,by="PERSON_ID"
+    ) %>%
+    dplyr::left_join(
+      visit_form %>% create_visit_trajectory(),by="PERSON_ID"
+    ) %>%
+    dplyr::select(-dplyr::contains("HEARTFAILURESYMPTOMS"),
+                  -dplyr::contains("DT_TM"),
+                  -dplyr::contains("MOST_RECENT_VISIT"),
+                  -dplyr::contains("MACARF_VISIT_TYPE"),
+                  -dplyr::contains("HEART_FAILURE_SYMPTOMS"))
+
+  return(cohort)
+
+}
+
+

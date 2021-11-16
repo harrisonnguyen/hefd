@@ -896,7 +896,10 @@ temp <- primary_enc %>%
 conditional_bar_plot("YEAR_HALF","FORM_STATUS","Forms by Half Year") + xlab("") + ylim(0,175)
 
 ```
-
+```{r}
+meds_check <- c(89868202,  90719503,  86980447,  91928857,  87238779,  96890479, 100223311,  98557904,  93399667,  92646432,  93966085,  98134033,
+   99717947,  97121762,  88896625,  98222542,  95424726,  84683491,  91784339,  87443998)
+```
 
 
 ```{r}
@@ -914,14 +917,15 @@ on x.PERSON_ID = y.PERSON_ID  and y.CURRENT_START_DT_TM <= x.DISCH_DT_TM and
 	on z.MEDICATION_GROUP_ID = q.MEDICATION_GROUP_ID
 where x.ENCNTR_ID in (",paste(primary_enc$ENCNTR_ID,collapse=","),") and q.MEDICATION_GROUP is not NULL;")
 
-
-
 discharge_meds <- execute_query(disch_meds_query)
-
 
 prescribed_meds_query <- paste0("select * from ENCOUNTER as x
   left join MEDICATION_ORDERS as y
-  on x.ENCNTR_ID = y.ENCNTR_ID 
+  on x.ENCNTR_ID = y.ENCNTR_ID and
+(ORDER_STATUS_CD = 'Completed' and STATUS_DT_TM > x.DISCH_DT_TM or 
+	ORDER_STATUS_CD = 'Ordered' or
+	ORDER_STATUS_CD = 'Discontinued' and DISCONTINUE_EFFECTIVE_DT_TM > x.DISCH_DT_TM or 
+	ORDER_STATUS_CD = 'Deleted' and STATUS_DT_TM > x.DISCH_DT_TM)
    LEFT JOIN MEDICATION_LIST as z
     on CATALOG_CD = MEDICATION_NAME
     left join MEDICATION_GROUP as q
