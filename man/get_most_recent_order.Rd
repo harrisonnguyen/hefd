@@ -10,7 +10,8 @@ get_most_recent_order(
   order_df,
   suffix,
   order_dttm_col,
-  df_dttm = "DISCH_DT_TM"
+  df_dttm = "DISCH_DT_TM",
+  delta_cutoff = 0
 )
 }
 \description{
