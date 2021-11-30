@@ -33,6 +33,3 @@ for(name in names(function_names)){
   write.csv(new_df,full_path,row.names = FALSE,na = "")
 }
 
-
-
-

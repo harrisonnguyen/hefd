@@ -172,6 +172,7 @@ extract_patho_result <- function(df){
                       FERRITIN_RESULT_VAL < 100 |
                         FERRITIN_RESULT_VAL >= 100 & FERRITIN_RESULT_VAL < 300 &
                         TRANSFERRIN_SAT_RESULT_VAL < 20 ~ TRUE,
+                      is.na(FERRITIN_RESULT_VAL) | is.na(TRANSFERRIN_SAT_RESULT_VAL) ~ NULL,
                       TRUE ~ FALSE
                     ))
   return(df)
@@ -257,11 +258,15 @@ extract_discharge_meds <- function(df){
 process_inpatient <- function(df){
 
   ref <- execute_query(get_discharge_referral())
+
+  encounter_udf <- execute_query(get_referred_to_facility_query())
+
   emds_ref <- ref %>%
     dplyr::filter(stringr::str_detect(EVENT_TITLE_TEXT,"(?i)emeds"))
 
   inpatient <- df %>%
-    dplyr::select(ENCNTR_ID,PERSON_ID,DISCH_DT_TM,BEG_EFFECTIVE_DT_TM) %>%
+    encounter_classify_separation(encounter_udf) %>%
+    dplyr::select(ENCNTR_ID,PERSON_ID,DISCH_DT_TM,BEG_EFFECTIVE_DT_TM,DESTINATION,ENC_SEPARATION_MODE) %>%
     dplyr::left_join(
       df %>% extract_age_los(),by = 'ENCNTR_ID') %>%
     dplyr::left_join(
