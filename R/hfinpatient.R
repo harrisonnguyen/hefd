@@ -25,12 +25,12 @@ extract_diagnosis <- function(df){
 extract_age_los <- function(df){
 
 
-  AGE_breaks <- c(-Inf,18, 25, 45, 65, 80, Inf)
-  AGE_labels <- c("<18", "19-24", "25-44", "45-64", "65-80", "80+")
+  age_bin<- get_age_bin()
+
 
   enc <- df %>%
     dplyr::mutate(AGE = as.integer(difftime(ACTIVE_STATUS_DT_TM,BIRTH_DT_TM, units="weeks")/52.25))%>%
-    dplyr::mutate(AGE_BINNED = cut(AGE, breaks = AGE_breaks, labels = AGE_labels,
+    dplyr::mutate(AGE_BINNED = cut(AGE, breaks = age_bin$values, labels = age_bin$labels,
                                    right = FALSE)) %>%
     dplyr::mutate(LOS = as.numeric(difftime(DISCH_DT_TM,CREATE_DT_TM,units="days"))) %>%
     dplyr::rename(ENCNTR_UPDT_DT_TM = UPDT_DT_TM) %>%
@@ -44,7 +44,7 @@ extract_age_los <- function(df){
 #' created before or during the encounter
 #' @export
 extract_alert <- function(df){
-  problem <- execute_query(get_problem_query())
+  problem <- execute_query(get_acd_problem_query())
 
   alert <- df %>%
     dplyr::left_join(problem,by="PERSON_ID") %>%
@@ -65,11 +65,11 @@ extract_alert <- function(df){
 
 #' extracts the most recent echo order to the encounter
 #' @export
-extract_echos <- function(df){
+extract_echos <- function(df,df_dttm = "DISCH_DT_TM"){
   echos <-  execute_query(get_echos_query())
 
   echo_enc <- df %>%
-    get_most_recent_order(echos,"ECHO","ORIG_ORDER_DT_TM") %>%
+    get_most_recent_order(echos,"ECHO","ORIG_ORDER_DT_TM",df_dttm=df_dttm) %>%
     dplyr::select(ENCNTR_ID,ORDER_ID,ECHO_ENCNTR_ID,ORIG_ORDER_DT_TM,ECHO_DELTA,UPDT_DT_TM) %>%
     dplyr::rename(ECHO_ORDER_ID = ORDER_ID,
                   ECHO_ORIG_ORDER_DT_TM = ORIG_ORDER_DT_TM,
@@ -79,6 +79,7 @@ extract_echos <- function(df){
 
 #' a helper function to extract the most recent event/order
 #' based on the given time column
+#' @export
 get_most_recent_order <- function(df,order_df,suffix,
                                   order_dttm_col,
                                   df_dttm = "DISCH_DT_TM",
@@ -123,7 +124,8 @@ extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
                   "{prefix}_UPDT_DT_TM" := UPDT_DT_TM)
 
   if(!is.null(breaks)){
-    df %<>% dplyr::mutate("{prefix}_BIN" := cut(RESULT_VAL,breaks=breaks,labels=labels))
+    df %<>% dplyr::mutate("{prefix}_BIN" := cut(RESULT_VAL,breaks=breaks,labels=labels,
+                                                right = FALSE))
   }
   df %<>% dplyr::rename("{prefix}_RESULT_VAL" := RESULT_VAL)
 
@@ -132,8 +134,13 @@ extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
 
 
 #' @export
-extract_patho_result <- function(df){
-  patho <- execute_query(get_pathology_query())
+extract_patho_result <- function(df,use_default_person_list = TRUE,df_dttm="DISCH_DT_TM"){
+  if(use_default_person_list){
+    patho <- execute_query(get_pathology_query())
+  }
+  else{
+    patho <- execute_query(get_pathology_query(df$PERSON_ID))
+  }
 
   # combine BNP tests to the same group
   # and take the last result of the encounter
@@ -147,32 +154,48 @@ extract_patho_result <- function(df){
     dplyr::slice(1) %>%
     dplyr::ungroup()
 
+  bnp_bins <- get_bnp_bin()
+  ts_bins <- get_transferrin_sat_bin()
+  fer_bins <- get_ferritin_bin()
+
   # extract the different pathology results
-  bnp <- extract_path_result(path_slice,"BNP", "BNP", c(-Inf,450,900,Inf),c("< 450","450-900","900+"))
-  trans_sat <- extract_path_result(path_slice,"Transferrin Saturation", "TRANSFERRIN_SAT",c(-Inf,20,Inf),c("< 20","20+"))
-  ferritin <- extract_path_result(path_slice,"Ferritin", "FERRITIN",c(-Inf,100,300,Inf),c("< 100","100-299","300+"))
+  bnp <- extract_path_result(path_slice,
+                             "BNP",
+                             "BNP",
+                             bnp_bins$values,
+                             bnp_bins$labels)
+  trans_sat <- extract_path_result(path_slice,
+                                   "Transferrin Saturation",
+                                   "TRANSFERRIN_SAT",
+                                   ts_bins$values,
+                                   ts_bins$labels)
+  ferritin <- extract_path_result(path_slice,
+                                  "Ferritin",
+                                  "FERRITIN",
+                                  fer_bins$values,
+                                  fer_bins$labels)
 
   # attach them to the encounter
   df %<>%
     dplyr::select(ENCNTR_ID) %>%
     dplyr::left_join(
       df %>%
-        get_most_recent_order(bnp,"BNP","BNP_EVENT_START_DT_TM") %>%
+        get_most_recent_order(bnp,"BNP","BNP_EVENT_START_DT_TM",df_dttm=df_dttm) %>%
         dplyr::select(ENCNTR_ID,dplyr::starts_with("BNP")),by="ENCNTR_ID") %>%
     dplyr::left_join(
       df %>%
-        get_most_recent_order(trans_sat,"TRANSFERRIN_SAT","TRANSFERRIN_SAT_EVENT_START_DT_TM") %>%
+        get_most_recent_order(trans_sat,"TRANSFERRIN_SAT","TRANSFERRIN_SAT_EVENT_START_DT_TM",df_dttm=df_dttm) %>%
         dplyr::select(ENCNTR_ID,ENCNTR_ID,dplyr::starts_with("TRANSFERRIN_SAT")),by="ENCNTR_ID") %>%
     dplyr::left_join(
       df %>%
-        get_most_recent_order(ferritin,"FERRITIN","FERRITIN_EVENT_START_DT_TM") %>%
+        get_most_recent_order(ferritin,"FERRITIN","FERRITIN_EVENT_START_DT_TM",df_dttm=df_dttm) %>%
         dplyr::select(ENCNTR_ID,ENCNTR_ID,dplyr::starts_with("FERRITIN")),by="ENCNTR_ID") %>%
     dplyr::mutate(IS_IRON_DEFICIENT =
                     dplyr::case_when(
                       FERRITIN_RESULT_VAL < 100 |
                         FERRITIN_RESULT_VAL >= 100 & FERRITIN_RESULT_VAL < 300 &
                         TRANSFERRIN_SAT_RESULT_VAL < 20 ~ TRUE,
-                      is.na(FERRITIN_RESULT_VAL) | is.na(TRANSFERRIN_SAT_RESULT_VAL) ~ NULL,
+                      is.na(FERRITIN_RESULT_VAL) | is.na(TRANSFERRIN_SAT_RESULT_VAL) ~ NA,
                       TRUE ~ FALSE
                     ))
   return(df)
@@ -181,15 +204,22 @@ extract_patho_result <- function(df){
 #' extract the latest hf related icd10 diagnosis for each encounter
 #' @export
 extract_hf_hist_diag <- function(df){
-  hf_hist_diag <- execute_query(get_historical_hf_diag_query()) %>%
+  hf_hist_diag <- execute_query(get_historical_hf_diag_query())
+
+  count <- hf_hist_diag %>%
+    dplyr::group_by(PX9_ENCNTR_ID) %>%
+    dplyr::summarise(N_HF_DIAG_ENCNTR = dplyr::n_distinct(ENCNTR_ID,na.rm = TRUE))
+
+  hf_hist_diag_result <- hf_hist_diag %>%
     dplyr::group_by(PX9_ENCNTR_ID) %>%
     dplyr::slice_max(order_by = DIAG_ENCNTR_BEG_EFFECTIVE_DT_TM,with_ties = FALSE) %>%
-    dplyr::select(PX9_ENCNTR_ID,DIAG_ENCNTR_BEG_EFFECTIVE_DT_TM,DIAGNOSIS_ID,DIAG_PRIORITY,
+    dplyr::select(PX9_ENCNTR_ID,DIAG_ENCNTR_BEG_EFFECTIVE_DT_TM,DIAG_ENCNTR_DISCH_DT_TM,DIAGNOSIS_ID,DIAG_PRIORITY,
                   ENCNTR_ID,SOURCE_IDENTIFIER,SOURCE_STRING,HISTORICAL_DIAG,UPDT_DT_TM) %>%
     dplyr::rename(ENCNTR_ID = PX9_ENCNTR_ID,
-                  DIAG_ENCNTR_ID = ENCNTR_ID)
+                  DIAG_ENCNTR_ID = ENCNTR_ID) %>%
+    dplyr::left_join(count,by=c("ENCNTR_ID" = "PX9_ENCNTR_ID"))
 
-  return(hf_hist_diag)
+  return(hf_hist_diag_result)
 }
 
 
@@ -302,8 +332,8 @@ extract_hfreferral_form <- function(df){
 extract_hfenrolment_form <- function(df){
   forms <- execute_query(get_hfenrolment_form_query())
 
-
-  lvef <- extract_form_result(forms,"LVEF", "LVEF", c(-Inf,40,50,Inf),c("< 40","40-49","50+"),is_numeric=TRUE)
+  lvef_bins <- get_lvef_bin()
+  lvef <- extract_form_result(forms,"LVEF", "LVEF", lvef_bins$values,lvef_bins$labels,is_numeric=TRUE)
 
   enrolment <- df %>%
     get_most_recent_order(forms,"ENROLMENT","FORM_DT_TM",delta_cutoff = -30) %>%
@@ -337,7 +367,8 @@ extract_form_result <- function(df,regex,prefix,breaks=NULL,labels=NULL,is_numer
                     "{prefix}_PARENT_EVENT_ID" := PARENT_EVENT_ID)
 
     if(!is.null(breaks)){
-      df %<>% dplyr::mutate("{prefix}_BIN" := cut(RESULT_VAL,breaks=breaks,labels=labels))
+      df %<>% dplyr::mutate("{prefix}_BIN" := cut(RESULT_VAL,breaks=breaks,labels=labels,
+                                                  right = FALSE))
     }
     df %<>% dplyr::rename("{prefix}_RESULT_VAL" := RESULT_VAL)
   }

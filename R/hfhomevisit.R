@@ -11,8 +11,10 @@ get_hf_symptoms <- function(df){
                   DYSPNOEA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Dyspnoea"),
                   LOWER_LEG_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Lower leg Oedema"),
                   NAUSEA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Nausea")) %>%
-    dplyr::group_by(PARENT_EVENT_ID) %>%
+    dplyr::group_by(ENCNTR_ID) %>%
     dplyr::summarise(
+      PERSON_ID = max(PERSON_ID),
+      FORM_DT_TM = max(FORM_DT_TM),
       DEPENDENT_OEDEMA_HEARTFAILURESYMPTOMS = any(DEPENDENT_OEDEMA_HEARTFAILURESYMPTOMS),
       FATIGUE_HEARTFAILURESYMPTOMS = any(FATIGUE_HEARTFAILURESYMPTOMS),
       LETHARGY_HEARTFAILURESYMPTOMS = any(LETHARGY_HEARTFAILURESYMPTOMS),
@@ -22,7 +24,7 @@ get_hf_symptoms <- function(df){
       LOWER_LEG_OEDEMA_HEARTFAILURESYMPTOMS = any(LOWER_LEG_OEDEMA_HEARTFAILURESYMPTOMS),
       NAUSEA_HEARTFAILURESYMPTOMS = any(NAUSEA_HEARTFAILURESYMPTOMS)
     ) %>%
-    dplyr::left_join(dplyr::select(df,PERSON_ID,ENCNTR_ID,FORM_DT_TM,PARENT_EVENT_ID), by ="PARENT_EVENT_ID") %>%
+    #dplyr::left_join(dplyr::select(df,PERSON_ID,ENCNTR_ID,FORM_DT_TM,PARENT_EVENT_ID), by ="ENCNTR_ID") %>%
     dplyr::group_by(PERSON_ID) %>%
     dplyr::arrange(desc(FORM_DT_TM)) %>%
     dplyr::slice(c(1,dplyr::n())) %>%
@@ -64,12 +66,22 @@ extract_hf_symptoms <- function(df,column="HEART_FAILURE_SYMPTOMS"){
 
 #' @export
 get_nyha_classification <- function(df){
+
+  form_time <- df %>%
+    dplyr::group_by(ENCNTR_ID) %>%
+    dplyr::summarise(
+      PERSON_ID = max(PERSON_ID),
+      FORM_DT_TM = max(FORM_DT_TM)
+    )
   visit <- df %>% dplyr::filter(TASK_ASSAY_CD == "NYHA Classification" | TASK_ASSAY_CD == "MACARF Visit Type") %>%
-    dplyr::select(PARENT_EVENT_ID,ENCNTR_ID,PERSON_ID,TASK_ASSAY_CD,RESULT_VAL) %>%
-    dplyr::group_by(PARENT_EVENT_ID) %>%
-    tidyr::pivot_wider(names_from = TASK_ASSAY_CD, values_from = RESULT_VAL) %>%
+    dplyr::select(ENCNTR_ID,PERSON_ID,TASK_ASSAY_CD,RESULT_VAL) %>%
+    dplyr::group_by(ENCNTR_ID) %>%
+    dplyr::arrange(desc(FORM_DT_TM)) %>%
+    tidyr::pivot_wider(names_from = TASK_ASSAY_CD,
+                       values_from = RESULT_VAL,
+                       values_fn = get_first_non_na) %>%
     dplyr::rename(MACARFVISITTYPE = `MACARF Visit Type`, NYHACLASSIFICATION = `NYHA Classification`) %>%
-    dplyr::left_join(dplyr::select(df,PERSON_ID,FORM_DT_TM,PARENT_EVENT_ID), by =c("PARENT_EVENT_ID","PERSON_ID")) %>%
+    dplyr::left_join(form_time, by ="ENCNTR_ID") %>%
     dplyr::group_by(PERSON_ID) %>%
     dplyr::arrange(desc(FORM_DT_TM)) %>%
     dplyr::slice(c(1,dplyr::n())) %>%
@@ -155,16 +167,29 @@ get_homevisit_forms <- function(forms = NULL,dcp_forms_activity = NULL){
   return(df)
 }
 
+#' Note these grouping are done based on `PARENT_EVENT_ID`/`PARENT_ENTITY_ID`
+#' and NOT `ENCNTR_ID`. Al these visit forms are linked to the same encounter
 #' @export
 process_homevisit_form <- function(forms = NULL,dcp_forms_activity  = NULL){
   df <- get_homevisit_forms(forms,dcp_forms_activity)
 
+  updt <- df %>%
+    dplyr::group_by(PARENT_EVENT_ID) %>%
+    dplyr::summarise(UPDT_DT_TM = max(UPDT_DT_TM))
+
   df %<>%
     dplyr::filter(TASK_ASSAY_CD == "MACARF Visit Type" | TASK_ASSAY_CD == "NYHA Classification"
                   |  TASK_ASSAY_CD == "Heart Failure Symptoms") %>%
-    tidyr::pivot_wider(names_from = TASK_ASSAY_CD,values_from = RESULT_VAL) %>%
+    dplyr::arrange(desc(FORM_DT_TM)) %>%
+    tidyr::pivot_wider(
+                      id_cols = c(ENCNTR_ID,PERSON_ID,FORM_DT_TM,PARENT_EVENT_ID),
+                      names_from = TASK_ASSAY_CD,
+                       values_from = RESULT_VAL,
+                      names_sort = TRUE,
+                       values_fn = get_first_non_na) %>%
     dplyr::rename_all(.funs = ~toupper(gsub(" ","_",.x))) %>%
-    extract_hf_symptoms()
+    extract_hf_symptoms() %>%
+    dplyr::left_join(updt,by="PARENT_EVENT_ID")
 
 
 

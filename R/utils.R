@@ -107,3 +107,10 @@ str_to_datetime <- function(df) {
 
   return(df)
 }
+
+#' @export
+get_first_non_na <- function(x){
+  y <- dplyr::first(na.omit(x))
+  return(y)
+
+}

@@ -4,7 +4,7 @@
 \alias{extract_echos}
 \title{extracts the most recent echo order to the encounter}
 \usage{
-extract_echos(df)
+extract_echos(df, df_dttm = "DISCH_DT_TM")
 }
 \description{
 extracts the most recent echo order to the encounter

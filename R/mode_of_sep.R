@@ -9,7 +9,6 @@ NULL
 
 
 #' @rdname mode_of_separation_rules
-#' @eval describe_clack_mappings(mode_of_sep_groupings)
 #' @export
 mode_of_sep_groupings <- function(){
 
@@ -55,7 +54,6 @@ mode_of_sep_groupings <- function(){
 #' @section Base Rules:
 #'  The following patterns/rules are used to relate the extracted top level
 #'  classifications to an output mode of separation.
-#' @eval describe_case_when_patterns(enc_sep_base_patterns, section_name = "Base Patterns")
 #' @export
 #' @rdname mode_of_separation_rules
 enc_sep_base_patterns <- function(first_pass = mode_sep_first,
@@ -81,7 +79,6 @@ enc_sep_base_patterns <- function(first_pass = mode_sep_first,
 #' @section Transfer Rules:
 #'  The following rules are called from the enc_sep_case_transfer function,
 #'  as part of the evaluation of the base ruleset.
-#' @eval describe_case_when_patterns(enc_sep_transfer_patterns, section_name = "Transfer Patterns")
 #' @export
 enc_sep_transfer_patterns <- function(transfer = mode_sep_transfer,
                                       dests = destination){

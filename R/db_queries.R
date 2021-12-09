@@ -40,8 +40,27 @@ get_discharge_referral <- function(){
 
 #' queries the first instance
 #' the advance care directive for a given `PERSON_ID`
+#' extracts the earliest record of the directive
 #' @export
-get_problem_query <- function(){
+get_acd_problem_query <- function(){
+  query <- "
+  WITH added_row_number AS (
+SELECT *,
+    ROW_NUMBER() OVER(PARTITION BY PERSON_ID ORDER BY BEG_EFFECTIVE_DT_TM) AS row_number
+  FROM proBLEM
+  where SOURCE_STRING in ('Advance Care Directive','Advance Care Directives','Advance Care Plan','Advance Care Planning')
+ )
+ SELECT
+  *
+FROM added_row_number
+WHERE row_number = 1;"
+  return(query)
+}
+
+#' queries the first instance
+#' the advance care directive for a given `PERSON_ID`
+#' @export
+get_hf_alert_query <- function(){
   query <- "
   WITH added_row_number AS (
 SELECT *,
@@ -56,6 +75,7 @@ WHERE row_number = 1;"
   return(query)
 }
 
+
 #' @export
 get_echos_query <- function(){
   query <- "
@@ -65,11 +85,20 @@ get_echos_query <- function(){
 }
 
 #' @export
-get_pathology_query <- function(){
-  query <- "SELECT * from PATHOLOGY_EVENT
-  where CATALOG_CD in  ('Brain Natriuretic Peptide','Iron Level','Iron Studies','N Terminal Pro Brain Natriuretic Peptide') and
-  PERSON_ID in (SELECT PX9_PERSON_ID from ENCOUNTER_REFERENCE
-  where Q4_DIAGNOSIS = 1 and PROCESS_FLAG = 1);"
+get_pathology_query <- function(person_id = NULL){
+  # Brain Natriuretic Peptide has been excluded
+  # due to instability of measurement
+
+  if(is.null(person_id)){
+    person_string <- "SELECT PX9_PERSON_ID from ENCOUNTER_REFERENCE
+  where Q4_DIAGNOSIS = 1 and PROCESS_FLAG = 1"
+  }
+  else{
+    person_string <- paste(person_id,collapse=",")
+  }
+  query <- paste0("SELECT * from PATHOLOGY_EVENT
+  where CATALOG_CD in  ('Iron Level','Iron Studies','N Terminal Pro Brain Natriuretic Peptide') and
+  PERSON_ID in (", person_string,");")
   return(query)
 }
 
@@ -80,7 +109,7 @@ get_historical_hf_diag_query <- function(){
     left join ENCOUNTER AS z
     on PX9_ENCNTR_ID = z.ENCNTR_ID and PX9_PERSON_ID = z.PERSON_ID
     left join (
-      select j.BEG_EFFECTIVE_DT_TM as DIAG_ENCNTR_BEG_EFFECTIVE_DT_TM,k.* from DIAGNOSIS as k
+      select j.BEG_EFFECTIVE_DT_TM as DIAG_ENCNTR_BEG_EFFECTIVE_DT_TM,j.DISCH_DT_TM as DIAG_ENCNTR_DISCH_DT_TM,k.* from DIAGNOSIS as k
       left join ENCOUNTER as j
       on j.ENCNTR_ID = k.ENCNTR_ID
       where Source_VOCABULARY_CD = 'ICD10-AM' and SOURCE_IDENTIFIER like 'I50%'
@@ -92,7 +121,7 @@ get_historical_hf_diag_query <- function(){
     left join ENCOUNTER AS z
     on PX9_ENCNTR_ID = z.ENCNTR_ID and PX9_PERSON_ID = z.PERSON_ID
     left join (
-      select j.BEG_EFFECTIVE_DT_TM as DIAG_ENCNTR_BEG_EFFECTIVE_DT_TM,k.* from DIAGNOSIS_HISTORY as k
+      select j.BEG_EFFECTIVE_DT_TM as DIAG_ENCNTR_BEG_EFFECTIVE_DT_TM,j.DISCH_DT_TM as DIAG_ENCNTR_DISCH_DT_TM,k.* from DIAGNOSIS_HISTORY as k
       left join ENCOUNTER_HISTORY as j
       on j.ENCNTR_ID = k.ENCNTR_ID
       where Source_VOCABULARY_CD = 'ICD10-AM' and SOURCE_IDENTIFIER like 'I50%'
@@ -105,7 +134,9 @@ get_historical_hf_diag_query <- function(){
 #' include a list of `ENCNTR_ID`
 #' @export
 get_disch_med_query <- function(encntr_list){
-  query <- paste0("select x.ENCNTR_ID,y.ORDER_ID,y.UPDT_DT_TM,q.MEDICATION_GROUP, 1 as HOME_MED from ENCOUNTER as x
+  query <- paste0("
+  with MEDS AS (
+  (select x.ENCNTR_ID,y.ORDER_ID,y.UPDT_DT_TM,q.MEDICATION_GROUP, 1 as HOME_MED from ENCOUNTER as x
     left join MEDICATION_HOME_ORDERS as y
     on x.PERSON_ID = y.PERSON_ID  and y.CURRENT_START_DT_TM <= x.DISCH_DT_TM and
     (ORDER_STATUS_CD = 'Completed' and STATUS_DT_TM > x.DISCH_DT_TM or
@@ -117,9 +148,9 @@ get_disch_med_query <- function(encntr_list){
       on CATALOG_CD = MEDICATION_NAME
       left join MEDICATION_GROUP as q
     	on z.MEDICATION_GROUP_ID = q.MEDICATION_GROUP_ID
-    where x.ENCNTR_ID in (",paste(encntr_list,collapse=","),") and q.MEDICATION_GROUP is not NULL
+    where  q.MEDICATION_GROUP is not NULL)
         union all
-     select x.ENCNTR_ID,y.ORDER_ID,y.UPDT_DT_TM,q.MEDICATION_GROUP, 0 as HOME_MED from ENCOUNTER as x
+     (select x.ENCNTR_ID,y.ORDER_ID,y.UPDT_DT_TM,q.MEDICATION_GROUP, 0 as HOME_MED from ENCOUNTER as x
     left join MEDICATION_ORDERS as y
     on x.ENCNTR_ID = y.ENCNTR_ID and
   (ORDER_STATUS_CD = 'Completed' and STATUS_DT_TM > x.DISCH_DT_TM or
@@ -130,7 +161,9 @@ get_disch_med_query <- function(encntr_list){
       on CATALOG_CD = MEDICATION_NAME
       left join MEDICATION_GROUP as q
     	on z.MEDICATION_GROUP_ID = q.MEDICATION_GROUP_ID
-    where y.ORIG_ORD_AS_FLAG =  1 and x.ENCNTR_ID in (",paste(encntr_list,collapse=","),") and q.MEDICATION_GROUP is not NULL; ")
+    where y.ORIG_ORD_AS_FLAG =  1 and q.MEDICATION_GROUP is not NULL))
+  select * from MEDS
+  where ENCNTR_ID in (",paste(encntr_list,collapse=","),");")
 
   return(query)
 }
@@ -161,4 +194,53 @@ get_hfreferral_form_query <- function(){
 
 return(query)
 }
+
+#' @export
+get_referred_to_facility_query <- function(){
+  query <- "select ENCNTR_ID,VALUE_CD from ENCOUNTER_UDF
+    where INFO_SUB_TYPE_CD = 'Referred to Facility';"
+
+  return(query)
+}
+
+#' rank all inpatient encounters by date
+#' @export
+get_previous_encounter_query <- function(df,
+                                         PERSON_ID = "PERSON_ID",
+                                         ENCNTR_ID = "ENCNTR_ID"){
+  PERSON_ID_sym <- rlang::sym(PERSON_ID)
+  ENCNTR_ID_sym <- rlang::sym(ENCNTR_ID)
+
+  query <- paste0("
+   with join_tab as (
+    select ENCNTR_ID,PERSON_ID,BEG_EFFECTIVE_DT_TM,DISCH_DT_TM from encounter
+    where ENCNTR_TYPE_CD in ('Inpatient','Emergency','Recurring Inpatient')
+    union all
+    select  ENCNTR_ID,PERSON_ID,BEG_EFFECTIVE_DT_TM,DISCH_DT_TM from encounter_history
+    where ENCNTR_TYPE_CD in ('Inpatient','Emergency','Recurring Inpatient')
+  ),
+  added_row_number as(
+    SELECT *,
+    ROW_NUMBER() OVER(PARTITION BY PERSON_ID ORDER BY BEG_EFFECTIVE_DT_TM asc) AS ENCNTR_ORDER
+    from join_tab
+
+  )
+
+  SELECT
+  k.ENCNTR_ID,k.PERSON_ID,K.BEG_EFFECTIVE_DT_TM,k.DISCH_DT_TM,k.ENCNTR_ORDER, y.BEG_EFFECTIVE_DT_TM as PREV_BEG_EFFECTIVE_DT_TM,y.ENCNTR_ID as PREV_ENCNTR_ID,y.ENCNTR_ORDER AS PREV_ENCNTR_ORDER,
+  datediff(hour,y.BEG_EFFECTIVE_DT_TM,k.DISCH_DT_TM) AS ENCNTR_DELTA
+  FROM added_row_number as k
+  left join added_row_number as y
+  on k.ENCNTR_ORDER = y.ENCNTR_ORDER + 1 and k.person_id = y.person_id
+  where k.", ENCNTR_ID_sym, " in (",paste(df[[ENCNTR_ID_sym]],collapse=","),")
+  ")
+
+
+
+  return(query)
+}
+
+
+
+
 
