@@ -1,5 +1,5 @@
 ---
-title: "Heart Failure Inpatient Analysis"
+title: "Heart Failure Outpatient Analysis"
 author: "Harrison Nguyen and Charmaine Tam"
 date: "10/11/2021"
 output:  

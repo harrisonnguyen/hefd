@@ -2,7 +2,7 @@
 % Please edit documentation in R/hfinpatient.R
 \name{extract_form_result}
 \alias{extract_form_result}
-\title{extracts the result and bin pathology result for a given rest}
+\title{extracts the result and bin pathology result}
 \usage{
 extract_form_result(
   df,
@@ -14,5 +14,5 @@ extract_form_result(
 )
 }
 \description{
-extracts the result and bin pathology result for a given rest
+extracts the result and bin pathology result
 }

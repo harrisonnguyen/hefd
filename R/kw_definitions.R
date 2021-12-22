@@ -1,18 +1,26 @@
 
+#' Define enrolment form string
+#'
 #' @export
+#' @family definition
 get_hfenrolment_form_pattern <- function(){
   string <- "Heart Failure.*Enrolment"
   return(stringr::regex(string,ignore_case = TRUE))
 }
 
+#' Define homevisit form string
+#'
 #' @export
+#' @family definition
 get_hfhomevisit_form_pattern <- function(){
   string <- "Heart Failure.*Home Visit"
   return(stringr::regex(string,ignore_case = TRUE))
 }
 
-
+#' Define lvef categories
+#'
 #' @export
+#' @family definition
 get_lvef_bin <- function(){
   bins <- list(
           values = c(-Inf,40,50,Inf),
@@ -21,8 +29,10 @@ get_lvef_bin <- function(){
   return(bins)
 }
 
-
+#' Define bnp categories
+#'
 #' @export
+#' @family definition
 get_bnp_bin <- function(){
   bins <- list(
     values = c(-Inf,450,900,1800,Inf),
@@ -32,6 +42,7 @@ get_bnp_bin <- function(){
 }
 
 #' @export
+#' @family definition
 get_transferrin_sat_bin <- function(){
   bins <- list(
     values = c(-Inf,20,Inf),
@@ -40,7 +51,10 @@ get_transferrin_sat_bin <- function(){
   return(bins)
 }
 
+#' Define ferritin categories
+#'
 #' @export
+#' @family definition
 get_ferritin_bin <- function(){
   bins <- list(
     values = c(-Inf,100,300,Inf),
@@ -49,7 +63,10 @@ get_ferritin_bin <- function(){
   return(bins)
 }
 
+#' Define age categories
+#'
 #' @export
+#' @family definition
 get_age_bin <- function(){
   bins <- list(
     values =  c(-Inf,18, 25, 50, 75, Inf),

@@ -6,30 +6,33 @@ Author: Harrison Nguyen
 Maintainer: Harrison Nguyen <yourself@somewhere.net>
 Description: Contains functions and analysis used for the HEFD project developed at the University of Sydney
  and Northern Sydney Local Health District
-License: `use_mit_license()`
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
 Imports:
-	dplyr,
-	ggplot2,
-	ggpubr,
-	glue,
-	here,
-	kableExtra,
-	rlang,
+    dplyr,
+    ggplot2,
+    ggpubr,
+    glue,
+    here,
+    kableExtra,
+    rlang,
     scales,
-	stringr,
-	tidyr,
-	zoo,
+    stringr,
+    tidyr,
+    zoo,
     magrittr,
     targets,
-	tidyverse,
-	RODBCDBI,
-	config,
-	lubridate,
-	odbc,
-	purrr,
-	flextable
+    tidyverse,
+    RODBCDBI,
+    config,
+    lubridate,
+    odbc,
+    purrr,
+    flextable,
+    lifecycle
 Suggests: knitr, rmarkdown
 RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
+URL: https://pages.github.sydney.edu.au/speed-extract/hefd/

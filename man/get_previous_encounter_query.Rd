@@ -2,8 +2,7 @@
 % Please edit documentation in R/db_queries.R
 \name{get_previous_encounter_query}
 \alias{get_previous_encounter_query}
-\title{rank all inpatient encounters by date
-`r lifecycle::badge("deprecated")`}
+\title{rank all inpatient encounters by date}
 \usage{
 get_previous_encounter_query(
   df,
@@ -12,6 +11,23 @@ get_previous_encounter_query(
 )
 }
 \description{
-rank all inpatient encounters by date
-`r lifecycle::badge("deprecated")`
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 }
+\seealso{
+Other deprecated: 
+\code{\link{extract_hf_hist_diag}()},
+\code{\link{terminate_journeys_by}()}
+
+Other query: 
+\code{\link{get_acd_problem_query}()},
+\code{\link{get_disch_med_query}()},
+\code{\link{get_discharge_referral}()},
+\code{\link{get_encounter_journey_query}()},
+\code{\link{get_hf_alert_query}()},
+\code{\link{get_hfenrolment_form_query}()},
+\code{\link{get_hfreferral_form_query}()},
+\code{\link{get_historical_hf_diag_query}()},
+\code{\link{get_referred_to_facility_query}()}
+}
+\concept{deprecated}
+\concept{query}

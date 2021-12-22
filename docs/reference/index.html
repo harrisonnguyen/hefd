@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hefd</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -96,11 +96,19 @@
     <li>
       <a href="../articles/inpatient_analysis.html">Heart Failure Inpatient Analysis</a>
     </li>
+    <li>
+      <a href="../articles/outpatient.html">Heart Failure Outpatient Analysis</a>
+    </li>
   </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.sydney.edu.au/speed-extract/hefd/">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -128,7 +136,200 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
+          <h2 id="section-query" class="hasAnchor"><a href="#section-query" class="anchor"></a>Query</h2>
+          <p class="section-desc"><p>Functions responsible for querying the database</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="get_acd_problem_query.html">get_acd_problem_query()</a></code> </p>
+        </td>
+        <td><p>queries the first instance
+the advance care directive for a given <code>PERSON_ID</code></p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_discharge_referral.html">get_discharge_referral()</a></code> </p>
+        </td>
+        <td><p>get the most recently updated note for each encounter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_disch_med_query.html">get_disch_med_query()</a></code> </p>
+        </td>
+        <td><p>Extracts discharge meds</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_encounter_journey_query.html">get_encounter_journey_query()</a></code> </p>
+        </td>
+        <td><p>extracts the encounters that haven't been allocated a journey id</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_hfenrolment_form_query.html">get_hfenrolment_form_query()</a></code> </p>
+        </td>
+        <td><p>Extracts enrolment forms</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_hfreferral_form_query.html">get_hfreferral_form_query()</a></code> </p>
+        </td>
+        <td><p>Extracts referral forms</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_hf_alert_query.html">get_hf_alert_query()</a></code> </p>
+        </td>
+        <td><p>queries the first instance
+the known to heart failure for a given <code>PERSON_ID</code></p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_historical_hf_diag_query.html">get_historical_hf_diag_query()</a></code> </p>
+        </td>
+        <td><p>queries historical heart failure diagnosis</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_previous_encounter_query.html">get_previous_encounter_query()</a></code> </p>
+        </td>
+        <td><p>rank all inpatient encounters by date</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_referred_to_facility_query.html">get_referred_to_facility_query()</a></code> </p>
+        </td>
+        <td><p>Extracts referred to facility</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-definition" class="hasAnchor"><a href="#section-definition" class="anchor"></a>Definition</h2>
+          <p class="section-desc"><p>Functions responsible for defining form names, categories etc</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="get_age_bin.html">get_age_bin()</a></code> </p>
+        </td>
+        <td><p>Define age categories</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_bnp_bin.html">get_bnp_bin()</a></code> </p>
+        </td>
+        <td><p>Define bnp categories</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_ferritin_bin.html">get_ferritin_bin()</a></code> </p>
+        </td>
+        <td><p>Define ferritin categories</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_hfenrolment_form_pattern.html">get_hfenrolment_form_pattern()</a></code> </p>
+        </td>
+        <td><p>Define enrolment form string</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_hfhomevisit_form_pattern.html">get_hfhomevisit_form_pattern()</a></code> </p>
+        </td>
+        <td><p>Define homevisit form string</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_lvef_bin.html">get_lvef_bin()</a></code> </p>
+        </td>
+        <td><p>Define lvef categories</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-encounter" class="hasAnchor"><a href="#section-encounter" class="anchor"></a>Encounter</h2>
+          <p class="section-desc"><p>Functions responsible for manipulating encounter</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="mode_of_separation_rules.html">mode_of_sep_groupings()</a></code> <code><a href="mode_of_separation_rules.html">enc_sep_base_patterns()</a></code> <code><a href="mode_of_separation_rules.html">enc_sep_transfer_patterns()</a></code> </p>
+        </td>
+        <td><p>Rules for mode of separation</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-deprecated" class="hasAnchor"><a href="#section-deprecated" class="anchor"></a>Deprecated</h2>
+          <p class="section-desc"><p>functions that are deprecated in favour of better functions</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="extract_hf_hist_diag.html">extract_hf_hist_diag()</a></code> </p>
+        </td>
+        <td><p>extract the latest hf related icd10 diagnosis for each encounter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_historical_hf_diag_query.html">get_historical_hf_diag_query()</a></code> </p>
+        </td>
+        <td><p>queries historical heart failure diagnosis</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_previous_encounter_query.html">get_previous_encounter_query()</a></code> </p>
+        </td>
+        <td><p>rank all inpatient encounters by date</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="terminate_journeys_by.html">terminate_journeys_by()</a></code> </p>
+        </td>
+        <td><p>Terminate Journeys on encounters having particular values</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-defunct" class="hasAnchor"><a href="#section-defunct" class="anchor"></a>Defunct</h2>
+          <p class="section-desc"><p>functions that are fully defunct, either due to migration, or long term deprecation</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-uncategorized-functions" class="hasAnchor"><a href="#section-uncategorized-functions" class="anchor"></a>Uncategorized functions</h2>
           <p class="section-desc"></p>
         </th>
       </tr>
@@ -140,9 +341,94 @@
       <tr>
         
         <td>
+          <p><code><a href="encounter_classify_separation.html">encounter_classify_separation()</a></code> </p>
+        </td>
+        <td><p>Classify the Mode of Separation for Encounters</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="encounter_udf_add_dest.html">encounter_udf_add_dest()</a></code> </p>
+        </td>
+        <td><p>classifies the destination given by
+<code>Referred to Facility</code></p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_age_los.html">extract_age_los()</a></code> </p>
+        </td>
+        <td><p>calculates age and LOS</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_alert.html">extract_alert()</a></code> </p>
+        </td>
+        <td><p>extracts advanced care directives</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_discharge_meds.html">extract_discharge_meds()</a></code> </p>
+        </td>
+        <td><p>create discharge medications from encounters</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_echos.html">extract_echos()</a></code> </p>
+        </td>
+        <td><p>extracts the most recent echo order to the encounter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_form_result.html">extract_form_result()</a></code> </p>
+        </td>
+        <td><p>extracts the result and bin pathology result</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_path_result.html">extract_path_result()</a></code> </p>
+        </td>
+        <td><p>extracts the result and bin pathology result for a given rest</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_enrolment_fields.html">get_enrolment_fields()</a></code> </p>
+        </td>
+        <td><p>Get Enrolment form fields</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_most_recent_order.html">get_most_recent_order()</a></code> </p>
+        </td>
+        <td><p>extract the most recent event/order based on the given time column</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_n_precipitants.html">get_n_precipitants()</a></code> </p>
+        </td>
+        <td><p>Computes the number of precipiants and possible precipitants</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="hello.html">hello()</a></code> </p>
         </td>
         <td><p>Hello, World!</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="link_encounters_by_timestamps.html">link_encounters_by_timestamps()</a></code> </p>
+        </td>
+        <td><p>Link Encounters Into Journeys</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="process_homevisit_form.html">process_homevisit_form()</a></code> </p>
+        </td>
+        <td><p>Process homevisit forms</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="relink_apac_to_journeys.html">relink_apac_to_journeys()</a></code> </p>
+        </td>
+        <td><p>Flag Journeys with the presence of APAC @ Start or end</p></td>
       </tr>
     </tbody>
     </table>
@@ -158,7 +444,7 @@
 
       <footer>
       <div class="copyright">
-  <p>Developed by The package maintainer.</p>
+  <p>Developed by Harrison Nguyen.</p>
 </div>
 
 <div class="pkgdown">

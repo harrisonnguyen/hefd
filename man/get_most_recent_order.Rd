@@ -2,8 +2,7 @@
 % Please edit documentation in R/hfinpatient.R
 \name{get_most_recent_order}
 \alias{get_most_recent_order}
-\title{a helper function to extract the most recent event/order
-based on the given time column}
+\title{extract the most recent event/order based on the given time column}
 \usage{
 get_most_recent_order(
   df,

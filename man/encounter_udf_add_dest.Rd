@@ -3,13 +3,12 @@
 \name{encounter_udf_add_dest}
 \alias{encounter_udf_add_dest}
 \title{classifies the destination given by
-`Referred to Facility` value in `ENCOUNTER_UDF` table
-to either private,racf or the given public hospital}
+\verb{Referred to Facility}}
 \usage{
 encounter_udf_add_dest(df, value_col = "VALUE_CD")
 }
 \description{
 classifies the destination given by
-`Referred to Facility` value in `ENCOUNTER_UDF` table
+\verb{Referred to Facility} value in \code{ENCOUNTER_UDF} table
 to either private,racf or the given public hospital
 }

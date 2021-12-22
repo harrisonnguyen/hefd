@@ -1,4 +1,6 @@
 
+#' Get Enrolment form fields
+#'
 #' the fields that we are interested in
 #' @export
 get_enrolment_fields <- function(){
@@ -103,7 +105,8 @@ summarise_enrolment <- function(df){
 
 #'
 #' Computes the number of precipiants and possible precipitants
-#' in the hfmanagement form
+#'
+#'Computes the number of precipiants and possible precipitants in the hfmanagement form
 #' Field is considered missing when both possible and precipiants is left empty
 #' Number of precipiants is considered 0 when no known precipiants is field
 #' @param hfmanagement a df containing form fields of the enrolment form

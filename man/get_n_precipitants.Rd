@@ -2,10 +2,7 @@
 % Please edit documentation in R/hfenrolment.R
 \name{get_n_precipitants}
 \alias{get_n_precipitants}
-\title{Computes the number of precipiants and possible precipitants
-in the hfmanagement form
-Field is considered missing when both possible and precipiants is left empty
-Number of precipiants is considered 0 when no known precipiants is field}
+\title{Computes the number of precipiants and possible precipitants}
 \usage{
 get_n_precipitants(
   hfmanagement,
@@ -21,8 +18,7 @@ get_n_precipitants(
 a df, the hfmanagemet table with the number of precipitants and possible precipitants
 }
 \description{
-Computes the number of precipiants and possible precipitants
-in the hfmanagement form
+Computes the number of precipiants and possible precipitants in the hfmanagement form
 Field is considered missing when both possible and precipiants is left empty
 Number of precipiants is considered 0 when no known precipiants is field
 }

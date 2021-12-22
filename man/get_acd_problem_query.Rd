@@ -3,13 +3,23 @@
 \name{get_acd_problem_query}
 \alias{get_acd_problem_query}
 \title{queries the first instance
-the advance care directive for a given `PERSON_ID`
-extracts the earliest record of the directive}
+the advance care directive for a given \code{PERSON_ID}}
 \usage{
 get_acd_problem_query()
 }
 \description{
-queries the first instance
-the advance care directive for a given `PERSON_ID`
 extracts the earliest record of the directive
 }
+\seealso{
+Other query: 
+\code{\link{get_disch_med_query}()},
+\code{\link{get_discharge_referral}()},
+\code{\link{get_encounter_journey_query}()},
+\code{\link{get_hf_alert_query}()},
+\code{\link{get_hfenrolment_form_query}()},
+\code{\link{get_hfreferral_form_query}()},
+\code{\link{get_historical_hf_diag_query}()},
+\code{\link{get_previous_encounter_query}()},
+\code{\link{get_referred_to_facility_query}()}
+}
+\concept{query}

@@ -2,10 +2,25 @@
 % Please edit documentation in R/db_queries.R
 \name{get_historical_hf_diag_query}
 \alias{get_historical_hf_diag_query}
-\title{`r lifecycle::badge("deprecated")`}
+\title{queries historical heart failure diagnosis}
 \usage{
 get_historical_hf_diag_query()
 }
 \description{
-`r lifecycle::badge("deprecated")`
+queries historical heart failure diagnosis
 }
+\seealso{
+Other query: 
+\code{\link{get_acd_problem_query}()},
+\code{\link{get_disch_med_query}()},
+\code{\link{get_discharge_referral}()},
+\code{\link{get_encounter_journey_query}()},
+\code{\link{get_hf_alert_query}()},
+\code{\link{get_hfenrolment_form_query}()},
+\code{\link{get_hfreferral_form_query}()},
+\code{\link{get_previous_encounter_query}()},
+\code{\link{get_referred_to_facility_query}()}
+}
+\concept{deprecated
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
+\concept{query}

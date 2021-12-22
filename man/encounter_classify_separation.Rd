@@ -14,43 +14,52 @@ encounter_classify_separation(
 )
 }
 \arguments{
-\item{encounters}{the encounter df, with a `disch_disposition` column.}
+\item{encounters}{the encounter df, with a \code{disch_disposition} column.}
 
-\item{enc_udf_dests}{the user defined field table, with a `destination`
-column, as given by [encounter_udf_add_dest()]}
+\item{enc_udf_dests}{the user defined field table, with a \code{destination}
+column, as given by \code{\link[=encounter_udf_add_dest]{encounter_udf_add_dest()}}}
 
-\item{grouping_map}{a [contextractr::Contextractr] / `CLACK` compatible
+\item{grouping_map}{a \link[contextractr:Contextractr]{contextractr::Contextractr} / \code{CLACK} compatible
 (serialized) grouping, conforming to
-[contextracr::Contextractr$add_serial()].
-Likely produced by [mode_of_sep_groupings()]}
+\code{\link[contextracr:Contextractr$add_serial]{contextracr::Contextractr$add_serial()}}.
+Likely produced by \code{\link[=mode_of_sep_groupings]{mode_of_sep_groupings()}}}
 }
 \value{
-the `encounters` df, but with the extra columns as specified in the
-        section Output.
+the \code{encounters} df, but with the extra columns as specified in the
+section Output.
 }
 \description{
 Classify the Mode of Separation for Encounters
 }
 \section{Output}{
 
- These will accumulate/collapse common combinations of `destination`
- values with `disch_disposition` values
-
- * `enc_separation_mode`
-   * This will correspond to some aggregation between destination and
-     discharge disposition.
-     * In particular, it will work on the output classifications made
-       by `grouping_map`.
-     * See [enc_sep_transfer_patterns()] and [enc_sep_base_patterns()]
-       for a more detailed description of these rules.
- * `enc_separation_comment`
-   * This adds some extra qualification to the grouping obtained-
-     Presently this checks the `suffix.class` extracted from
-     `grouping_map` in particular:
-     * For the case of "transfer", it will extract
-       `internal/external_lhd`, if detected
-     * For the case of "death", it will extract any suffix class
-       detected.
+These will accumulate/collapse common combinations of \code{destination}
+values with \code{disch_disposition} values
+\itemize{
+\item \code{enc_separation_mode}
+\itemize{
+\item This will correspond to some aggregation between destination and
+discharge disposition.
+\itemize{
+\item In particular, it will work on the output classifications made
+by \code{grouping_map}.
+\item See \code{\link[=enc_sep_transfer_patterns]{enc_sep_transfer_patterns()}} and \code{\link[=enc_sep_base_patterns]{enc_sep_base_patterns()}}
+for a more detailed description of these rules.
+}
+}
+\item \code{enc_separation_comment}
+\itemize{
+\item This adds some extra qualification to the grouping obtained-
+Presently this checks the \code{suffix.class} extracted from
+\code{grouping_map} in particular:
+\itemize{
+\item For the case of "transfer", it will extract
+\code{internal/external_lhd}, if detected
+\item For the case of "death", it will extract any suffix class
+detected.
+}
+}
+}
 }
 
 \seealso{

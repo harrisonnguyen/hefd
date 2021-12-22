@@ -388,7 +388,9 @@ classify_sep_dest <- function(df, ...){
   out
 }
 
-
+#'  classifies the destination given by
+#' `Referred to Facility`
+#'
 #' classifies the destination given by
 #' `Referred to Facility` value in `ENCOUNTER_UDF` table
 #' to either private,racf or the given public hospital

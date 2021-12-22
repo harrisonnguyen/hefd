@@ -2,8 +2,7 @@
 % Please edit documentation in R/hfinpatient.R
 \name{extract_alert}
 \alias{extract_alert}
-\title{extracts advanced care directives and checks whether the alert was
-created before or during the encounter}
+\title{extracts advanced care directives}
 \usage{
 extract_alert(df)
 }

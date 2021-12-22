@@ -7,26 +7,27 @@
 suffix_to_keywords(grouping_map)
 }
 \arguments{
-\item{grouping_map}{a [contextractr::Contextractr$add_serial()] compatible
+\item{grouping_map}{a \code{\link[contextractr:Contextractr$add_serial]{contextractr::Contextractr$add_serial()}} compatible
 list}
 }
 \value{
-the `grouping_map`, but each group element is replaced with a list
-        of groups built from its subelements, changing:
-        * `suffix` -> `keyword`
-        * `suffix.class` -> `title`
+the \code{grouping_map}, but each group element is replaced with a list
+of groups built from its subelements, changing:
+* \code{suffix} -> \code{keyword}
+* \code{suffix.class} -> \code{title}
 }
 \description{
-Promotes `suffix.class` + `suffix` pair `->` `title` + `keywords`, as in
-    For each record, this becomes a whole new mapping, (ie if you have
-    a list of `contextractr::Contextractr` mappings, each mapping becomes a
-    list of mappings, and to give them to a
-    `contextractr::Contextractr$new()` call, you would index into a top
-    level element and give it that.
+Promotes \code{suffix.class} + \code{suffix} pair \verb{->} \code{title} + \code{keywords}, as in
+For each record, this becomes a whole new mapping, (ie if you have
+a list of \code{contextractr::Contextractr} mappings, each mapping becomes a
+list of mappings, and to give them to a
+\code{contextractr::Contextractr$new()} call, you would index into a top
+level element and give it that.
 }
 \details{
-Helper function for encounter transforms until suffix extraction is
-    implemented on contextractr.
+\preformatted{Helper function for encounter transforms until suffix extraction is
+implemented on contextractr.
+}
 }
 \examples{
 mapping <- list(

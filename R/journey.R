@@ -100,12 +100,12 @@ link_encs_in_groups <- function(
 
 
 #' @title Terminate Journeys on encounters having particular values
-#' \lifecycle{soft-deprecated}
 #'
 #' @description
 #' Helper function for second pass at journey building.
 #'     This time, validates / Checks that encounters having characteristics
 #'     that indicate the encounter should terminate its journey
+#' `r lifecycle::badge("deprecated")`
 #'
 #' @family journey_building
 #' @section TODO:
@@ -310,11 +310,12 @@ relink_apac_to_journey <- function(
 }
 
 #' @title Flag Journeys with the presence of APAC @ Start or end
-#' \lifecycle{questioning}
+#'
 #'
 #' @description
 #' Given the set of APAC encounters, and linked journeys, find which
 #' journeys began or ended on APAC
+#' `r lifecycle::badge("experimental")`
 #'
 #' @section journeys->apac_start apac_end:
 #' `apac_start` and `apac_end`, given by [relink_apac_to_journeys()]

@@ -3,11 +3,24 @@
 \name{get_hf_alert_query}
 \alias{get_hf_alert_query}
 \title{queries the first instance
-the advance care directive for a given `PERSON_ID`}
+the known to heart failure for a given \code{PERSON_ID}}
 \usage{
 get_hf_alert_query()
 }
 \description{
 queries the first instance
-the advance care directive for a given `PERSON_ID`
+the known to heart failure for a given \code{PERSON_ID}
 }
+\seealso{
+Other query: 
+\code{\link{get_acd_problem_query}()},
+\code{\link{get_disch_med_query}()},
+\code{\link{get_discharge_referral}()},
+\code{\link{get_encounter_journey_query}()},
+\code{\link{get_hfenrolment_form_query}()},
+\code{\link{get_hfreferral_form_query}()},
+\code{\link{get_historical_hf_diag_query}()},
+\code{\link{get_previous_encounter_query}()},
+\code{\link{get_referred_to_facility_query}()}
+}
+\concept{query}

@@ -1,5 +1,5 @@
 
-
+#' @family query
 #' @export
 get_hfhomevisit_form_query <- function(){
   query <- "select x.ENCNTR_ID,x.PERSON_ID,x.FORM_DT_TM,y.PARENT_EVENT_ID,y.TASK_ASSAY_CD,y.RESULT_VAL,x.UPDT_DT_TM from DCP_FORMS_ACTIVITY as x
@@ -11,7 +11,7 @@ get_hfhomevisit_form_query <- function(){
 
 
 
-
+#' @family query
 #' @export
 get_hf_encounter_query <- function(){
   query <- "SELECT x.*,BIRTH_DT_TM,SEX_CD,ZIPCODE,DECEASED_DT_TM
@@ -25,6 +25,8 @@ get_hf_encounter_query <- function(){
 }
 
 #' get the most recently updated note for each encounter
+#'
+#' @family query
 #' @export
 get_discharge_referral <- function(){
   query <- "
@@ -40,7 +42,10 @@ get_discharge_referral <- function(){
 
 #' queries the first instance
 #' the advance care directive for a given `PERSON_ID`
+#'
+#'
 #' extracts the earliest record of the directive
+#' @family query
 #' @export
 get_acd_problem_query <- function(){
   query <- "
@@ -58,7 +63,9 @@ WHERE row_number = 1;"
 }
 
 #' queries the first instance
-#' the advance care directive for a given `PERSON_ID`
+#' the known to heart failure for a given `PERSON_ID`
+#'
+#' @family query
 #' @export
 get_hf_alert_query <- function(){
   query <- "
@@ -75,7 +82,7 @@ WHERE row_number = 1;"
   return(query)
 }
 
-
+#' @family query
 #' @export
 get_echos_query <- function(){
   query <- "
@@ -84,6 +91,7 @@ get_echos_query <- function(){
   return(query)
 }
 
+#' @family query
 #' @export
 get_pathology_query <- function(person_id = NULL){
   # Brain Natriuretic Peptide has been excluded
@@ -102,6 +110,10 @@ get_pathology_query <- function(person_id = NULL){
   return(query)
 }
 
+#' queries historical heart failure diagnosis
+#'
+#' @family query
+#' @family deprecated
 #' `r lifecycle::badge("deprecated")`
 #' @export
 get_historical_hf_diag_query <- function(){
@@ -133,7 +145,10 @@ get_historical_hf_diag_query <- function(){
   return(query)
 }
 
+#' Extracts discharge meds
+#'
 #' include a list of `ENCNTR_ID`
+#' @family query
 #' @export
 get_disch_med_query <- function(encntr_list){
   query <- paste0("
@@ -170,6 +185,7 @@ get_disch_med_query <- function(encntr_list){
   return(query)
 }
 
+#' @family query
 #' @export
 get_diagnosis_query <- function(){
   query <- "SELECT * from diagnosis
@@ -177,7 +193,9 @@ get_diagnosis_query <- function(){
   return(query)
 }
 
-
+#' Extracts enrolment forms
+#'
+#' @family query
 #' @export
 get_hfenrolment_form_query <- function(){
   query <- "
@@ -188,7 +206,9 @@ get_hfenrolment_form_query <- function(){
   return(query)
 }
 
-
+#' Extracts referral forms
+#'
+#' @family query
 #' @export
 get_hfreferral_form_query <- function(){
   query <- "select * from DCP_FORMS_ACTIVITY
@@ -197,6 +217,9 @@ get_hfreferral_form_query <- function(){
 return(query)
 }
 
+#' Extracts referred to facility
+#'
+#' @family query
 #' @export
 get_referred_to_facility_query <- function(){
   query <- "select ENCNTR_ID,VALUE_CD from ENCOUNTER_UDF
@@ -206,7 +229,10 @@ get_referred_to_facility_query <- function(){
 }
 
 #' rank all inpatient encounters by date
+#'
 #' `r lifecycle::badge("deprecated")`
+#' @family deprecated
+#' @family query
 #' @export
 get_previous_encounter_query <- function(df,
                                          PERSON_ID = "PERSON_ID",
@@ -245,7 +271,7 @@ get_previous_encounter_query <- function(df,
 }
 
 
-#' the query to extract the encounters that haven't been allocated a journey id
+#' extracts the encounters that haven't been allocated a journey id
 #'
 #' `join_tab` extracts encounters from the encounter table and encounter history table
 #' `last_journey` gets the last journey currently for each patient
@@ -256,6 +282,7 @@ get_previous_encounter_query <- function(df,
 #'
 #' be aware that we assume that each encounter can only be associated with one person_id
 #' across the encounter and encounter history tables
+#' @family query
 #' @export
 get_encounter_journey_query <- function(){
 

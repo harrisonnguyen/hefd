@@ -21,6 +21,7 @@ extract_diagnosis <- function(df){
 
 
 #' calculates age and LOS
+#'
 #' @export
 extract_age_los <- function(df){
 
@@ -39,7 +40,8 @@ extract_age_los <- function(df){
 }
 
 
-
+#' extracts advanced care directives
+#'
 #' extracts advanced care directives and checks whether the alert was
 #' created before or during the encounter
 #' @export
@@ -77,6 +79,8 @@ extract_echos <- function(df,df_dttm = "DISCH_DT_TM"){
   return(echo_enc)
 }
 
+#' extract the most recent event/order based on the given time column
+#'
 #' a helper function to extract the most recent event/order
 #' based on the given time column
 #' @export
@@ -202,7 +206,9 @@ extract_patho_result <- function(df,use_default_person_list = TRUE,df_dttm="DISC
 }
 
 #' extract the latest hf related icd10 diagnosis for each encounter
+#'
 #' `r lifecycle::badge("deprecated")`
+#' @family deprecated
 #' @export
 extract_hf_hist_diag <- function(df){
   lifecycle::deprecate_stop("1.0.0", "extract_hf_hist_diag()")
@@ -354,7 +360,7 @@ extract_hfenrolment_form <- function(df){
 
 }
 
-#' extracts the result and bin pathology result for a given rest
+#' extracts the result and bin pathology result
 #' @export
 extract_form_result <- function(df,regex,prefix,breaks=NULL,labels=NULL,is_numeric=FALSE){
   if(is_numeric){

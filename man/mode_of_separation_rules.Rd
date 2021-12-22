@@ -25,14 +25,14 @@ Rules for mode of separation
 }
 \section{Base Rules}{
 
- The following patterns/rules are used to relate the extracted top level
- classifications to an output mode of separation.
+The following patterns/rules are used to relate the extracted top level
+classifications to an output mode of separation.
 }
 
 \section{Transfer Rules}{
 
- The following rules are called from the enc_sep_case_transfer function,
- as part of the evaluation of the base ruleset.
+The following rules are called from the enc_sep_case_transfer function,
+as part of the evaluation of the base ruleset.
 }
 
 \seealso{

@@ -25,14 +25,14 @@ be grouped as one journey}
 }
 \value{
 A dataframe with an additional variable, JOURNEY_KEY which groups
- corresponds to the ENCNTR_KEY of the earliest encounter within the journey.
- additionaly, has the following cols: `JOURNEY_START`, `JOURNEY_END`,
- `JOURNEY_DAYS`
+corresponds to the ENCNTR_KEY of the earliest encounter within the journey.
+additionaly, has the following cols: \code{JOURNEY_START}, \code{JOURNEY_END},
+\code{JOURNEY_DAYS}
 }
 \description{
 Accepts df of encounters, and groups them by JOURNEY_KEY.
- This JOURNEY_KEY groups sets of encounters according to whether they
- overlap/their proximity in time
+This JOURNEY_KEY groups sets of encounters according to whether they
+overlap/their proximity in time
 }
 \seealso{
 Other journey_building: 

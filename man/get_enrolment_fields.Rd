@@ -2,7 +2,7 @@
 % Please edit documentation in R/hfenrolment.R
 \name{get_enrolment_fields}
 \alias{get_enrolment_fields}
-\title{the fields that we are interested in}
+\title{Get Enrolment form fields}
 \usage{
 get_enrolment_fields()
 }

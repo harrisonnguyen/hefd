@@ -1,0 +1,36 @@
+repo:
+  url:
+    home: https://github.sydney.edu.au/speed-extract/hefd/
+    source: https://github.sydney.edu.au/speed-extract/hefd/blob/HEAD/
+reference:
+- title: Query
+  desc: Functions responsible for querying the database
+  contents:
+  - has_concept("query")
+- title: Definition
+  desc: Functions responsible for defining form names, categories etc
+  contents:
+  - has_concept("definition")
+- title: Encounter
+  desc: Functions responsible for manipulating encounter
+  contents:
+  - has_concept("encounter")
+- title: Deprecated
+  desc: functions that are deprecated in favour of better functions
+  contents:
+  - has_concept("deprecated")
+- title: Defunct
+  desc: |
+    functions that are fully defunct, either due to migration, or
+    long term deprecation
+  contents:
+  - has_concept("defunct")
+- title: Uncategorized functions
+  desc: ~
+  contents:
+  - matches(".*")
+  - -has_concept("query")
+  - -has_concept("definition")
+  - -has_concept("deprecated")
+  - -has_concept("defunct")
+  - -has_concept("encounter")

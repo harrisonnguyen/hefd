@@ -3,5 +3,6 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   inpatient_analysis: inpatient_analysis.html
-last_built: 2021-10-18T04:16Z
+  outpatient: outpatient.html
+last_built: 2021-12-22T04:43Z
 

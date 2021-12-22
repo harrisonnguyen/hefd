@@ -8,14 +8,14 @@ set_default_dots(.default_dots, ...)
 }
 \arguments{
 \item{.default_dots}{a named list of (typically) expressions, that specify
-default values for args in `...` if they aren't given by `...`}
+default values for args in \code{...} if they aren't given by \code{...}}
 }
 \value{
-the input `...`,  with any named args from `.default_dots`
-        missing from `...` being set by `defaults`.
+the input \code{...},  with any named args from \code{.default_dots}
+missing from \code{...} being set by \code{defaults}.
 }
 \description{
-`...` is a list of arguments, usually coming from `...` passed directly to
- the function.
+\code{...} is a list of arguments, usually coming from \code{...} passed directly to
+the function.
 }
 \keyword{internal}

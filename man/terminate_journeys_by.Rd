@@ -2,8 +2,7 @@
 % Please edit documentation in R/journey.R
 \name{terminate_journeys_by}
 \alias{terminate_journeys_by}
-\title{Terminate Journeys on encounters having particular values
-\lifecycle{soft-deprecated}}
+\title{Terminate Journeys on encounters having particular values}
 \usage{
 terminate_journeys_by(journeys, ...)
 }
@@ -15,16 +14,17 @@ its journey}
 }
 \value{
 The df, but with the journey key reworked to reflect the
-    termination. Journey length, etc, should also be affected.
+termination. Journey length, etc, should also be affected.
 }
 \description{
 Helper function for second pass at journey building.
-    This time, validates / Checks that encounters having characteristics
-    that indicate the encounter should terminate its journey
+This time, validates / Checks that encounters having characteristics
+that indicate the encounter should terminate its journey
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 }
 \section{TODO}{
 
-    Set this as internal, wrap it in something
+Set this as internal, wrap it in something
 }
 
 \examples{
@@ -45,6 +45,10 @@ Other journey_building:
 \code{\link{link_encounters_by_timestamps}()},
 \code{\link{link_encs_in_groups}()},
 \code{\link{relink_apac_to_journeys}()}
+
+Other deprecated: 
+\code{\link{extract_hf_hist_diag}()},
+\code{\link{get_previous_encounter_query}()}
 }
 \concept{deprecated}
 \concept{journey_building}

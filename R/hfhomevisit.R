@@ -167,6 +167,8 @@ get_homevisit_forms <- function(forms = NULL,dcp_forms_activity = NULL){
   return(df)
 }
 
+#' Process homevisit forms
+#'
 #' Note these grouping are done based on `PARENT_EVENT_ID`/`PARENT_ENTITY_ID`
 #' and NOT `ENCNTR_ID`. Al these visit forms are linked to the same encounter
 #' @export

@@ -7,12 +7,12 @@
 split_on_finals(group)
 }
 \arguments{
-\item{group}{the group given by a dplyr::group_by %>% dplyr::do
+\item{group}{the group given by a dplyr::group_by \%>\% dplyr::do
 pipe on which to operate}
 }
 \description{
 Given a df w/ JOURNEY_KEY, ENCNTR_KEY, FINAL_ENC cols
-   Where FINAL ENC is a logical, terminate jouneys and
-   begin new ones when you see FINAL_ENC == true
+Where FINAL ENC is a logical, terminate jouneys and
+begin new ones when you see FINAL_ENC == true
 }
 \keyword{internal}

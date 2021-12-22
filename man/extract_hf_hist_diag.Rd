@@ -2,12 +2,16 @@
 % Please edit documentation in R/hfinpatient.R
 \name{extract_hf_hist_diag}
 \alias{extract_hf_hist_diag}
-\title{extract the latest hf related icd10 diagnosis for each encounter
-`r lifecycle::badge("deprecated")`}
+\title{extract the latest hf related icd10 diagnosis for each encounter}
 \usage{
 extract_hf_hist_diag(df)
 }
 \description{
-extract the latest hf related icd10 diagnosis for each encounter
-`r lifecycle::badge("deprecated")`
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 }
+\seealso{
+Other deprecated: 
+\code{\link{get_previous_encounter_query}()},
+\code{\link{terminate_journeys_by}()}
+}
+\concept{deprecated}
