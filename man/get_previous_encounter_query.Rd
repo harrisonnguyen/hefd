@@ -2,7 +2,8 @@
 % Please edit documentation in R/db_queries.R
 \name{get_previous_encounter_query}
 \alias{get_previous_encounter_query}
-\title{rank all inpatient encounters by date}
+\title{rank all inpatient encounters by date
+`r lifecycle::badge("deprecated")`}
 \usage{
 get_previous_encounter_query(
   df,
@@ -12,4 +13,5 @@ get_previous_encounter_query(
 }
 \description{
 rank all inpatient encounters by date
+`r lifecycle::badge("deprecated")`
 }

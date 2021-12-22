@@ -202,8 +202,10 @@ extract_patho_result <- function(df,use_default_person_list = TRUE,df_dttm="DISC
 }
 
 #' extract the latest hf related icd10 diagnosis for each encounter
+#' `r lifecycle::badge("deprecated")`
 #' @export
 extract_hf_hist_diag <- function(df){
+  lifecycle::deprecate_stop("1.0.0", "extract_hf_hist_diag()")
   hf_hist_diag <- execute_query(get_historical_hf_diag_query())
 
   count <- hf_hist_diag %>%

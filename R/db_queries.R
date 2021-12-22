@@ -102,9 +102,11 @@ get_pathology_query <- function(person_id = NULL){
   return(query)
 }
 
-
+#' `r lifecycle::badge("deprecated")`
 #' @export
 get_historical_hf_diag_query <- function(){
+  lifecycle::deprecate_stop("1.0.0", "get_historical_hf_diag_query()")
+
   query <- "select PX9_ENCNTR_ID,temp.*,0 AS HISTORICAL_DIAG from ENCOUNTER_REFERENCE as x
     left join ENCOUNTER AS z
     on PX9_ENCNTR_ID = z.ENCNTR_ID and PX9_PERSON_ID = z.PERSON_ID
@@ -204,10 +206,12 @@ get_referred_to_facility_query <- function(){
 }
 
 #' rank all inpatient encounters by date
+#' `r lifecycle::badge("deprecated")`
 #' @export
 get_previous_encounter_query <- function(df,
                                          PERSON_ID = "PERSON_ID",
                                          ENCNTR_ID = "ENCNTR_ID"){
+  lifecycle::deprecate_stop("1.0.0", "get_previous_encounter_query()")
   PERSON_ID_sym <- rlang::sym(PERSON_ID)
   ENCNTR_ID_sym <- rlang::sym(ENCNTR_ID)
 
@@ -235,6 +239,66 @@ get_previous_encounter_query <- function(df,
   where k.", ENCNTR_ID_sym, " in (",paste(df[[ENCNTR_ID_sym]],collapse=","),")
   ")
 
+
+
+  return(query)
+}
+
+
+#' the query to extract the encounters that haven't been allocated a journey id
+#'
+#' `join_tab` extracts encounters from the encounter table and encounter history table
+#' `last_journey` gets the last journey currently for each patient
+#' `last_encounter` gets the encounters associated for those journeys
+#' using the above, we extract the encounters that haven't been allocated a journey key
+#' and the most recent encounters for each patient, just in case their journeys
+#' are continued with the most recent set of new encounters
+#'
+#' be aware that we assume that each encounter can only be associated with one person_id
+#' across the encounter and encounter history tables
+#' @export
+get_encounter_journey_query <- function(){
+
+  query <- paste0("with join_tab as (
+      select ENCNTR_ID,PERSON_ID,BEG_EFFECTIVE_DT_TM,DISCH_DT_TM,UPDT_DT_TM,ADMIT_TYPE_CD,ENCNTR_TYPE_CD,0 as HIS_ENCNTR from encounter
+      where ENCNTR_TYPE_CD in ('Inpatient','Emergency','NDF') and ADMIT_TYPE_CD is not null and LOC_FACILITY_CD != 'APAC'
+      union all
+      select  ENCNTR_ID,PERSON_ID,BEG_EFFECTIVE_DT_TM,DISCH_DT_TM,UPDT_DT_TM,ADMIT_TYPE_CD,ENCNTR_TYPE_CD,1 as HIS_ENCNTR from encounter_history
+      where ENCNTR_TYPE_CD in ('Inpatient','Emergency','NDF') and ADMIT_TYPE_CD is not null and LOC_FACILITY_CD != 'APAC'
+    ),
+    last_journey as (
+      select t.journey_id
+      from hf_journey t
+      inner join
+      (SELECT person_id,MAX(journey_order) as journey_order
+        FROM hf_journey
+        GROUP BY person_id) a
+      on a.person_id = t.person_id and a.journey_order = t.journey_order
+    ),
+    last_encounter as (
+      select g.ENCNTR_ID from hf_encounter_journey as g
+      left join last_journey as h
+      on h.JOURNEY_ID = g.JOURNEY_ID
+      where h.JOURNEY_ID is not null
+    )
+
+    select distinct(ENCNTR_ID),max(PERSON_ID) as PERSON_ID,
+    min(BEG_EFFECTIVE_DT_TM) AS BEG_EFFECTIVE_DT_TM,max(DISCH_DT_TM) AS DISCH_DT_TM,max(UPDT_DT_TM) AS UPDT_DT_TM,
+    min(HIS_ENCNTR) AS HIS_ENCNTR from join_tab
+    where PERSON_ID in (
+      select PX9_PERSON_ID FROM ENCOUNTER_REFERENCE WHERE
+      Q4_DIAGNOSIS = 1) and  DISCH_DT_TM >= BEG_EFFECTIVE_DT_TM and ENCNTR_ID IN (
+        SELECT ENCNTR_ID FROM last_encounter)
+    group by encntr_id
+
+    union all
+    select distinct(ENCNTR_ID),max(PERSON_ID) as PERSON_ID,
+    min(BEG_EFFECTIVE_DT_TM) AS BEG_EFFECTIVE_DT_TM,max(DISCH_DT_TM) AS DISCH_DT_TM,max(UPDT_DT_TM) AS UPDT_DT_TM,
+    min(HIS_ENCNTR) AS HIS_ENCNTR from join_tab
+    where PERSON_ID in (
+      select PX9_PERSON_ID FROM ENCOUNTER_REFERENCE WHERE
+      Q4_DIAGNOSIS = 1) and  DISCH_DT_TM >= BEG_EFFECTIVE_DT_TM AND ENCNTR_ID NOT IN (SELECT ENCNTR_ID FROM HF_ENCOUNTER_JOURNEY)
+    group by encntr_id;")
 
 
   return(query)

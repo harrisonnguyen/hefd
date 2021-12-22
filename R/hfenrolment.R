@@ -106,7 +106,7 @@ summarise_enrolment <- function(df){
 #' in the hfmanagement form
 #' Field is considered missing when both possible and precipiants is left empty
 #' Number of precipiants is considered 0 when no known precipiants is field
-#' @param hfmanagement
+#' @param hfmanagement a df containing form fields of the enrolment form
 #' @return a df, the hfmanagemet table with the number of precipitants and possible precipitants
 #' @export
 get_n_precipitants <- function(hfmanagement,

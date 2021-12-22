@@ -1,12 +1,12 @@
 Package: hefd
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: HEart Failure Dashboard
+Version: 1.0.0
+Author: Harrison Nguyen 
+Maintainer: Harrison Nguyen <yourself@somewhere.net>
+Description: Contains functions and analysis used for the HEFD project developed at the University of Sydney
+ and Northern Sydney Local Health District
+License: `use_mit_license()`
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr

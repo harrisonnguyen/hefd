@@ -114,3 +114,24 @@ get_first_non_na <- function(x){
   return(y)
 
 }
+
+
+#' Assign defaults to dotted inputs
+#'
+#' `...` is a list of arguments, usually coming from `...` passed directly to
+#'  the function.
+#' @param .default_dots a named list of (typically) expressions, that specify
+#'        default values for args in `...` if they aren't given by `...`
+#' @return the input `...`,  with any named args from `.default_dots`
+#'         missing from `...` being set by `defaults`.
+#' @export
+#' @keywords internal
+set_default_dots <- function(.default_dots, ...) {
+  `%||%` <- rlang::`%||%`
+  out <- rlang::enexprs(...)
+  defaults <- .default_dots
+
+  for (nm in names(defaults)) out[[nm]] <- out[[nm]] %||% defaults[[nm]]
+
+  return(out)
+}

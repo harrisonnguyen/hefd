@@ -12,7 +12,7 @@ function_names <- c(
                 "enc" = "process_inpatient",
                 "echos" = "extract_echos",
                 "patho" = "extract_patho_result",
-                "his_diag" = "extract_hf_hist_diag",
+                #"his_diag" = "extract_hf_hist_diag",
                 "disch_meds" = "extract_discharge_meds",
                 "hfenrolment" = "extract_hfenrolment_form",
                 'hfreferral' = "extract_hfreferral_form"

@@ -14,6 +14,9 @@ get_n_precipitants(
   PERSON_ID = "PERSON_ID"
 )
 }
+\arguments{
+\item{hfmanagement}{a df containing form fields of the enrolment form}
+}
 \value{
 a df, the hfmanagemet table with the number of precipitants and possible precipitants
 }
