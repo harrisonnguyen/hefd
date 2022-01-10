@@ -15,6 +15,22 @@ reference:
   desc: Functions responsible for manipulating encounter
   contents:
   - has_concept("encounter")
+- title: Enrolment
+  desc: Functions for preprocessing HF enrolment forms
+  contents:
+  - has_concept("hfenrolment")
+- title: Homevisit
+  desc: Functions for preprocessing HF homevisit forms
+  contents:
+  - has_concept("hfhomevisit")
+- title: Inpatient
+  desc: Functions for preprocessing  the inpatient journey for heart failure patients
+  contents:
+  - has_concept("hfinpatient")
+- title: HFManagement
+  desc: Functions for preprocessing HF homevisit forms
+  contents:
+  - has_concept("hfmanagement")
 - title: Deprecated
   desc: functions that are deprecated in favour of better functions
   contents:
@@ -34,3 +50,8 @@ reference:
   - -has_concept("deprecated")
   - -has_concept("defunct")
   - -has_concept("encounter")
+  - -has_concept("hfenrolment")
+  - -has_concept("hfhomevisit")
+  - -has_concept("hfinpatient")
+  - -has_concept("hfmanagement")
+  
