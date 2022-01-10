@@ -1,6 +1,12 @@
 
-
-
+#' Determine diagnosis for encounter
+#'
+#' Determines whether the encounter is associated with
+#' a primary or additional hf diagnosis
+#' @param df a dataframe containing encounters
+#' @seealso [hefd::process_inpatient()] for df,
+#'  [hefd::get_diagnosis_query()] for diagnosis
+#' @family hfinpatient
 #' @export
 extract_diagnosis <- function(df){
   diag <- execute_query(get_diagnosis_query())
@@ -22,6 +28,10 @@ extract_diagnosis <- function(df){
 
 #' calculates age and LOS
 #'
+#' Calculates the age and LOS for the particular encounters
+#' @param df a dataframe containing encounters
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 extract_age_los <- function(df){
 
@@ -44,6 +54,9 @@ extract_age_los <- function(df){
 #'
 #' extracts advanced care directives and checks whether the alert was
 #' created before or during the encounter
+#' @param df a dataframe containing encounters
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 extract_alert <- function(df){
   problem <- execute_query(get_acd_problem_query())
@@ -65,7 +78,12 @@ extract_alert <- function(df){
     return(alert)
 }
 
-#' extracts the most recent echo order to the encounter
+
+#' extracts the most recent echo order for the encounter
+#'
+#' @param df a dataframe containing encounters
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 extract_echos <- function(df,df_dttm = "DISCH_DT_TM"){
   echos <-  execute_query(get_echos_query())
@@ -83,6 +101,19 @@ extract_echos <- function(df,df_dttm = "DISCH_DT_TM"){
 #'
 #' a helper function to extract the most recent event/order
 #' based on the given time column
+#'
+#' `delta_cutoff` applies to orders that are not linked to the encounter
+#' but rather to the patient. e.g. if `delta_cutoff = 30`, the order could
+#' happen within 30 days after the end of the encounter
+#' for it to be associated with that encounter.
+#'
+#' @param df a dataframe containing encounters
+#' @param order_df a datadframe containing orders
+#' @param order_dttm_col, the column used for `order_df` timestamp
+#' @param df_dttm he column used for `odf` timestamp
+#' @param delta_cutoff float the maximum amount of days for an order
+#' to be excluded as not being associated with the encounter in days
+#' @family hfinpatient
 #' @export
 get_most_recent_order <- function(df,order_df,suffix,
                                   order_dttm_col,
@@ -114,7 +145,10 @@ get_most_recent_order <- function(df,order_df,suffix,
   return(df)
 }
 
-#' extracts the result and bin pathology result for a given rest
+#' extracts the result and bin pathology result for a given test
+#'
+#' @param df a dataframe pathology results
+#' @family hfinpatient
 #' @export
 extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
   df %<>% dplyr::filter(stringr::str_detect(EVENT_CD,regex)) %>%
@@ -136,7 +170,17 @@ extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
   return(df)
 }
 
-
+#' Process HF related pathology
+#'
+#' Processes HF related pathology for a list of patients
+#' 
+#' @param df a dataframe containing encounters
+#' @param use_default_person_list a boolean
+#'      determines whether the list of ids is based on the given
+#'      df or based on the default query
+#' @param df_dttm, the column in df to coompare the timestamp of orders against
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 extract_patho_result <- function(df,use_default_person_list = TRUE,df_dttm="DISCH_DT_TM"){
   if(use_default_person_list){
@@ -232,6 +276,10 @@ extract_hf_hist_diag <- function(df){
 
 
 #' create discharge medications from encounters
+#' 
+#' converts the medication list to columns of booleans
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 extract_discharge_meds <- function(df){
 
@@ -291,7 +339,10 @@ extract_discharge_meds <- function(df){
   return(summarised_meds)
 }
 
-
+#' Creates the dataframe for encounters
+#'
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 process_inpatient <- function(df){
 
@@ -320,6 +371,10 @@ process_inpatient <- function(df){
 
 }
 
+#' Calculates the presence of referral form for each encounter
+#' 
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 extract_hfreferral_form <- function(df){
   referral_forms <- execute_query(get_hfreferral_form_query()) %>%
@@ -336,6 +391,10 @@ extract_hfreferral_form <- function(df){
 
 }
 
+#' Calculates the presence of enrolment form for each encounter
+#'
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 extract_hfenrolment_form <- function(df){
   forms <- execute_query(get_hfenrolment_form_query())
@@ -361,6 +420,9 @@ extract_hfenrolment_form <- function(df){
 }
 
 #' extracts the result and bin pathology result
+#'
+#' @seealso [hefd::process_inpatient()] for df
+#' @family hfinpatient
 #' @export
 extract_form_result <- function(df,regex,prefix,breaks=NULL,labels=NULL,is_numeric=FALSE){
   if(is_numeric){

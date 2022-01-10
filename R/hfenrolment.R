@@ -1,7 +1,10 @@
 
-#' Get Enrolment form fields
+#' Define the fields in HF enrolment form
+#' 
+#' Returns a list of field names that
+#' we are interested in, in the  HF enrolment form
 #'
-#' the fields that we are interested in
+#' @family hfenrolment
 #' @export
 get_enrolment_fields <- function(){
   fields <- c(
@@ -23,7 +26,18 @@ get_enrolment_fields <- function(){
 
 
 
-
+#' Pivots the HF enrolment form
+#'
+#' Pivots the HF enrolment forms from long form to wide
+#' based on the fields given in `get_enrolment_fields()` 
+#' for each encounter.
+#' For encounters with multiple enrolment forms,
+#' the most recent, non-null result will be used
+#'
+#' @seealso [hefd::get_enrolment_fields()] for list of fields extracts,
+#'    [hefd::get_first_non_na()] for definition for non empty fields, and
+#'    [hefd::get_hfenrolment_form_query()] for the dataframe that will be pivoted
+#' @family hfenrolment
 #' @export
 process_hfenrolment_form <- function(){
   forms <- execute_query(get_hfenrolment_form_query())
@@ -50,7 +64,19 @@ process_hfenrolment_form <- function(){
   return(temp)
 }
 
-
+#' Process HF enrolment forms
+#'
+#' Processes the fields of the HF enrolment forms
+#' Fields list `RESULT_VAL_ECGONADMISSION`,
+#' `RESULT_VAL_HFPRECIPITAMTS`, `RESULT_VAL_AETIOLOGYOFCCF`
+#' will be seperated into different columns based on their value
+#' LVEF will be binned accordingly
+#' The number of precipiants will be calculated
+#' 
+#' @param df the dataframe to processed
+#' @seealso [hefd::process_hfenrolment_form()] for more details on the dataframe used
+#' @family hfenrolment
+#' @export
 process_hfmanagement <- function(df){
 
   lvef_bins <- get_lvef_bin()
@@ -88,7 +114,13 @@ process_hfmanagement <- function(df){
     return(df)
 }
 
+#' Get most recent and first enrolment
 #'
+#' Gets the most and first enrolment for each person
+#' @param df
+#' @seealso [hefd::process_hfenrolment_form()] for more details
+#'   on the df used
+#' @family hfenrolment
 #' @export
 summarise_enrolment <- function(df){
   summary <- df %>%
@@ -103,14 +135,16 @@ summarise_enrolment <- function(df){
 }
 
 
-#'
+
 #' Computes the number of precipiants and possible precipitants
 #'
-#'Computes the number of precipiants and possible precipitants in the hfmanagement form
+#' Computes the number of precipiants and possible precipitants in the hfmanagement form
 #' Field is considered missing when both possible and precipiants is left empty
 #' Number of precipiants is considered 0 when no known precipiants is field
 #' @param hfmanagement a df containing form fields of the enrolment form
 #' @return a df, the hfmanagemet table with the number of precipitants and possible precipitants
+#' @seealso [hefd::process_hfenrolment_form()]
+#' @family hfenrolment
 #' @export
 get_n_precipitants <- function(hfmanagement,
                                HFPRECIPITANTS = "HFPRECIPITAMTS",

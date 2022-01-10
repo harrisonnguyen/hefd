@@ -1,4 +1,11 @@
 
+#' Processes Precipitant information in enrolment form
+#'
+#' Converts the precipiant fields in the enrolment into separate categories
+#' @param df a dataframe containing enrolment forms
+#' @seealso [hefd::process_hfmanagement_form()] for df,
+#'     [hefd::get_aetiology()] for processing aetiology field
+#' @family hfmanagement
 #' @export
 get_precipitants <- function(df){
   df %<>% dplyr::filter(TASK_ASSAY_CD == "HF Precipitamts" | TASK_ASSAY_CD == "HF Possible precipitants") %>%
@@ -29,6 +36,13 @@ get_precipitants <- function(df){
   return(df)
 }
 
+#' Processes Aetiology information in enrolment form
+#'
+#' Converts the aetiology fields in the enrolment into separate categories
+#' @param df a dataframe containing enrolment forms
+#' @seealso [hefd::process_hfmanagement_form()] for df,
+#'     [hefd::get_precipitants()] for processing precipitant field
+#' @family hfmanagement
 #' @export
 get_aetiology <- function(df){
   df %<>% dplyr::filter(TASK_ASSAY_CD == "Aetiology of CCF") %>%
@@ -52,6 +66,13 @@ get_aetiology <- function(df){
   return(df)
 }
 
+#' Processes ECG information in enrolment form
+#'
+#' Converts the ECG fields in the enrolment into separate categories
+#' @param df a dataframe containing enrolment forms
+#' @seealso [hefd::process_hfmanagement_form()] for df,
+#'     [hefd::get_precipitants()] for processing precipitant field
+#' @family hfmanagement
 #' @export
 get_ecg_on_admit <- function(df){
   df %<>% dplyr::filter(TASK_ASSAY_CD == "ECG on Admission") %>%
@@ -75,11 +96,21 @@ get_ecg_on_admit <- function(df){
   return(df)
 }
 
+#' Processes LVEF information in enrolment form
+#'
+#' Converts the LVEF fields in the enrolment form into separate bins
+#' and extracts the ECG date
+#'
+#' @param df a dataframe containing enrolment forms
+#' @seealso [hefd::process_hfmanagement_form()] for df
+#' @family hfmanagement
 #' @export
 get_ecg_data <- function(df){
-  breaks <- c(0,40,50,Inf)
-
-  tags <- c("<40", "40-49", "50+")
+  
+  lvef_bin <- get_lvef_bin() 
+  breaks <- lvef_bin$values
+  tags <- lvef_bin$labels
+  
   df %<>% dplyr::filter(TASK_ASSAY_CD == "LVEF %" | TASK_ASSAY_CD == "Echocardiogram date") %>%
     dplyr::select(ENCNTR_ID,TASK_ASSAY_CD,RESULT_VAL) %>%
     dplyr::group_by(ENCNTR_ID) %>%
@@ -96,6 +127,10 @@ get_ecg_data <- function(df){
 
 }
 
+#' Processes HF enrolment forms
+#' 
+#' @param df a dataframe containing enrolment forms
+#' @family hfmanagement
 #' @export
 process_hfmanagement_form <- function(forms,dcp_forms_activity){
   df <- get_forms(forms,dcp_forms_activity,pattern = get_hfenrolment_form_pattern())

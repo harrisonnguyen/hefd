@@ -1,5 +1,10 @@
+#' Create Referral form df
+#'
+#' `r lifecycle::badge("deprecated")`
+#' @family hfreferral
 #' @export
 process_hfreferral_form <- function(){
+  lifecycle::deprecate_stop("1.0.0", "process_hfreferral_form()")
   referral_forms <- execute_query(get_hfreferral_form_query())
   referral_cohort <- referral_forms %>%
     dplyr::group_by(PERSON_ID) %>%

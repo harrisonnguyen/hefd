@@ -1,3 +1,8 @@
+#' Load a table 
+#'
+#' Load a table either from a database or from file
+#'
+#' @param table_name a string, name of the tabke
 #' @export
 #' @family data-utility
 load_data <- function(table_name){
@@ -13,6 +18,9 @@ load_data <- function(table_name){
   }
 }
 
+#' Load a table from database
+#'
+#' @param table_name a string, name of the tabke
 #' @export
 #' @family data-utility
 load_db <- function(table_name){
@@ -40,7 +48,10 @@ load_db <- function(table_name){
   return(df)
 }
 
-
+#' Execute the query
+#'
+#' @param query a string, query to execute
+#' @family data-utility
 #' @export
 execute_query <- function(query){
 
@@ -69,7 +80,11 @@ get_forms<- function(forms,dcp_forms_activity,pattern){
   return(forms)
 }
 
-
+#' Write a dataframe to a database
+#'
+#' @param df a dataframe of the data to write
+#' @param con, the connection to the database
+#' @param a string, name of the table to write to
 #' @export
 write_db <- function(df,con,table_name){
   batch_size <- min(10000,nrow(df))
@@ -94,6 +109,13 @@ write_db <- function(df,con,table_name){
 
 }
 
+#' Convert strings column to datetime format
+#'
+#' Converts any column containing _dttm or date_time
+#' into datetime format
+#'
+#' @param df a dataframe
+#' @family data-utility
 #' @export
 str_to_datetime <- function(df) {
   # get columns
@@ -108,6 +130,9 @@ str_to_datetime <- function(df) {
   return(df)
 }
 
+#' Get first element excluding na
+#'
+#' @family data-utility
 #' @export
 get_first_non_na <- function(x){
   y <- dplyr::first(na.omit(x))

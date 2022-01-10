@@ -1,51 +1,12 @@
-#' @export
-get_hf_symptoms <- function(df){
-
-  visit <- df %>%
-    dplyr::filter(TASK_ASSAY_CD == "Heart Failure Symptoms") %>%
-    dplyr::mutate(DEPENDENT_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Dependent Oedema"),
-                  FATIGUE_HEARTFAILURESYMPTOMS = stringr::str_detect(RESULT_VAL, "(?i)fatigue"),
-                  LETHARGY_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)lethargy"),
-                  ANKLE_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Ankle Oedema"),
-                  ABDOMINAL_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Abdominal Oedema"),
-                  DYSPNOEA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Dyspnoea"),
-                  LOWER_LEG_OEDEMA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Lower leg Oedema"),
-                  NAUSEA_HEARTFAILURESYMPTOMS  = stringr::str_detect(RESULT_VAL, "(?i)Nausea")) %>%
-    dplyr::group_by(ENCNTR_ID) %>%
-    dplyr::summarise(
-      PERSON_ID = max(PERSON_ID),
-      FORM_DT_TM = max(FORM_DT_TM),
-      DEPENDENT_OEDEMA_HEARTFAILURESYMPTOMS = any(DEPENDENT_OEDEMA_HEARTFAILURESYMPTOMS),
-      FATIGUE_HEARTFAILURESYMPTOMS = any(FATIGUE_HEARTFAILURESYMPTOMS),
-      LETHARGY_HEARTFAILURESYMPTOMS = any(LETHARGY_HEARTFAILURESYMPTOMS),
-      ANKLE_OEDEMA_HEARTFAILURESYMPTOMS = any(ANKLE_OEDEMA_HEARTFAILURESYMPTOMS),
-      ABDOMINAL_OEDEMA_HEARTFAILURESYMPTOMS = any(ABDOMINAL_OEDEMA_HEARTFAILURESYMPTOMS),
-      DYSPNOEA_HEARTFAILURESYMPTOMS = any(DYSPNOEA_HEARTFAILURESYMPTOMS),
-      LOWER_LEG_OEDEMA_HEARTFAILURESYMPTOMS = any(LOWER_LEG_OEDEMA_HEARTFAILURESYMPTOMS),
-      NAUSEA_HEARTFAILURESYMPTOMS = any(NAUSEA_HEARTFAILURESYMPTOMS)
-    ) %>%
-    #dplyr::left_join(dplyr::select(df,PERSON_ID,ENCNTR_ID,FORM_DT_TM,PARENT_EVENT_ID), by ="ENCNTR_ID") %>%
-    dplyr::group_by(PERSON_ID) %>%
-    dplyr::arrange(desc(FORM_DT_TM)) %>%
-    dplyr::slice(c(1,dplyr::n())) %>%
-    dplyr::mutate(MOST_RECENT_VISIT  = order(as.Date(FORM_DT_TM)) == 1)
-
-
-
-
-  visit_first<- visit %>%
-    dplyr::filter(!MOST_RECENT_VISIT)
-
-
-
-  visit %<>% dplyr::filter(MOST_RECENT_VISIT) %>%
-    dplyr::left_join(visit_first, by = 'PERSON_ID', suffix = c("","_FIRST")) %>%
-    dplyr::rename_with(.fn = ~ paste0("SYMPTOMS_", .x))
-
-
-  return(visit)
-}
-
+#' Process HEART_FAILURE_SYMPTOMS field in Homevisit form
+#'
+#' Exytracts the HEART_FAILURE_SYMPTOMS column
+#' and separates the value in this field into specific, separate columns
+#'
+#' @param df a dataframe where each row represents a homevisit form and each column the fields
+#' @param column the column name containing the `HEART_FAILURE_SYMPTOMS`
+#' @seealso [hefd::process_homevisit_form()] for more details about `visit_form`
+#' @family hfhomevisit
 #' @export
 extract_hf_symptoms <- function(df,column="HEART_FAILURE_SYMPTOMS"){
   column <- rlang::sym(column)
@@ -64,53 +25,25 @@ extract_hf_symptoms <- function(df,column="HEART_FAILURE_SYMPTOMS"){
   return(visit)
 }
 
-#' @export
-get_nyha_classification <- function(df){
-
-  form_time <- df %>%
-    dplyr::group_by(ENCNTR_ID) %>%
-    dplyr::summarise(
-      PERSON_ID = max(PERSON_ID),
-      FORM_DT_TM = max(FORM_DT_TM)
-    )
-  visit <- df %>% dplyr::filter(TASK_ASSAY_CD == "NYHA Classification" | TASK_ASSAY_CD == "MACARF Visit Type") %>%
-    dplyr::select(ENCNTR_ID,PERSON_ID,TASK_ASSAY_CD,RESULT_VAL) %>%
-    dplyr::group_by(ENCNTR_ID) %>%
-    dplyr::arrange(desc(FORM_DT_TM)) %>%
-    tidyr::pivot_wider(names_from = TASK_ASSAY_CD,
-                       values_from = RESULT_VAL,
-                       values_fn = get_first_non_na) %>%
-    dplyr::rename(MACARFVISITTYPE = `MACARF Visit Type`, NYHACLASSIFICATION = `NYHA Classification`) %>%
-    dplyr::left_join(form_time, by ="ENCNTR_ID") %>%
-    dplyr::group_by(PERSON_ID) %>%
-    dplyr::arrange(desc(FORM_DT_TM)) %>%
-    dplyr::slice(c(1,dplyr::n())) %>%
-    dplyr::mutate(MOST_RECENT_VISIT  = order(as.Date(FORM_DT_TM)) == 1)
 
 
 
-
-  visit_first<- visit %>%
-    dplyr::filter(!MOST_RECENT_VISIT)
-
-
-
-  visit %<>% dplyr::filter(MOST_RECENT_VISIT) %>%
-    dplyr::left_join(visit_first, by = 'PERSON_ID', suffix = c("","_FIRST")) %>%
-    dplyr::mutate(NYHACLASSIFICATION_FIRST =
-                  dplyr::case_when(
-                    is.na(PARENT_EVENT_ID_FIRST) ~ 'Only 1 Contact',
-                    TRUE ~ NYHACLASSIFICATION_FIRST),
-                MACARFVISITTYPE_FIRST =
-                  dplyr::case_when(
-                    is.na(PARENT_EVENT_ID_FIRST) ~ 'Only 1 Contact',
-                    TRUE ~ MACARFVISITTYPE_FIRST))%>%
-    dplyr::rename_with(.fn = ~ paste0("NYHA_", .x))
-
-}
-
-
-
+#' Process the MACARF_VISIT_TYPE field
+#'
+#' Extracts the visit type of each form 
+#' and assigns the information to a column for each patient.
+#' Then assigns a class to each patient, which describes which part of their
+#' trajectory in the program
+#' e.g. if `HAS_HOME_VISIT = TRUE`, `HAS_PHONE_CALL_1_12_VISIT = FALSE`,
+#' `HAS_PHONE_CALL_3_12_VISIT = FALSE`, `HAS_PHONE_CALL_6_12_VISIT =TRUE`
+#' the patient would be classified as being in "Phone Call 6/12" of their journey
+#'
+#' Calculates the number of home visit each person has
+#' @param hfhomevisit a dataframe where each row represents a form and the column is each field
+#' @return a dataframe where each row represents patient level information
+#'
+#' @seealso [hefd::process_homevisit_form()] for details about how this field is processed
+#' @family hfhomevisit
 #' @export
 create_visit_trajectory <- function(hfhomevisit) {
 
@@ -154,8 +87,11 @@ create_visit_trajectory <- function(hfhomevisit) {
   return(homevisit_trajectory)
 }
 
-
-
+#' A helper function to extract homevisit forms
+#'
+#' Determines whether a query or the function will be used to extract the homevisit forms
+#'
+#' @family hfhomevisit
 #' @export
 get_homevisit_forms <- function(forms = NULL,dcp_forms_activity = NULL){
   if(is.null(forms) | is.null(dcp_forms_activity)){
@@ -169,8 +105,22 @@ get_homevisit_forms <- function(forms = NULL,dcp_forms_activity = NULL){
 
 #' Process homevisit forms
 #'
-#' Note these grouping are done based on `PARENT_EVENT_ID`/`PARENT_ENTITY_ID`
-#' and NOT `ENCNTR_ID`. Al these visit forms are linked to the same encounter
+#' Processes the homevisit forms into relevant information such as "MACARF Visit Type"
+#' "NYHA Classification","Heart Failure Symptoms"
+#' Each row represents a field for each form
+#' 
+#' The data is combined and pivoted from a long format to a wide format for each form
+#'
+#' Fields of the same form are connected by `PARENT_EVENT_ID`/`PARENT_ENTITY_ID`.
+#' Hence, these grouping are done based on `PARENT_EVENT_ID`/`PARENT_ENTITY_ID`
+#' and NOT `ENCNTR_ID`. All these visit forms are linked to the same encounter
+#'
+#' If `forms` and `dcp_forms_activity` is not provided, the default query will be used/
+#' 
+#' @param forms df a dataframe where each row contains the fields of the homevisit form
+#' @param dcp_forms_activity a dataframe containing the parent key of df
+#' @seealso [hefd::extract_hf_symptoms()] for details about how this field is processed
+#' @family hfhomevisit
 #' @export
 process_homevisit_form <- function(forms = NULL,dcp_forms_activity  = NULL){
   df <- get_homevisit_forms(forms,dcp_forms_activity)
@@ -200,6 +150,14 @@ process_homevisit_form <- function(forms = NULL,dcp_forms_activity  = NULL){
 
 }
 
+#' Extract first and last visit for each patient
+#'
+#' Extracts the dates, NYHA classification and the type of visit for each patients
+#' 
+#' @param visit_form a df containing visit forms, each patient can have multiple visit forms
+#' @return a df, where each row represents a patient and information about their first and last visit
+#' @seealso [hefd::process_hfreferral_form()] for more details about `visit_form`
+#' @family hfhomevisit
 #' @export
 create_visit_journey <- function(visit_form){
   cohort <- visit_form %>%
