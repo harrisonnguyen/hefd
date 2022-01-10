@@ -1,4 +1,10 @@
-
+#' Queries HF Homevisit form
+#'
+#' Queries the HF homevisit form and all fields in that form
+#' The form title exists in `DCP_FORMS_ACTIVITY`
+#' and the fields of the form exists in `FORMS_EVENT`
+#' joined by `PARENT_ENTITY_ID` `PARENT_EVENT_ID` respectively
+#'
 #' @family query
 #' @export
 get_hfhomevisit_form_query <- function(){
@@ -10,7 +16,10 @@ get_hfhomevisit_form_query <- function(){
 }
 
 
-
+#' Queries Encounters with HF Diagnosis
+#'
+#' Query to extract encounters with any HF diagnosis (either primary or additional)
+#' based on the flag qualifier `Q4`
 #' @family query
 #' @export
 get_hf_encounter_query <- function(){
@@ -24,7 +33,11 @@ get_hf_encounter_query <- function(){
   return(query)
 }
 
-#' get the most recently updated note for each encounter
+#' Queries Discharge Letters for HF Encounters
+#'
+#' Get all notes for encounters with a HF diagnosis
+#' `NOTES_BLOB` only contains Discharge Referral notes
+#' 
 #'
 #' @family query
 #' @export
@@ -40,11 +53,11 @@ get_discharge_referral <- function(){
   return(query)
 }
 
+#' Queries "Advanced Care Directive" alert for each person 
+#' 
 #' queries the first instance
 #' the advance care directive for a given `PERSON_ID`
 #'
-#'
-#' extracts the earliest record of the directive
 #' @family query
 #' @export
 get_acd_problem_query <- function(){
@@ -62,6 +75,8 @@ WHERE row_number = 1;"
   return(query)
 }
 
+#' Queries "Known to HF service" alert for each person
+#' 
 #' queries the first instance
 #' the known to heart failure for a given `PERSON_ID`
 #'
@@ -82,6 +97,9 @@ WHERE row_number = 1;"
   return(query)
 }
 
+#' Query Echo orders
+#'
+#' Queries all echo cardiogram orders
 #' @family query
 #' @export
 get_echos_query <- function(){
@@ -91,6 +109,13 @@ get_echos_query <- function(){
   return(query)
 }
 
+#' Queries BNP orders
+#' 
+#' Returns a query for BNP orders
+#' either for HF encounters
+#' or for the list of `person_id`
+#' @param person_id  a list of person_id's
+#'       if `NULL` will query encounters with HF diagnosis
 #' @family query
 #' @export
 get_pathology_query <- function(person_id = NULL){
@@ -145,9 +170,26 @@ get_historical_hf_diag_query <- function(){
   return(query)
 }
 
-#' Extracts discharge meds
+#' Queries discharge meds
+#' 
+#' Returns a query to extract the medications given at discharge for the given list of
+#' `ENCNTR_ID`.
+#' Discharge medications exists in two tables `MEDICATION_HOME_ORDERS` and `MEDICATION_ORDERS`
+#' 
+#' In `MEDICATION_HOME_ORDERS` a medication order is considered a discharge medication
+#' if the orders' `ORDER_STATUS_CD` = 'Ordered' at the time of discharge or the orders' status was 
+#' changed to either 'Completed', 'Discontinued', 'Deleted' (from being 'Ordered' originally)
+#' after the encounter's `DISCH_DT_TM`.
 #'
-#' include a list of `ENCNTR_ID`
+#' In `MEDICATION_ORDERS` is similar to `MEDICATION_HOME_ORDERS` but the order must also be
+#' 'Prescribed' represented by `ORIG_ORD_AS_FLAG = 1`.
+#'
+#' The query only extracts relevant medications given in `MEDICATION_LIST` 
+#' which is determined by consultation with clinicians.
+#'
+#' This [site](www.google.com.au) has more details for this algorithm.
+#'
+#' @param encounter_list list of `ENCNTR_ID` to extract their discharge medications for
 #' @family query
 #' @export
 get_disch_med_query <- function(encntr_list){
@@ -185,6 +227,9 @@ get_disch_med_query <- function(encntr_list){
   return(query)
 }
 
+#' Query HF diagnosis
+#'
+#' Queries HF related diagnosis
 #' @family query
 #' @export
 get_diagnosis_query <- function(){
@@ -228,7 +273,9 @@ get_referred_to_facility_query <- function(){
   return(query)
 }
 
-#' rank all inpatient encounters by date
+#' Order inpatient encounters by person
+#'
+#' Orders inpatient encounters by date for each person
 #'
 #' `r lifecycle::badge("deprecated")`
 #' @family deprecated
@@ -271,7 +318,7 @@ get_previous_encounter_query <- function(df,
 }
 
 
-#' extracts the encounters that haven't been allocated a journey id
+#' Extracts the encounters that haven't been allocated a journey id
 #'
 #' `join_tab` extracts encounters from the encounter table and encounter history table
 #' `last_journey` gets the last journey currently for each patient
