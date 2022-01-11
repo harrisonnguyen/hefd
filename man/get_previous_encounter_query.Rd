@@ -2,7 +2,7 @@
 % Please edit documentation in R/db_queries.R
 \name{get_previous_encounter_query}
 \alias{get_previous_encounter_query}
-\title{rank all inpatient encounters by date}
+\title{Order inpatient encounters by person}
 \usage{
 get_previous_encounter_query(
   df,
@@ -11,6 +11,9 @@ get_previous_encounter_query(
 )
 }
 \description{
+Orders inpatient encounters by date for each person
+}
+\details{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 }
 \seealso{
@@ -20,13 +23,18 @@ Other deprecated:
 
 Other query: 
 \code{\link{get_acd_problem_query}()},
+\code{\link{get_diagnosis_query}()},
 \code{\link{get_disch_med_query}()},
 \code{\link{get_discharge_referral}()},
+\code{\link{get_echos_query}()},
 \code{\link{get_encounter_journey_query}()},
 \code{\link{get_hf_alert_query}()},
+\code{\link{get_hf_encounter_query}()},
 \code{\link{get_hfenrolment_form_query}()},
+\code{\link{get_hfhomevisit_form_query}()},
 \code{\link{get_hfreferral_form_query}()},
 \code{\link{get_historical_hf_diag_query}()},
+\code{\link{get_pathology_query}()},
 \code{\link{get_referred_to_facility_query}()}
 }
 \concept{deprecated}

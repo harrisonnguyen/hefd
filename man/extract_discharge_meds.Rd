@@ -7,5 +7,22 @@
 extract_discharge_meds(df)
 }
 \description{
-create discharge medications from encounters
+converts the medication list to columns of booleans
 }
+\seealso{
+\code{\link[=process_inpatient]{process_inpatient()}} for df
+
+Other hfinpatient: 
+\code{\link{extract_age_los}()},
+\code{\link{extract_alert}()},
+\code{\link{extract_diagnosis}()},
+\code{\link{extract_echos}()},
+\code{\link{extract_form_result}()},
+\code{\link{extract_hfenrolment_form}()},
+\code{\link{extract_hfreferral_form}()},
+\code{\link{extract_path_result}()},
+\code{\link{extract_patho_result}()},
+\code{\link{get_most_recent_order}()},
+\code{\link{process_inpatient}()}
+}
+\concept{hfinpatient}

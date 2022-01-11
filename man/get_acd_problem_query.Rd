@@ -2,23 +2,28 @@
 % Please edit documentation in R/db_queries.R
 \name{get_acd_problem_query}
 \alias{get_acd_problem_query}
-\title{queries the first instance
-the advance care directive for a given \code{PERSON_ID}}
+\title{Queries "Advanced Care Directive" alert for each person}
 \usage{
 get_acd_problem_query()
 }
 \description{
-extracts the earliest record of the directive
+queries the first instance
+the advance care directive for a given \code{PERSON_ID}
 }
 \seealso{
 Other query: 
+\code{\link{get_diagnosis_query}()},
 \code{\link{get_disch_med_query}()},
 \code{\link{get_discharge_referral}()},
+\code{\link{get_echos_query}()},
 \code{\link{get_encounter_journey_query}()},
 \code{\link{get_hf_alert_query}()},
+\code{\link{get_hf_encounter_query}()},
 \code{\link{get_hfenrolment_form_query}()},
+\code{\link{get_hfhomevisit_form_query}()},
 \code{\link{get_hfreferral_form_query}()},
 \code{\link{get_historical_hf_diag_query}()},
+\code{\link{get_pathology_query}()},
 \code{\link{get_previous_encounter_query}()},
 \code{\link{get_referred_to_facility_query}()}
 }

@@ -150,32 +150,49 @@
         <td>
           <p><code><a href="get_acd_problem_query.html">get_acd_problem_query()</a></code> </p>
         </td>
-        <td><p>queries the first instance
-the advance care directive for a given <code>PERSON_ID</code></p></td>
+        <td><p>Queries "Advanced Care Directive" alert for each person</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_diagnosis_query.html">get_diagnosis_query()</a></code> </p>
+        </td>
+        <td><p>Query HF diagnosis</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="get_discharge_referral.html">get_discharge_referral()</a></code> </p>
         </td>
-        <td><p>get the most recently updated note for each encounter</p></td>
+        <td><p>Queries Discharge Letters for HF Encounters</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="get_disch_med_query.html">get_disch_med_query()</a></code> </p>
         </td>
-        <td><p>Extracts discharge meds</p></td>
+        <td><p>Queries discharge meds</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_echos_query.html">get_echos_query()</a></code> </p>
+        </td>
+        <td><p>Query Echo orders</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="get_encounter_journey_query.html">get_encounter_journey_query()</a></code> </p>
         </td>
-        <td><p>extracts the encounters that haven't been allocated a journey id</p></td>
+        <td><p>Extracts the encounters that haven't been allocated a journey id</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="get_hfenrolment_form_query.html">get_hfenrolment_form_query()</a></code> </p>
         </td>
         <td><p>Extracts enrolment forms</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_hfhomevisit_form_query.html">get_hfhomevisit_form_query()</a></code> </p>
+        </td>
+        <td><p>Queries HF Homevisit form</p></td>
       </tr><tr>
         
         <td>
@@ -187,8 +204,13 @@ the advance care directive for a given <code>PERSON_ID</code></p></td>
         <td>
           <p><code><a href="get_hf_alert_query.html">get_hf_alert_query()</a></code> </p>
         </td>
-        <td><p>queries the first instance
-the known to heart failure for a given <code>PERSON_ID</code></p></td>
+        <td><p>Queries "Known to HF service" alert for each person</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_hf_encounter_query.html">get_hf_encounter_query()</a></code> </p>
+        </td>
+        <td><p>Queries Encounters with HF Diagnosis</p></td>
       </tr><tr>
         
         <td>
@@ -198,9 +220,15 @@ the known to heart failure for a given <code>PERSON_ID</code></p></td>
       </tr><tr>
         
         <td>
+          <p><code><a href="get_pathology_query.html">get_pathology_query()</a></code> </p>
+        </td>
+        <td><p>Queries BNP orders</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="get_previous_encounter_query.html">get_previous_encounter_query()</a></code> </p>
         </td>
-        <td><p>rank all inpatient encounters by date</p></td>
+        <td><p>Order inpatient encounters by person</p></td>
       </tr><tr>
         
         <td>
@@ -279,6 +307,220 @@ the known to heart failure for a given <code>PERSON_ID</code></p></td>
     </tbody><tbody>
       <tr>
         <th colspan="2">
+          <h2 id="section-enrolment" class="hasAnchor"><a href="#section-enrolment" class="anchor"></a>Enrolment</h2>
+          <p class="section-desc"><p>Functions for preprocessing HF enrolment forms</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="get_enrolment_fields.html">get_enrolment_fields()</a></code> </p>
+        </td>
+        <td><p>Define the fields in HF enrolment form</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_n_precipitants.html">get_n_precipitants()</a></code> </p>
+        </td>
+        <td><p>Computes the number of precipiants and possible precipitants</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="process_hfenrolment_form.html">process_hfenrolment_form()</a></code> </p>
+        </td>
+        <td><p>Pivots the HF enrolment form</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="process_hfmanagement.html">process_hfmanagement()</a></code> </p>
+        </td>
+        <td><p>Process HF enrolment forms</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="summarise_enrolment.html">summarise_enrolment()</a></code> </p>
+        </td>
+        <td><p>Get most recent and first enrolment</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-homevisit" class="hasAnchor"><a href="#section-homevisit" class="anchor"></a>Homevisit</h2>
+          <p class="section-desc"><p>Functions for preprocessing HF homevisit forms</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="create_visit_journey.html">create_visit_journey()</a></code> </p>
+        </td>
+        <td><p>Extract first and last visit for each patient</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="create_visit_trajectory.html">create_visit_trajectory()</a></code> </p>
+        </td>
+        <td><p>Process the MACARF_VISIT_TYPE field</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_hf_symptoms.html">extract_hf_symptoms()</a></code> </p>
+        </td>
+        <td><p>Process HEART_FAILURE_SYMPTOMS field in Homevisit form</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_homevisit_forms.html">get_homevisit_forms()</a></code> </p>
+        </td>
+        <td><p>A helper function to extract homevisit forms</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="process_homevisit_form.html">process_homevisit_form()</a></code> </p>
+        </td>
+        <td><p>Process homevisit forms</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-inpatient" class="hasAnchor"><a href="#section-inpatient" class="anchor"></a>Inpatient</h2>
+          <p class="section-desc"><p>Functions for preprocessing the inpatient journey for heart failure patients</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="extract_age_los.html">extract_age_los()</a></code> </p>
+        </td>
+        <td><p>calculates age and LOS</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_alert.html">extract_alert()</a></code> </p>
+        </td>
+        <td><p>extracts advanced care directives</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_diagnosis.html">extract_diagnosis()</a></code> </p>
+        </td>
+        <td><p>Determine diagnosis for encounter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_discharge_meds.html">extract_discharge_meds()</a></code> </p>
+        </td>
+        <td><p>create discharge medications from encounters</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_echos.html">extract_echos()</a></code> </p>
+        </td>
+        <td><p>extracts the most recent echo order for the encounter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_form_result.html">extract_form_result()</a></code> </p>
+        </td>
+        <td><p>extracts the result and bin pathology result</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_hfenrolment_form.html">extract_hfenrolment_form()</a></code> </p>
+        </td>
+        <td><p>Calculates the presence of enrolment form for each encounter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_hfreferral_form.html">extract_hfreferral_form()</a></code> </p>
+        </td>
+        <td><p>Calculates the presence of referral form for each encounter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_patho_result.html">extract_patho_result()</a></code> </p>
+        </td>
+        <td><p>Process HF related pathology</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="extract_path_result.html">extract_path_result()</a></code> </p>
+        </td>
+        <td><p>extracts the result and bin pathology result for a given test</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_most_recent_order.html">get_most_recent_order()</a></code> </p>
+        </td>
+        <td><p>extract the most recent event/order based on the given time column</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="process_inpatient.html">process_inpatient()</a></code> </p>
+        </td>
+        <td><p>Creates the dataframe for encounters</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-hfmanagement" class="hasAnchor"><a href="#section-hfmanagement" class="anchor"></a>HFManagement</h2>
+          <p class="section-desc"><p>Functions for preprocessing HF homevisit forms</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="get_aetiology.html">get_aetiology()</a></code> </p>
+        </td>
+        <td><p>Processes Aetiology information in enrolment form</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_ecg_data.html">get_ecg_data()</a></code> </p>
+        </td>
+        <td><p>Processes LVEF information in enrolment form</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_ecg_on_admit.html">get_ecg_on_admit()</a></code> </p>
+        </td>
+        <td><p>Processes ECG information in enrolment form</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_precipitants.html">get_precipitants()</a></code> </p>
+        </td>
+        <td><p>Processes Precipitant information in enrolment form</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="process_hfmanagement_form.html">process_hfmanagement_form()</a></code> </p>
+        </td>
+        <td><p>Processes HF enrolment forms</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
           <h2 id="section-deprecated" class="hasAnchor"><a href="#section-deprecated" class="anchor"></a>Deprecated</h2>
           <p class="section-desc"><p>functions that are deprecated in favour of better functions</p></p>
         </th>
@@ -305,7 +547,7 @@ the known to heart failure for a given <code>PERSON_ID</code></p></td>
         <td>
           <p><code><a href="get_previous_encounter_query.html">get_previous_encounter_query()</a></code> </p>
         </td>
-        <td><p>rank all inpatient encounters by date</p></td>
+        <td><p>Order inpatient encounters by person</p></td>
       </tr><tr>
         
         <td>
@@ -354,57 +596,15 @@ the known to heart failure for a given <code>PERSON_ID</code></p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="extract_age_los.html">extract_age_los()</a></code> </p>
+          <p><code><a href="execute_query.html">execute_query()</a></code> </p>
         </td>
-        <td><p>calculates age and LOS</p></td>
+        <td><p>Execute the query</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="extract_alert.html">extract_alert()</a></code> </p>
+          <p><code><a href="get_first_non_na.html">get_first_non_na()</a></code> </p>
         </td>
-        <td><p>extracts advanced care directives</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="extract_discharge_meds.html">extract_discharge_meds()</a></code> </p>
-        </td>
-        <td><p>create discharge medications from encounters</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="extract_echos.html">extract_echos()</a></code> </p>
-        </td>
-        <td><p>extracts the most recent echo order to the encounter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="extract_form_result.html">extract_form_result()</a></code> </p>
-        </td>
-        <td><p>extracts the result and bin pathology result</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="extract_path_result.html">extract_path_result()</a></code> </p>
-        </td>
-        <td><p>extracts the result and bin pathology result for a given rest</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_enrolment_fields.html">get_enrolment_fields()</a></code> </p>
-        </td>
-        <td><p>Get Enrolment form fields</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_most_recent_order.html">get_most_recent_order()</a></code> </p>
-        </td>
-        <td><p>extract the most recent event/order based on the given time column</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_n_precipitants.html">get_n_precipitants()</a></code> </p>
-        </td>
-        <td><p>Computes the number of precipiants and possible precipitants</p></td>
+        <td><p>Get first element excluding na</p></td>
       </tr><tr>
         
         <td>
@@ -420,15 +620,39 @@ the known to heart failure for a given <code>PERSON_ID</code></p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="process_homevisit_form.html">process_homevisit_form()</a></code> </p>
+          <p><code><a href="load_data.html">load_data()</a></code> </p>
         </td>
-        <td><p>Process homevisit forms</p></td>
+        <td><p>Load a table</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="load_db.html">load_db()</a></code> </p>
+        </td>
+        <td><p>Load a table from database</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="process_hfreferral_form.html">process_hfreferral_form()</a></code> </p>
+        </td>
+        <td><p>Create Referral form df</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="relink_apac_to_journeys.html">relink_apac_to_journeys()</a></code> </p>
         </td>
         <td><p>Flag Journeys with the presence of APAC @ Start or end</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="str_to_datetime.html">str_to_datetime()</a></code> </p>
+        </td>
+        <td><p>Convert strings column to datetime format</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="write_db.html">write_db()</a></code> </p>
+        </td>
+        <td><p>Write a dataframe to a database</p></td>
       </tr>
     </tbody>
     </table>

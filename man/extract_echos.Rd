@@ -2,10 +2,30 @@
 % Please edit documentation in R/hfinpatient.R
 \name{extract_echos}
 \alias{extract_echos}
-\title{extracts the most recent echo order to the encounter}
+\title{extracts the most recent echo order for the encounter}
 \usage{
 extract_echos(df, df_dttm = "DISCH_DT_TM")
 }
-\description{
-extracts the most recent echo order to the encounter
+\arguments{
+\item{df}{a dataframe containing encounters}
 }
+\description{
+extracts the most recent echo order for the encounter
+}
+\seealso{
+\code{\link[=process_inpatient]{process_inpatient()}} for df
+
+Other hfinpatient: 
+\code{\link{extract_age_los}()},
+\code{\link{extract_alert}()},
+\code{\link{extract_diagnosis}()},
+\code{\link{extract_discharge_meds}()},
+\code{\link{extract_form_result}()},
+\code{\link{extract_hfenrolment_form}()},
+\code{\link{extract_hfreferral_form}()},
+\code{\link{extract_path_result}()},
+\code{\link{extract_patho_result}()},
+\code{\link{get_most_recent_order}()},
+\code{\link{process_inpatient}()}
+}
+\concept{hfinpatient}

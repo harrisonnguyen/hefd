@@ -40,8 +40,9 @@
 
 
 <meta property="og:title" content="Process homevisit forms — process_homevisit_form" />
-<meta property="og:description" content="Note these grouping are done based on PARENT_EVENT_ID/PARENT_ENTITY_ID
-and NOT ENCNTR_ID. Al these visit forms are linked to the same encounter" />
+<meta property="og:description" content="Processes the homevisit forms into relevant information such as &quot;MACARF Visit Type&quot;
+&quot;NYHA Classification&quot;,&quot;Heart Failure Symptoms&quot;
+Each row represents a field for each form" />
 
 
 
@@ -130,13 +131,41 @@ and NOT ENCNTR_ID. Al these visit forms are linked to the same encounter" />
     </div>
 
     <div class="ref-description">
-    <p>Note these grouping are done based on <code>PARENT_EVENT_ID</code>/<code>PARENT_ENTITY_ID</code>
-and NOT <code>ENCNTR_ID</code>. Al these visit forms are linked to the same encounter</p>
+    <p>Processes the homevisit forms into relevant information such as "MACARF Visit Type"
+"NYHA Classification","Heart Failure Symptoms"
+Each row represents a field for each form</p>
     </div>
 
     <pre class="usage"><span class='fu'>process_homevisit_form</span><span class='op'>(</span>forms <span class='op'>=</span> <span class='cn'>NULL</span>, dcp_forms_activity <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>forms</th>
+      <td><p>df a dataframe where each row contains the fields of the homevisit form</p></td>
+    </tr>
+    <tr>
+      <th>dcp_forms_activity</th>
+      <td><p>a dataframe containing the parent key of df</p></td>
+    </tr>
+    </table>
 
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The data is combined and pivoted from a long format to a wide format for each form</p>
+<p>Fields of the same form are connected by <code>PARENT_EVENT_ID</code>/<code>PARENT_ENTITY_ID</code>.
+Hence, these grouping are done based on <code>PARENT_EVENT_ID</code>/<code>PARENT_ENTITY_ID</code>
+and NOT <code>ENCNTR_ID</code>. All these visit forms are linked to the same encounter</p>
+<p>If <code>forms</code> and <code>dcp_forms_activity</code> is not provided, the default query will be used/</p>
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p><code><a href='extract_hf_symptoms.html'>extract_hf_symptoms()</a></code> for details about how this field is processed</p>
+<p>Other hfhomevisit: 
+<code><a href='create_visit_journey.html'>create_visit_journey</a>()</code>,
+<code><a href='create_visit_trajectory.html'>create_visit_trajectory</a>()</code>,
+<code><a href='extract_hf_symptoms.html'>extract_hf_symptoms</a>()</code>,
+<code><a href='get_homevisit_forms.html'>get_homevisit_forms</a>()</code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

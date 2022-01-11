@@ -6,7 +6,32 @@
 \usage{
 process_homevisit_form(forms = NULL, dcp_forms_activity = NULL)
 }
-\description{
-Note these grouping are done based on \code{PARENT_EVENT_ID}/\code{PARENT_ENTITY_ID}
-and NOT \code{ENCNTR_ID}. Al these visit forms are linked to the same encounter
+\arguments{
+\item{forms}{df a dataframe where each row contains the fields of the homevisit form}
+
+\item{dcp_forms_activity}{a dataframe containing the parent key of df}
 }
+\description{
+Processes the homevisit forms into relevant information such as "MACARF Visit Type"
+"NYHA Classification","Heart Failure Symptoms"
+Each row represents a field for each form
+}
+\details{
+The data is combined and pivoted from a long format to a wide format for each form
+
+Fields of the same form are connected by \code{PARENT_EVENT_ID}/\code{PARENT_ENTITY_ID}.
+Hence, these grouping are done based on \code{PARENT_EVENT_ID}/\code{PARENT_ENTITY_ID}
+and NOT \code{ENCNTR_ID}. All these visit forms are linked to the same encounter
+
+If \code{forms} and \code{dcp_forms_activity} is not provided, the default query will be used/
+}
+\seealso{
+\code{\link[=extract_hf_symptoms]{extract_hf_symptoms()}} for details about how this field is processed
+
+Other hfhomevisit: 
+\code{\link{create_visit_journey}()},
+\code{\link{create_visit_trajectory}()},
+\code{\link{extract_hf_symptoms}()},
+\code{\link{get_homevisit_forms}()}
+}
+\concept{hfhomevisit}

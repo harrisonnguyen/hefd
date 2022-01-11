@@ -2,10 +2,28 @@
 % Please edit documentation in R/hfinpatient.R
 \name{extract_path_result}
 \alias{extract_path_result}
-\title{extracts the result and bin pathology result for a given rest}
+\title{extracts the result and bin pathology result for a given test}
 \usage{
 extract_path_result(df, regex, prefix, breaks = NULL, labels = NULL)
 }
-\description{
-extracts the result and bin pathology result for a given rest
+\arguments{
+\item{df}{a dataframe pathology results}
 }
+\description{
+extracts the result and bin pathology result for a given test
+}
+\seealso{
+Other hfinpatient: 
+\code{\link{extract_age_los}()},
+\code{\link{extract_alert}()},
+\code{\link{extract_diagnosis}()},
+\code{\link{extract_discharge_meds}()},
+\code{\link{extract_echos}()},
+\code{\link{extract_form_result}()},
+\code{\link{extract_hfenrolment_form}()},
+\code{\link{extract_hfreferral_form}()},
+\code{\link{extract_patho_result}()},
+\code{\link{get_most_recent_order}()},
+\code{\link{process_inpatient}()}
+}
+\concept{hfinpatient}

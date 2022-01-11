@@ -13,7 +13,40 @@ get_most_recent_order(
   delta_cutoff = 0
 )
 }
+\arguments{
+\item{df}{a dataframe containing encounters}
+
+\item{order_df}{a datadframe containing orders}
+
+\item{order_dttm_col, }{the column used for \code{order_df} timestamp}
+
+\item{df_dttm}{he column used for \code{odf} timestamp}
+
+\item{delta_cutoff}{float the maximum amount of days for an order
+to be excluded as not being associated with the encounter in days}
+}
 \description{
 a helper function to extract the most recent event/order
 based on the given time column
 }
+\details{
+\code{delta_cutoff} applies to orders that are not linked to the encounter
+but rather to the patient. e.g. if \code{delta_cutoff = 30}, the order could
+happen within 30 days after the end of the encounter
+for it to be associated with that encounter.
+}
+\seealso{
+Other hfinpatient: 
+\code{\link{extract_age_los}()},
+\code{\link{extract_alert}()},
+\code{\link{extract_diagnosis}()},
+\code{\link{extract_discharge_meds}()},
+\code{\link{extract_echos}()},
+\code{\link{extract_form_result}()},
+\code{\link{extract_hfenrolment_form}()},
+\code{\link{extract_hfreferral_form}()},
+\code{\link{extract_path_result}()},
+\code{\link{extract_patho_result}()},
+\code{\link{process_inpatient}()}
+}
+\concept{hfinpatient}

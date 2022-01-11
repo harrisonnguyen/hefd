@@ -143,7 +143,52 @@ based on the given time column</p>
   delta_cutoff <span class='op'>=</span> <span class='fl'>0</span>
 <span class='op'>)</span></pre>
 
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>df</th>
+      <td><p>a dataframe containing encounters</p></td>
+    </tr>
+    <tr>
+      <th>order_df</th>
+      <td><p>a datadframe containing orders</p></td>
+    </tr>
+    <tr>
+      <th>order_dttm_col, </th>
+      <td><p>the column used for <code>order_df</code> timestamp</p></td>
+    </tr>
+    <tr>
+      <th>df_dttm</th>
+      <td><p>he column used for <code>odf</code> timestamp</p></td>
+    </tr>
+    <tr>
+      <th>delta_cutoff</th>
+      <td><p>float the maximum amount of days for an order
+to be excluded as not being associated with the encounter in days</p></td>
+    </tr>
+    </table>
 
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p><code>delta_cutoff</code> applies to orders that are not linked to the encounter
+but rather to the patient. e.g. if <code>delta_cutoff = 30</code>, the order could
+happen within 30 days after the end of the encounter
+for it to be associated with that encounter.</p>
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p>Other hfinpatient: 
+<code><a href='extract_age_los.html'>extract_age_los</a>()</code>,
+<code><a href='extract_alert.html'>extract_alert</a>()</code>,
+<code><a href='extract_diagnosis.html'>extract_diagnosis</a>()</code>,
+<code><a href='extract_discharge_meds.html'>extract_discharge_meds</a>()</code>,
+<code><a href='extract_echos.html'>extract_echos</a>()</code>,
+<code><a href='extract_form_result.html'>extract_form_result</a>()</code>,
+<code><a href='extract_hfenrolment_form.html'>extract_hfenrolment_form</a>()</code>,
+<code><a href='extract_hfreferral_form.html'>extract_hfreferral_form</a>()</code>,
+<code><a href='extract_path_result.html'>extract_path_result</a>()</code>,
+<code><a href='extract_patho_result.html'>extract_patho_result</a>()</code>,
+<code><a href='process_inpatient.html'>process_inpatient</a>()</code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

@@ -2,10 +2,19 @@
 % Please edit documentation in R/hfenrolment.R
 \name{get_enrolment_fields}
 \alias{get_enrolment_fields}
-\title{Get Enrolment form fields}
+\title{Define the fields in HF enrolment form}
 \usage{
 get_enrolment_fields()
 }
 \description{
-the fields that we are interested in
+Returns a list of field names that
+we are interested in, in the  HF enrolment form
 }
+\seealso{
+Other hfenrolment: 
+\code{\link{get_n_precipitants}()},
+\code{\link{process_hfenrolment_form}()},
+\code{\link{process_hfmanagement}()},
+\code{\link{summarise_enrolment}()}
+}
+\concept{hfenrolment}

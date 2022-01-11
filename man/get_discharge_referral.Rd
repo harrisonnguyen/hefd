@@ -2,22 +2,28 @@
 % Please edit documentation in R/db_queries.R
 \name{get_discharge_referral}
 \alias{get_discharge_referral}
-\title{get the most recently updated note for each encounter}
+\title{Queries Discharge Letters for HF Encounters}
 \usage{
 get_discharge_referral()
 }
 \description{
-get the most recently updated note for each encounter
+Get all notes for encounters with a HF diagnosis
+\code{NOTES_BLOB} only contains Discharge Referral notes
 }
 \seealso{
 Other query: 
 \code{\link{get_acd_problem_query}()},
+\code{\link{get_diagnosis_query}()},
 \code{\link{get_disch_med_query}()},
+\code{\link{get_echos_query}()},
 \code{\link{get_encounter_journey_query}()},
 \code{\link{get_hf_alert_query}()},
+\code{\link{get_hf_encounter_query}()},
 \code{\link{get_hfenrolment_form_query}()},
+\code{\link{get_hfhomevisit_form_query}()},
 \code{\link{get_hfreferral_form_query}()},
 \code{\link{get_historical_hf_diag_query}()},
+\code{\link{get_pathology_query}()},
 \code{\link{get_previous_encounter_query}()},
 \code{\link{get_referred_to_facility_query}()}
 }

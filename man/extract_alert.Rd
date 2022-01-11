@@ -6,7 +6,27 @@
 \usage{
 extract_alert(df)
 }
+\arguments{
+\item{df}{a dataframe containing encounters}
+}
 \description{
 extracts advanced care directives and checks whether the alert was
 created before or during the encounter
 }
+\seealso{
+\code{\link[=process_inpatient]{process_inpatient()}} for df
+
+Other hfinpatient: 
+\code{\link{extract_age_los}()},
+\code{\link{extract_diagnosis}()},
+\code{\link{extract_discharge_meds}()},
+\code{\link{extract_echos}()},
+\code{\link{extract_form_result}()},
+\code{\link{extract_hfenrolment_form}()},
+\code{\link{extract_hfreferral_form}()},
+\code{\link{extract_path_result}()},
+\code{\link{extract_patho_result}()},
+\code{\link{get_most_recent_order}()},
+\code{\link{process_inpatient}()}
+}
+\concept{hfinpatient}

@@ -22,3 +22,13 @@ Computes the number of precipiants and possible precipitants in the hfmanagement
 Field is considered missing when both possible and precipiants is left empty
 Number of precipiants is considered 0 when no known precipiants is field
 }
+\seealso{
+\code{\link[=process_hfenrolment_form]{process_hfenrolment_form()}}
+
+Other hfenrolment: 
+\code{\link{get_enrolment_fields}()},
+\code{\link{process_hfenrolment_form}()},
+\code{\link{process_hfmanagement}()},
+\code{\link{summarise_enrolment}()}
+}
+\concept{hfenrolment}

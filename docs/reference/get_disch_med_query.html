@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Extracts discharge meds — get_disch_med_query • hefd</title>
+<title>Queries discharge meds — get_disch_med_query • hefd</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,10 @@
 
 
 
-<meta property="og:title" content="Extracts discharge meds — get_disch_med_query" />
-<meta property="og:description" content="include a list of ENCNTR_ID" />
+<meta property="og:title" content="Queries discharge meds — get_disch_med_query" />
+<meta property="og:description" content="Returns a query to extract the medications given at discharge for the given list of
+ENCNTR_ID.
+Discharge medications exists in two tables MEDICATION_HOME_ORDERS and MEDICATION_ORDERS" />
 
 
 
@@ -123,28 +125,54 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Extracts discharge meds</h1>
+    <h1>Queries discharge meds</h1>
     <small class="dont-index">Source: <a href='https://github.sydney.edu.au/speed-extract/hefd/blob/HEAD/R/db_queries.R'><code>R/db_queries.R</code></a></small>
     <div class="hidden name"><code>get_disch_med_query.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>include a list of <code>ENCNTR_ID</code></p>
+    <p>Returns a query to extract the medications given at discharge for the given list of
+<code>ENCNTR_ID</code>.
+Discharge medications exists in two tables <code>MEDICATION_HOME_ORDERS</code> and <code>MEDICATION_ORDERS</code></p>
     </div>
 
     <pre class="usage"><span class='fu'>get_disch_med_query</span><span class='op'>(</span><span class='va'>encntr_list</span><span class='op'>)</span></pre>
 
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>encounter_list</th>
+      <td><p>list of <code>ENCNTR_ID</code> to extract their discharge medications for</p></td>
+    </tr>
+    </table>
 
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>In <code>MEDICATION_HOME_ORDERS</code> a medication order is considered a discharge medication
+if the orders' <code>ORDER_STATUS_CD</code> = 'Ordered' at the time of discharge or the orders' status was
+changed to either 'Completed', 'Discontinued', 'Deleted' (from being 'Ordered' originally)
+after the encounter's <code>DISCH_DT_TM</code>.</p>
+<p>In <code>MEDICATION_ORDERS</code> is similar to <code>MEDICATION_HOME_ORDERS</code> but the order must also be
+'Prescribed' represented by <code>ORIG_ORD_AS_FLAG = 1</code>.</p>
+<p>The query only extracts relevant medications given in <code>MEDICATION_LIST</code>
+which is determined by consultation with clinicians.</p>
+<p>This <a href='www.google.com.au'>site</a> has more details for this algorithm.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Other query: 
 <code><a href='get_acd_problem_query.html'>get_acd_problem_query</a>()</code>,
+<code><a href='get_diagnosis_query.html'>get_diagnosis_query</a>()</code>,
 <code><a href='get_discharge_referral.html'>get_discharge_referral</a>()</code>,
+<code><a href='get_echos_query.html'>get_echos_query</a>()</code>,
 <code><a href='get_encounter_journey_query.html'>get_encounter_journey_query</a>()</code>,
 <code><a href='get_hf_alert_query.html'>get_hf_alert_query</a>()</code>,
+<code><a href='get_hf_encounter_query.html'>get_hf_encounter_query</a>()</code>,
 <code><a href='get_hfenrolment_form_query.html'>get_hfenrolment_form_query</a>()</code>,
+<code><a href='get_hfhomevisit_form_query.html'>get_hfhomevisit_form_query</a>()</code>,
 <code><a href='get_hfreferral_form_query.html'>get_hfreferral_form_query</a>()</code>,
 <code><a href='get_historical_hf_diag_query.html'>get_historical_hf_diag_query</a>()</code>,
+<code><a href='get_pathology_query.html'>get_pathology_query</a>()</code>,
 <code><a href='get_previous_encounter_query.html'>get_previous_encounter_query</a>()</code>,
 <code><a href='get_referred_to_facility_query.html'>get_referred_to_facility_query</a>()</code></p></div>
 

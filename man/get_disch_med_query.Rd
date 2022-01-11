@@ -2,22 +2,46 @@
 % Please edit documentation in R/db_queries.R
 \name{get_disch_med_query}
 \alias{get_disch_med_query}
-\title{Extracts discharge meds}
+\title{Queries discharge meds}
 \usage{
 get_disch_med_query(encntr_list)
 }
+\arguments{
+\item{encounter_list}{list of \code{ENCNTR_ID} to extract their discharge medications for}
+}
 \description{
-include a list of \code{ENCNTR_ID}
+Returns a query to extract the medications given at discharge for the given list of
+\code{ENCNTR_ID}.
+Discharge medications exists in two tables \code{MEDICATION_HOME_ORDERS} and \code{MEDICATION_ORDERS}
+}
+\details{
+In \code{MEDICATION_HOME_ORDERS} a medication order is considered a discharge medication
+if the orders' \code{ORDER_STATUS_CD} = 'Ordered' at the time of discharge or the orders' status was
+changed to either 'Completed', 'Discontinued', 'Deleted' (from being 'Ordered' originally)
+after the encounter's \code{DISCH_DT_TM}.
+
+In \code{MEDICATION_ORDERS} is similar to \code{MEDICATION_HOME_ORDERS} but the order must also be
+'Prescribed' represented by \code{ORIG_ORD_AS_FLAG = 1}.
+
+The query only extracts relevant medications given in \code{MEDICATION_LIST}
+which is determined by consultation with clinicians.
+
+This \href{www.google.com.au}{site} has more details for this algorithm.
 }
 \seealso{
 Other query: 
 \code{\link{get_acd_problem_query}()},
+\code{\link{get_diagnosis_query}()},
 \code{\link{get_discharge_referral}()},
+\code{\link{get_echos_query}()},
 \code{\link{get_encounter_journey_query}()},
 \code{\link{get_hf_alert_query}()},
+\code{\link{get_hf_encounter_query}()},
 \code{\link{get_hfenrolment_form_query}()},
+\code{\link{get_hfhomevisit_form_query}()},
 \code{\link{get_hfreferral_form_query}()},
 \code{\link{get_historical_hf_diag_query}()},
+\code{\link{get_pathology_query}()},
 \code{\link{get_previous_encounter_query}()},
 \code{\link{get_referred_to_facility_query}()}
 }
