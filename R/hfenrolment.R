@@ -1,6 +1,6 @@
 
 #' Define the fields in HF enrolment form
-#' 
+#'
 #' Returns a list of field names that
 #' we are interested in, in the  HF enrolment form
 #'
@@ -29,7 +29,7 @@ get_enrolment_fields <- function(){
 #' Pivots the HF enrolment form
 #'
 #' Pivots the HF enrolment forms from long form to wide
-#' based on the fields given in `get_enrolment_fields()` 
+#' based on the fields given in `get_enrolment_fields()`
 #' for each encounter.
 #' For encounters with multiple enrolment forms,
 #' the most recent, non-null result will be used
@@ -59,6 +59,7 @@ process_hfenrolment_form <- function(){
                        names_sort = TRUE,
                        values_fn = get_first_non_na) %>%
     dplyr::left_join(form_complete_time,by="ENCNTR_ID") %>%
+    dplyr::mutate(RESULT_VAL_ECHOCARDIOGRAMDATE = lubridate::dmy_hm(RESULT_VAL_ECHOCARDIOGRAMDATE)) %>%
     process_hfmanagement()
 
   return(temp)
@@ -72,7 +73,7 @@ process_hfenrolment_form <- function(){
 #' will be seperated into different columns based on their value
 #' LVEF will be binned accordingly
 #' The number of precipiants will be calculated
-#' 
+#'
 #' @param df the dataframe to processed
 #' @seealso [hefd::process_hfenrolment_form()] for more details on the dataframe used
 #' @family hfenrolment

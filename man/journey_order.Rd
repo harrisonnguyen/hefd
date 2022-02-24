@@ -10,7 +10,7 @@ journey_order(
   journeys,
   ...,
   .default_dots = rlang::exprs(journey_key = JOURNEY_KEY, discharge_dttm = DISCH_DTTM,
-    encntr_key = ENCNTR_ID, updt_dttm = UPDT_DT_TM)
+    encntr_key = ENCNTR_ID, updt_dttm = UPDT_DT_TM, admit_dttm = BEG_EFFECTIVE_DT_TM)
 )
 }
 \arguments{

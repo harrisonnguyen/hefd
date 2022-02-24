@@ -74,3 +74,24 @@ get_age_bin <- function(){
   )
   return(bins)
 }
+
+
+#' Define the regex for LVEF
+#'
+#' @export
+#' @family regex
+get_lvef_regex <- function(){
+  regex <- "(EF|(?i)Ejection|LVEF|fraction).*[[:digit:]]{1,2}"
+  return(regex)
+}
+
+#' Define the regex for extracting digits
+#'
+#' @export
+#' @family regex
+get_digit_regex <- function(){
+  regex <- "[[:digit:]]+"
+  return(regex)
+}
+
+

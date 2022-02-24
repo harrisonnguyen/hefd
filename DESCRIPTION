@@ -33,6 +33,6 @@ Imports:
     flextable,
     lifecycle
 Suggests: knitr, rmarkdown
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Roxygen: list(markdown = TRUE)
 URL: https://pages.github.sydney.edu.au/speed-extract/hefd/

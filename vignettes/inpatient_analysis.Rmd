@@ -38,7 +38,6 @@ library(tidyverse)
 library(kableExtra)
 library(ggplot2)
 library(ggpubr)
-library(acs)
 library(flextable)
 
 library(hefd)

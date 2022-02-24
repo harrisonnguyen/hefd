@@ -1,4 +1,4 @@
-#' Load a table 
+#' Load a table
 #'
 #' Load a table either from a database or from file
 #'
@@ -24,13 +24,7 @@ load_data <- function(table_name){
 #' @export
 #' @family data-utility
 load_db <- function(table_name){
-  dw <- config::get("datawarehouse")
-  con <- odbc::dbConnect(odbc::odbc(),
-                         Driver = dw$drive,
-                         Server = dw$server,
-                         Database = dw$database,
-                         UID = dw$uid,
-                         PWD = dw$pwd)
+  con <- get_db_connection()
   table_name <- toupper(table_name)
   query <- paste("SELECT * FROM ", table_name,sep="")
 
@@ -48,12 +42,11 @@ load_db <- function(table_name){
   return(df)
 }
 
-#' Execute the query
+#' Get the connection to the database
 #'
-#' @param query a string, query to execute
 #' @family data-utility
 #' @export
-execute_query <- function(query){
+get_db_connection <- function(){
 
   dw <- config::get("datawarehouse")
   con <- odbc::dbConnect(odbc::odbc(),
@@ -62,6 +55,30 @@ execute_query <- function(query){
                          Database = dw$database,
                          UID = dw$uid,
                          PWD = dw$pwd)
+
+  return(con)
+}
+
+#' Write a dataframe to a table
+#'
+#' @param df a dataframe to write
+#' @param table_name
+#' @family data-utility
+#' @export
+execute_write_to_db <- function(df,table_name){
+  con <- get_db_connection()
+  odbc::dbWriteTable(con, table_name, df,append=TRUE)
+  odbc::dbDisconnect(con)
+}
+
+#' Execute the query
+#'
+#' @param query a string, query to execute
+#' @family data-utility
+#' @export
+execute_query <- function(query){
+
+  con <- get_db_connection()
 
   df <- odbc::dbGetQuery(con,query)
 

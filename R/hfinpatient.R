@@ -173,7 +173,7 @@ extract_path_result <- function(df,regex,prefix,breaks=NULL,labels=NULL){
 #' Process HF related pathology
 #'
 #' Processes HF related pathology for a list of patients
-#' 
+#'
 #' @param df a dataframe containing encounters
 #' @param use_default_person_list a boolean
 #'      determines whether the list of ids is based on the given
@@ -276,7 +276,7 @@ extract_hf_hist_diag <- function(df){
 
 
 #' create discharge medications from encounters
-#' 
+#'
 #' converts the medication list to columns of booleans
 #' @seealso [hefd::process_inpatient()] for df
 #' @family hfinpatient
@@ -372,7 +372,7 @@ process_inpatient <- function(df){
 }
 
 #' Calculates the presence of referral form for each encounter
-#' 
+#'
 #' @seealso [hefd::process_inpatient()] for df
 #' @family hfinpatient
 #' @export
@@ -442,6 +442,26 @@ extract_form_result <- function(df,regex,prefix,breaks=NULL,labels=NULL,is_numer
     }
     df %<>% dplyr::rename("{prefix}_RESULT_VAL" := RESULT_VAL)
   }
+
+  return(df)
+}
+
+
+#' extracts the LVEF result
+#'
+#' @param df a dataframe containing the LV summary
+#' @param col the column that contains the LV summary
+#' @param new_col the name of the newly created column to store
+#' @seealso [hefd::get_lvef_result_to_strip()] for df
+#' @family hfinpatient
+#' @export
+extract_lvef_result <- function(df,col = "LV_SUMMARY",new_col = "LVEF_STRIP"){
+  col_sym <- rlang::sym(col)
+  new_col_sym <- rlang::sym(new_col)
+  df %<>% dplyr::mutate(!!new_col_sym := stringr::str_extract(
+    !!col_sym, get_lvef_regex())) %>%
+    dplyr::mutate(!!new_col_sym := stringr::str_extract(!!new_col_sym,get_digit_regex())) %>%
+    dplyr::select(-!!col_sym)
 
   return(df)
 }

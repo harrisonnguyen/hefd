@@ -1,0 +1,293 @@
+---
+title: "Heart Failure Journey Analysis"
+author: "Harrison Nguyen and Charmaine Tam"
+date: "18/01/2022"
+output:  
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    number_sections: true
+bibliography: references.bib
+link-citations: true
+linkcolor: blue
+vignette: >
+  %\VignetteIndexEntry{Heart Failure Inpatient Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning=FALSE, message=FALSE,
+  echo = TRUE
+)
+knitr::opts_knit$set(
+  root.dir = here::here()
+)
+```
+
+```{r import}
+
+library(magrittr)
+library(tidyverse)
+library(kableExtra)
+library(ggplot2)
+library(ggpubr)
+library(flextable)
+library(vistime)
+library(hefd)
+
+```
+
+```{r}
+
+query <- "
+  with temp as (
+  select * from hf_encounter_journey
+  where encntr_id in (select encntr_id from HF_INPATIENT_ENCNTR)
+  ),
+  encntr_journey_temp as (
+  	select  x.*,y.LOC_FACILITY_CD,y.MED_SERVICE_CD from hf_encounter_journey as x
+  	left join encounter as y
+  	on x.encntr_id = y.encntr_id
+  	where journey_id in (select journey_id from temp) and LOC_FACILITY_CD is not null
+  	union all
+  	select  x.*,y.LOC_FACILITY_CD,y.MED_SERVICE_CD from hf_encounter_journey as x
+  	left join encounter_history as y
+  	on x.encntr_id = y.encntr_id
+  	where journey_id in (select journey_id from temp) and LOC_FACILITY_CD is not null
+  ),
+  journey_temp as (
+  	select x.*,y.LOC_FACILITY_CD as FIRST_LOC_FACILITY_CD from hf_journey as x
+  	left join encounter as y
+  	on x.journey_id = y.encntr_id
+  	where y.LOC_FACILITY_CD is not null
+  		union all
+  	select x.*,y.LOC_FACILITY_CD  as FIRST_LOC_FACILITY_CD from hf_journey as x
+  	left join encounter_history as y
+  	on x.journey_id = y.encntr_id
+  	where y.LOC_FACILITY_CD is not null
+  )
+  
+  select x.*,y.FIRST_LOC_FACILITY_CD from encntr_journey_temp as x
+  left join journey_temp as y
+  on x.journey_id = y.journey_id
+"
+
+hf_encounter_journey <- execute_query(query)
+inpatient_encntr <- load_db("hf_inpatient_encntr")
+journeys <- load_db("hf_journey")
+#encounter_journey <- load_db("hf_encounter_journey")
+hf_diagnosis <- execute_query(get_diagnosis_query())
+```
+
+```{r}
+
+NSLHD_facility <- function(){
+  NSLHD <- c("Royal North Shore", "Hornsby", "Ryde", "Manly", "Mona Vale")
+
+  return(NSLHD)
+}
+
+#' Returns facility in CCLHD
+CCLHD_facility <- function(){
+  CCLHD <- c("Gosford", "Woy Woy", "Wyong")
+
+  return(CCLHD)
+}
+
+create_trajectory <- function(df){
+  NSLHD <- NSLHD_facility()
+
+  CCLHD <- CCLHD_facility()
+
+  trajectories<- df %>%
+    dplyr::group_by(JOURNEY_ID) %>%
+    dplyr::mutate(
+      TRAJECTORY = dplyr::case_when(
+        FIRST_LOC_FACILITY_CD %in% CCLHD & any(LOC_FACILITY_CD == "Royal North Shore" & ENCNTR_ORDER != 1, na.rm=T) ~ "CCLHD - RNS",
+        FIRST_LOC_FACILITY_CD == "Ryde"  &any(LOC_FACILITY_CD == "Royal North Shore" & ENCNTR_ORDER != 1, na.rm=T)  ~ "Ryde - RNS",
+        FIRST_LOC_FACILITY_CD == "Manly" &any(LOC_FACILITY_CD == "Royal North Shore" & ENCNTR_ORDER != 1, na.rm=T)  ~ "Manly - RNS",
+        FIRST_LOC_FACILITY_CD == "Mona Vale" &any(LOC_FACILITY_CD == "Royal North Shore" & ENCNTR_ORDER != 1, na.rm=T)  ~ "Mona Vale - RNS",
+        FIRST_LOC_FACILITY_CD == "Hornsby"  &any(LOC_FACILITY_CD == "Royal North Shore" & ENCNTR_ORDER != 1, na.rm=T)  ~ "Hornsby - RNS",
+        !(FIRST_LOC_FACILITY_CD %in% NSLHD)  &any(LOC_FACILITY_CD == "Royal North Shore" & ENCNTR_ORDER != 1, na.rm=T)  ~ "Other - RNS",
+        FIRST_LOC_FACILITY_CD == "Royal North Shore"  &any(LOC_FACILITY_CD %in% NSLHD[2:length(NSLHD)] & ENCNTR_ORDER != 1, na.rm=T)   ~ "RNS - NSLHD",
+        dplyr::n_distinct(LOC_FACILITY_CD) == 1 ~ "No Transfer",
+        FIRST_LOC_FACILITY_CD != "Royal North Shore"  &any(LOC_FACILITY_CD %in% NSLHD[2:length(NSLHD)] & ENCNTR_ORDER != 1, na.rm=T) ~ "NSLHD (exc. RNS)",
+        FIRST_LOC_FACILITY_CD == "Royal North Shore"  &any(LOC_FACILITY_CD != "Royal North Shore" & ENCNTR_ORDER != 1, na.rm=T)   ~ "RNS - Other",
+        FIRST_LOC_FACILITY_CD %in% CCLHD  &  any(LOC_FACILITY_CD %in% CCLHD & ENCNTR_ORDER != 1)  ~ "CCLHD",
+      )
+    ) %>%
+    dplyr::ungroup()
+
+  trajectories %<>% dplyr::select(JOURNEY_ID, TRAJECTORY) %>%
+    dplyr::distinct()
+}
+```
+
+# Journey Distributions
+
+
+```{r}
+trajectory <- hf_encounter_journey %>%
+  create_trajectory() %>%
+  dplyr::left_join(journeys,by="JOURNEY_ID") %>%
+  dplyr::mutate(TRAJECTORY = 
+                  dplyr::case_when(
+                  N_ENCNTR == 1 & is.na(TRAJECTORY) ~"No Transfer",
+                   TRUE ~ TRAJECTORY))
+```
+```{r journey-dist-plot, fig.cap="Distribution of Journey Trajectory."}
+trajectory %>%
+proportion_bar_plot("TRAJECTORY","Distribution of Journey Trajectory",n_suffix="journeys") + coord_flip() + theme(axis.title.y = element_blank())
+```
+Figure \@ref(fig:journey-dist-plot) shows the distribution of journey trajectories. **88\%** of journeys are comprised of either single encounters or encounters at the same facility.
+
+```{r n-encntr-dist-journey,fig.cap="Distribution of the number of encounters in a journey."}
+trajectory %>%
+  dplyr::filter(N_ENCNTR < 10) %>%
+  proportion_bar_plot(column = "N_ENCNTR",title="Distribution of No. of Encntrs per Journey",n_suffix = "journeys") + theme(axis.title.x = element_blank())
+```
+Figure \@ref(fig:n-encntr-dist-journey) shows that **85\%** of journeys are comprised on single encounters. 
+
+```{r}
+trajectory %>%
+  dplyr::filter(JOURNEY_DAYS < 50) %>%
+  plot_histogram(column = "JOURNEY_DAYS",title="Distribution of Length of Journey",n_suffix = "journeys")
+```
+```{r}
+journey_counts <- inpatient_encntr %>%
+  dplyr::left_join(hf_encounter_journey,by="ENCNTR_ID") %>%
+  dplyr::filter(!is.na(JOURNEY_ID)) %>%
+  dplyr::group_by(JOURNEY_ID) %>%
+  dplyr::summarise(N= dplyr::n())
+```
+```{r n-hf-diag-plot,fig.cap="Distribution of number of HF diagnosis in each journey."}
+journey_counts%>%
+  proportion_bar_plot(column = "N",title="Distribution of N HF Encounter per Journey",n_suffix = "journeys") + theme(axis.title.x = element_blank())
+
+```
+Figure \@ref(fig:n-hf-diag-plot) shows that **3\%** of journeys have more than 1 encounter with a HF (primary or additional) diagnosis.
+
+```{r}
+hf_diag_prio <- hf_diagnosis %>%
+  dplyr::group_by(ENCNTR_ID) %>%
+  dplyr::arrange(DIAG_PRIORITY) %>%
+  dplyr::slice(1)
+```
+
+```{r}
+
+encounter_counts <- hf_encounter_journey %>%
+  dplyr::left_join(trajectory,by="JOURNEY_ID") %>%
+  dplyr::left_join(
+    dplyr::select(hf_diag_prio,ENCNTR_ID,DIAG_PRIORITY,SOURCE_IDENTIFIER), by="ENCNTR_ID") %>%
+  dplyr::mutate(
+    HF_DIAGNOSIS = dplyr::case_when(
+      DIAG_PRIORITY == 1 ~ 'P',
+      DIAG_PRIORITY != 1 ~ 'A',
+      TRUE ~ "N"
+    )
+  )
+
+```
+
+```{r}
+multi_hf_enc_journeys <- journey_counts %>%
+  dplyr::filter(N > 1)
+
+transfers <- encounter_counts %>%
+    dplyr::mutate(LOC_FACILITY_CD = stringr::str_replace(LOC_FACILITY_CD,"Royal North Shore","RNS")) %>%
+  dplyr::mutate(EVENT = paste0(LOC_FACILITY_CD,"-",HF_DIAGNOSIS,"\n",stringr::str_sub(MED_SERVICE_CD,1,5))) %>%
+  dplyr::mutate(COLOR = dplyr::case_when(
+      HF_DIAGNOSIS == 'P' ~ "#B2182B",
+      HF_DIAGNOSIS == 'A' ~ '#2166AC',
+      TRUE ~ "#000000"
+    ))
+  #dplyr::filter(TRAJECTORY == "RNS - NSLHD") %>%
+  #dplyr::filter(N_ENCNTR <=4 & JOURNEY_ORDER >8 ) %>%
+  
+```
+
+
+
+```{r}
+
+hf_order_journeys <- transfers %>%
+  dplyr::filter(JOURNEY_ID  %in% multi_hf_enc_journeys$JOURNEY_ID) %>%
+  dplyr::group_by(JOURNEY_ID) %>%
+  dplyr::arrange(BEG_EFFECTIVE_DT_TM) %>%
+  dplyr::summarise(DIAG_LIST = paste0(HF_DIAGNOSIS, collapse = "")) %>%
+  dplyr::mutate(HF_ORDER_CLASS = 
+                  dplyr::case_when(
+                    !stringr::str_detect(DIAG_LIST,"A") ~ "Only P",
+                     !stringr::str_detect(DIAG_LIST,"P") ~ "Only A",
+                    str_locate(DIAG_LIST, "P")[,1] < str_locate(DIAG_LIST, "A")[,1] ~ "P then A",
+                    str_locate(DIAG_LIST, "A")[,1] < str_locate(DIAG_LIST, "P")[,1] ~ "A then P"
+                  ))
+```
+
+```{r hf-order-dist-plot,fig.cap="Distribution of the order of HF Diagnosis for journeys with >1 HF diagnosis."}
+hf_order_journeys %>%
+proportion_bar_plot("HF_ORDER_CLASS","Distribution of Order of HF Diagnosis","journeys")  + theme(axis.title.x = element_blank())
+```
+Figure \@ref(fig:hf-order-dist-plot) shows the majority of the multi-HF diagnosis journeys are only additional HF diagnosis. A On the other hand, **9\%** of these multi-HF diagnosis journeys begin as an additional HF diagnosis but then changes to a primary HF diagnosis in another encounter.
+
+# Journey Timeline
+
+```{r ap-timeline,fig.cap="Journey timelines of journeys with additional HF diagnosis followed by primary HF diagnosis."}
+query <- "select x.encntr_id,DIAG_PRIORITY,SOURCE_STRING,SOURCE_VOCABULARY_CD from hf_encounter_journey as x
+left join diagnosis as y
+on x.encntr_id = y.encntr_id
+where journey_id = 102763035
+order by encntr_order
+"
+
+hf_order_journeys %>%
+  dplyr::filter(HF_ORDER_CLASS == "A then P") %>%
+  dplyr::right_join(transfers,by="JOURNEY_ID") %>%
+  dplyr::filter(!is.na(HF_ORDER_CLASS)) %>%
+  dplyr::filter(JOURNEY_START_DT_TM > as.Date("2020-01-01")) %>%
+  vistime(
+        col.event = "EVENT", 
+        col.start = "BEG_EFFECTIVE_DT_TM",
+        col.end = "DISCH_DT_TM", 
+        col.group = "JOURNEY_ID",
+        col.color = "COLOR")
+
+```
+Figure \@ref(fig:ap-timeline) shows a visualisation of journeys that begin with an additional HF diagnosis encounter followed by a primary HF diagnosis in a later encounter. Blue and red blocks represent encounters with an additional HF diagnosis and primary HF diagnosis respectively. The blocks are labeled according to the facility of encounter, the type of HF diagnosis either additional (A) or primary (P) followed by the medical service.
+
+Diagnosis information mentioned later is not shown in the plots.
+
+For example, `JOURNEY_ID = 94273977` (second from the top) begins with an encounter with `Acute subendocardial myocardial infarction` at `Ryde` but is then transferred to `Royal North Shore Hospital` with `Left ventricular failure`. 
+
+`JOURNEY_ID = 99508991` (second from the bottom) begins with an encounter with `Malignant neoplasm of skin of ear and external auricular canal` but for some reason is treated at `Royal North Shore Hospital Cardiology` then experiences a primary diagnosis of `Other specified functional intestinal disorders` in the following encounter. This patient is then  transferred to `Ryde Rehab` for the treatment of `Congestive heart failure`.
+
+```{r pa-timeline,fig.cap="Journey timelines of journeys with primary HF diagnosis followed by additional HF diagnosis."}
+hf_order_journeys %>%
+  dplyr::filter(HF_ORDER_CLASS == "P then A") %>%
+  dplyr::right_join(transfers,by="JOURNEY_ID") %>%
+  dplyr::filter(!is.na(HF_ORDER_CLASS)) %>%
+  dplyr::filter(JOURNEY_START_DT_TM > as.Date("2021-01-01")) %>%
+  vistime(
+        col.event = "EVENT", 
+        col.start = "BEG_EFFECTIVE_DT_TM",
+        col.end = "DISCH_DT_TM", 
+        col.group = "JOURNEY_ID",
+        col.color = "COLOR")
+
+```
+
+Figure \@ref(fig:pa-timeline) shows a visualisation of journeys that begin with a primary HF diagnosis encounter followed by an additional HF diagnosis in a later encounter. 
+
+For example, `JOURNEY_ID = 102763035` (third from the top row) begins with an encounter with `Congestive heart failure` at `Ryde` with an additional diagnosis of `Acute subendocardial myocardial infarction`. This event escalates where the patient is transferred to `Royal North Shore Hospital` with some kind of `Stroke`.
+
+For example, `JOURNEY_ID = 101362510` (second from the bottom) begins with an encounter with `Congestive heart failure` at `Ryde`. This event escalates where the patient is transferred to `Royal North Shore Hospital` with `Aortic (valve) stenosis`.
+
+It seems like the treatment of heart failure has a lower priority compared to other acute cardiac/non cardiac events.

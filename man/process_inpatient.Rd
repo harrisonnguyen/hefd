@@ -21,6 +21,7 @@ Other hfinpatient:
 \code{\link{extract_form_result}()},
 \code{\link{extract_hfenrolment_form}()},
 \code{\link{extract_hfreferral_form}()},
+\code{\link{extract_lvef_result}()},
 \code{\link{extract_path_result}()},
 \code{\link{extract_patho_result}()},
 \code{\link{get_most_recent_order}()}

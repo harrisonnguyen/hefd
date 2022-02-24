@@ -16,6 +16,8 @@ into datetime format
 \seealso{
 Other data-utility: 
 \code{\link{execute_query}()},
+\code{\link{execute_write_to_db}()},
+\code{\link{get_db_connection}()},
 \code{\link{get_first_non_na}()},
 \code{\link{load_data}()},
 \code{\link{load_db}()}

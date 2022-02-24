@@ -15,6 +15,8 @@ Load a table either from a database or from file
 \seealso{
 Other data-utility: 
 \code{\link{execute_query}()},
+\code{\link{execute_write_to_db}()},
+\code{\link{get_db_connection}()},
 \code{\link{get_first_non_na}()},
 \code{\link{load_db}()},
 \code{\link{str_to_datetime}()}

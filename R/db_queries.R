@@ -29,7 +29,10 @@ get_hf_encounter_query <- function(){
   on z.PX9_ENCNTR_ID = x.ENCNTR_ID and z.PX9_PERSON_ID = x.PERSON_ID
   left join PATIENT as y
   on x.PERSON_ID = y.PERSON_ID
-  where Q4_DIAGNOSIS = 1 and PROCESS_FLAG = 1 and (y.PERSON_ID is not NULL or x.ENCNTR_ID is not NULL);"
+  where ENCNTR_ID in (
+  select ENCNTR_ID from DIAGNOSIS
+  where SOURCE_VOCABULARY_CD = 'ICD10-AM' and SOURCE_IDENTIFIER in ('I50','I50.0','I50.1','I50.9'))
+  and PROCESS_FLAG = 1 and (y.PERSON_ID is not NULL or x.ENCNTR_ID is not NULL);"
   return(query)
 }
 
@@ -37,7 +40,7 @@ get_hf_encounter_query <- function(){
 #'
 #' Get all notes for encounters with a HF diagnosis
 #' `NOTES_BLOB` only contains Discharge Referral notes
-#' 
+#'
 #'
 #' @family query
 #' @export
@@ -48,13 +51,15 @@ get_discharge_referral <- function(){
   FROM ENCOUNTER_REFERENCE as z
   left join NOTES_BLOB as k
   on k.ENCNTR_ID = z.PX9_ENCNTR_ID
-  where Q4_DIAGNOSIS = 1 and PROCESS_FLAG = 1;
+  where ENCNTR_ID in (
+  select ENCNTR_ID from DIAGNOSIS
+  where SOURCE_VOCABULARY_CD = 'ICD10-AM' and SOURCE_IDENTIFIER in ('I50','I50.0','I50.1','I50.9')) and PROCESS_FLAG = 1;
   "
   return(query)
 }
 
-#' Queries "Advanced Care Directive" alert for each person 
-#' 
+#' Queries "Advanced Care Directive" alert for each person
+#'
 #' queries the first instance
 #' the advance care directive for a given `PERSON_ID`
 #'
@@ -76,7 +81,7 @@ WHERE row_number = 1;"
 }
 
 #' Queries "Known to HF service" alert for each person
-#' 
+#'
 #' queries the first instance
 #' the known to heart failure for a given `PERSON_ID`
 #'
@@ -105,12 +110,14 @@ WHERE row_number = 1;"
 get_echos_query <- function(){
   query <- "
   SELECT * from ORDERS as x
-  where  CATALOG_CD = 'Cardio - Echo (LV & RV Function, CCF)'"
+  where  CATALOG_CD in ('Cardio - Echo (LV & RV Function, CCF)',
+  'Cardio - Echo (Valve,Stroke/TIA, Pericar',
+  'Cardio - Exercise Stress Echo')"
   return(query)
 }
 
 #' Queries BNP orders
-#' 
+#'
 #' Returns a query for BNP orders
 #' either for HF encounters
 #' or for the list of `person_id`
@@ -124,7 +131,9 @@ get_pathology_query <- function(person_id = NULL){
 
   if(is.null(person_id)){
     person_string <- "SELECT PX9_PERSON_ID from ENCOUNTER_REFERENCE
-  where Q4_DIAGNOSIS = 1 and PROCESS_FLAG = 1"
+  where ENCNTR_ID in (
+  select ENCNTR_ID from DIAGNOSIS
+  where SOURCE_VOCABULARY_CD = 'ICD10-AM' and SOURCE_IDENTIFIER in ('I50','I50.0','I50.1','I50.9')) and PROCESS_FLAG = 1"
   }
   else{
     person_string <- paste(person_id,collapse=",")
@@ -171,20 +180,20 @@ get_historical_hf_diag_query <- function(){
 }
 
 #' Queries discharge meds
-#' 
+#'
 #' Returns a query to extract the medications given at discharge for the given list of
 #' `ENCNTR_ID`.
 #' Discharge medications exists in two tables `MEDICATION_HOME_ORDERS` and `MEDICATION_ORDERS`
-#' 
+#'
 #' In `MEDICATION_HOME_ORDERS` a medication order is considered a discharge medication
-#' if the orders' `ORDER_STATUS_CD` = 'Ordered' at the time of discharge or the orders' status was 
+#' if the orders' `ORDER_STATUS_CD` = 'Ordered' at the time of discharge or the orders' status was
 #' changed to either 'Completed', 'Discontinued', 'Deleted' (from being 'Ordered' originally)
 #' after the encounter's `DISCH_DT_TM`.
 #'
 #' In `MEDICATION_ORDERS` is similar to `MEDICATION_HOME_ORDERS` but the order must also be
 #' 'Prescribed' represented by `ORIG_ORD_AS_FLAG = 1`.
 #'
-#' The query only extracts relevant medications given in `MEDICATION_LIST` 
+#' The query only extracts relevant medications given in `MEDICATION_LIST`
 #' which is determined by consultation with clinicians.
 #'
 #' This [site](www.google.com.au) has more details for this algorithm.
@@ -335,10 +344,10 @@ get_encounter_journey_query <- function(){
 
   query <- paste0("with join_tab as (
       select ENCNTR_ID,PERSON_ID,BEG_EFFECTIVE_DT_TM,DISCH_DT_TM,UPDT_DT_TM,ADMIT_TYPE_CD,ENCNTR_TYPE_CD,0 as HIS_ENCNTR from encounter
-      where ENCNTR_TYPE_CD in ('Inpatient','Emergency','NDF') and ADMIT_TYPE_CD is not null and LOC_FACILITY_CD != 'APAC'
+      where ENCNTR_TYPE_CD in ('Inpatient','Emergency','NDF') and ADMIT_TYPE_CD is not null and LOC_FACILITY_CD != 'APAC' and MED_SERVICE_CD != 'Psychiatry'
       union all
       select  ENCNTR_ID,PERSON_ID,BEG_EFFECTIVE_DT_TM,DISCH_DT_TM,UPDT_DT_TM,ADMIT_TYPE_CD,ENCNTR_TYPE_CD,1 as HIS_ENCNTR from encounter_history
-      where ENCNTR_TYPE_CD in ('Inpatient','Emergency','NDF') and ADMIT_TYPE_CD is not null and LOC_FACILITY_CD != 'APAC'
+      where ENCNTR_TYPE_CD in ('Inpatient','Emergency','NDF') and ADMIT_TYPE_CD is not null and LOC_FACILITY_CD != 'APAC' and MED_SERVICE_CD != 'Psychiatry'
     ),
     last_journey as (
       select t.journey_id
@@ -360,8 +369,8 @@ get_encounter_journey_query <- function(){
     min(BEG_EFFECTIVE_DT_TM) AS BEG_EFFECTIVE_DT_TM,max(DISCH_DT_TM) AS DISCH_DT_TM,max(UPDT_DT_TM) AS UPDT_DT_TM,
     min(HIS_ENCNTR) AS HIS_ENCNTR from join_tab
     where PERSON_ID in (
-      select PX9_PERSON_ID FROM ENCOUNTER_REFERENCE WHERE
-      Q4_DIAGNOSIS = 1) and  DISCH_DT_TM >= BEG_EFFECTIVE_DT_TM and ENCNTR_ID IN (
+      select PERSON_ID from DIAGNOSIS_HISTORY
+   where SOURCE_VOCABULARY_CD = 'ICD10-AM' and SOURCE_IDENTIFIER in ('I50','I50.0','I50.1','I50.9')) and  DISCH_DT_TM >= BEG_EFFECTIVE_DT_TM and ENCNTR_ID IN (
         SELECT ENCNTR_ID FROM last_encounter)
     group by encntr_id
 
@@ -370,15 +379,22 @@ get_encounter_journey_query <- function(){
     min(BEG_EFFECTIVE_DT_TM) AS BEG_EFFECTIVE_DT_TM,max(DISCH_DT_TM) AS DISCH_DT_TM,max(UPDT_DT_TM) AS UPDT_DT_TM,
     min(HIS_ENCNTR) AS HIS_ENCNTR from join_tab
     where PERSON_ID in (
-      select PX9_PERSON_ID FROM ENCOUNTER_REFERENCE WHERE
-      Q4_DIAGNOSIS = 1) and  DISCH_DT_TM >= BEG_EFFECTIVE_DT_TM AND ENCNTR_ID NOT IN (SELECT ENCNTR_ID FROM HF_ENCOUNTER_JOURNEY)
+  select PERSON_ID from DIAGNOSIS
+  where SOURCE_VOCABULARY_CD = 'ICD10-AM' and SOURCE_IDENTIFIER in ('I50','I50.0','I50.1','I50.9')) and  DISCH_DT_TM >= BEG_EFFECTIVE_DT_TM AND ENCNTR_ID NOT IN (SELECT ENCNTR_ID FROM HF_ENCOUNTER_JOURNEY)
     group by encntr_id;")
 
 
   return(query)
 }
 
+#' @family query
+#' @export
+get_lvef_result_to_strip <- function(){
+  query <- "SELECT PROCEDURE_ID,LV_SUMMARY from ECHO_RESULT
+  where UPDT_DT_TM is null"
 
+  return(query)
+}
 
 
 

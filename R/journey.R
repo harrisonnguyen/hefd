@@ -392,7 +392,8 @@ journey_order <- function(
     journey_key = JOURNEY_KEY,
     discharge_dttm = DISCH_DTTM,
     encntr_key = ENCNTR_ID,
-    updt_dttm = UPDT_DT_TM
+    updt_dttm = UPDT_DT_TM,
+    admit_dttm = BEG_EFFECTIVE_DT_TM
   )
 ){
   enstr <- rlang::as_name
@@ -402,10 +403,16 @@ journey_order <- function(
   # string args
   strargs <- args %>% purrr::map(enstr)
 
-
+  # encounter order is determined by beg_effective_dttm,
+  # if there is a tie, start with the smallest encntr_id
+  # see https://stackoverflow.com/questions/41214413/r-rank-function-with-two-variables-and-ties-method-random
   out <- journeys %>%
     dplyr::group_by(!!args$journey_key) %>%
-    dplyr::mutate(ENCNTR_ORDER = rank(!!args$discharge_dttm,ties.method="first"),
+    dplyr::mutate(ENCNTR_ORDER = order(
+      order(
+        !!args$admit_dttm,
+          !!args$encntr_key,
+          runif(length(!!args$admit_dttm)))),
                   N_ENCNTR = dplyr::n(),
                   UPDT_DT_TM = max(!!args$updt_dttm,na.rm = TRUE))
 
