@@ -458,8 +458,12 @@ extract_form_result <- function(df,regex,prefix,breaks=NULL,labels=NULL,is_numer
 extract_lvef_result <- function(df,col = "LV_SUMMARY",new_col = "LVEF_STRIP"){
   col_sym <- rlang::sym(col)
   new_col_sym <- rlang::sym(new_col)
-  df %<>% dplyr::mutate(!!new_col_sym := stringr::str_extract(
-    !!col_sym, get_lvef_regex())) %>%
+  df %<>%
+    dplyr::mutate(!!new_col_sym := stringr::str_extract(
+                                      !!col_sym, get_lvef_regex())) %>%
+    dplyr::mutate(!!new_col_sym :=
+                    dplyr::if_else(!is.na(!!new_col_sym),!!new_col_sym,
+                                   stringr::str_extract(!!col_sym,get_lvef_refine_regex()))) %>%
     dplyr::mutate(!!new_col_sym := stringr::str_extract(!!new_col_sym,get_digit_regex())) %>%
     dplyr::select(-!!col_sym)
 

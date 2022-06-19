@@ -23,8 +23,8 @@ get_hfhomevisit_form_pattern <- function(){
 #' @family definition
 get_lvef_bin <- function(){
   bins <- list(
-          values = c(-Inf,40,50,Inf),
-          labels = c("< 40","40-49","50+")
+          values = c(-Inf,41,50,Inf),
+          labels = c("40 or less","41-49","50+")
         )
   return(bins)
 }
@@ -85,12 +85,21 @@ get_lvef_regex <- function(){
   return(regex)
 }
 
+#' Define the regex for LVEF
+#'
+#' @export
+#' @family regex
+get_lvef_refine_regex <- function(){
+  regex <- "(?i)systolic.*[[:digit:]]{1,2}.*%"
+  return(regex)
+}
+
 #' Define the regex for extracting digits
 #'
 #' @export
 #' @family regex
 get_digit_regex <- function(){
-  regex <- "[[:digit:]]+"
+  regex <- "[[:digit:]]{2}"
   return(regex)
 }
 

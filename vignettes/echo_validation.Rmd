@@ -1,0 +1,239 @@
+---
+title: "Echo Results Validation"
+author: "Harrison Nguyen and Charmaine Tam"
+date: "24/02/2022"
+output:  
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    number_sections: true
+bibliography: references.bib
+link-citations: true
+linkcolor: blue
+vignette: >
+  %\VignetteIndexEntry{Heart Failure Inpatient Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning=FALSE, message=FALSE,
+  echo = TRUE
+)
+knitr::opts_knit$set(
+  root.dir = here::here()
+)
+```
+
+```{r}
+library(hefd)
+library(magrittr)
+library(kableExtra)
+library(ggplot2)
+library(flextable)
+```
+
+
+
+
+```{r}
+
+start_date <- '2019-01-01'
+end_date <- '2021-12-31'
+inpatient_echo <- execute_query(paste0("
+                    with temp as (select x.ENCNTR_ID,x.DISCH_DT_TM,LVEF_STRIP,LVEF_CALC,LV_SUMMARY,
+                    ROW_NUMBER() OVER(PARTITION BY x.ENCNTR_ID ORDER BY PROCEDURE_START_DT_TM DESC) AS row_number from HF_INPATIENT_ENCNTR x
+              left join ECHO_RESULT y
+              on x.PERSON_ID = y.PERSON_ID
+              where PROCEDURE_START_DT_TM <= DISCH_DT_TM)
+            select x.*,y.LVEF_RESULT_VAL,LVEF_STRIP,LVEF_CALC,LV_SUMMARY from hf_inpatient_encntr x
+            left join HF_INPATIENT_ENROLMENT y
+            on x.encntr_id = y.encntr_id
+            left join temp z
+            on z.encntr_id = x.encntr_id  and row_number = 1
+            where x.DISCH_DT_TM >= '",start_date,"' and x.DISCH_DT_TM <= '",end_date,"'"))
+```
+
+# Introduction
+
+This analysis shows a validation of echo results from McKesson between **`r as.Date(start_date)`** to **`r as.Date(end_date)`** and the recorded LVEF in the MACARF enrolment form. The LVEF results from McKesson were extracted from the LV summary by: 
+
+1. identifying the following strings
+    a. **EF** or,
+    b. **ejection** or,
+    c. **LVEF** or,
+    d. **fraction** and then,
+2. if none of the above words were identified, we searched for **systolic function**, (generally for those cases with reported normal left ventricular function) then
+3. taking the first **two** digits that occur after the strings mentioned in step 2 or 3.
+
+Some examples of the reports and the extracted LVEF is shown below:
+
+```{r}
+inpatient_echo %>%
+  dplyr::filter(!is.na(LV_SUMMARY)) %>%
+  dplyr::select(LVEF_STRIP,LV_SUMMARY) %>%
+  dplyr::top_n(5) %>%
+  knitr::kable(align=c('c','l'))
+  
+```
+
+
+**NOTE**: Some LV reports contain ranges of LVEF. The algorithm proposed above will select the smaller number of the range.
+
+
+```{r}
+all_echo <- execute_query("SELECT PERSON_ID,LVEF_STRIP,LVEF_CALC,LV_SUMMARY FROM ECHO_RESULT")
+
+```
+
+
+```{r}
+nas <- all_echo %>%
+  dplyr::filter(is.na(LVEF_STRIP))
+```
+
+Looking at all echos during this time period, there are **`r nrow(all_echo)`** procedures performed. Of these, there are **`r nrow(nas)`** (**`r round(nrow(nas)/nrow(all_echo)*100)`**\%) without a LVEF extracted, mainly due to no report being included or the left ventricular function has been cited as normal. A sample of these results are shown in Table \@ref(tab:missing-lvef).
+
+```{r missing-lvef}
+nas %>%
+  dplyr::filter(!is.na(LV_SUMMARY)) %>%
+  dplyr::select(LV_SUMMARY) %>%
+  dplyr::top_n(5) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("Missing LVEF results.")
+```
+
+
+
+
+Figure \@ref(fig:lvef-plot) shows a scatter plot between the calculated LVEF and the LVEF extracted from the report.
+
+```{r lvef-plot,fig.cap="Plot of calculated LVEF and LVEF in report."}
+
+correlation <- round(cor(all_echo$LVEF_STRIP, all_echo$LVEF_CALC,use = "complete.obs"), 2)
+all_echo %>%
+  dplyr::filter(!is.na(LVEF_STRIP)) %>%
+  dplyr::filter(LVEF_CALC >= 0) %>%
+  ggplot2::ggplot(aes(x=LVEF_STRIP, y=LVEF_CALC)) + geom_point()+
+
+  ggplot2::geom_smooth(method=lm,linetype="dashed",
+             color="darkred") + 
+    ggplot2::annotate(geom="text",label = paste0("Corr: ", correlation),x=15,y=85,color="red")
+  
+```
+
+
+# Comparing McKesson and MACARF using Inpatient
+
+We look at encounters that begin between **`r as.Date(min(inpatient_echo$BEG_EFFECTIVE_DT_TM))`** to  **`r as.Date(max(inpatient_echo$BEG_EFFECTIVE_DT_TM))`** and were discharged between **`r as.Date(min(inpatient_echo$DISCH_DT_TM))`** to  **`r as.Date(max(inpatient_echo$DISCH_DT_TM))`**. This results in **`r nrow(inpatient_echo)`**.
+
+```{r}
+knitr::include_graphics(file.path(here::here(),"vignettes/img/venn_diagram_hefd.jpg"))
+```
+
+
+```{r lvef-tab}
+tab <- prop.table(table(!is.na(inpatient_echo$LVEF_RESULT_VAL),!is.na(inpatient_echo$LVEF_STRIP)))*100
+
+tab %>%
+  knitr::kable(caption = paste0( "Proportion of inpatients with LVEF result (N = ",nrow(inpatient_echo),")"),digits=1) %>%
+  kableExtra::add_header_above(c("Has Enrolment LVEF"=1,"Has McKesson Result"=2))%>%
+  kable_styling(position = "center",full_width = FALSE)
+```
+
+Table \@ref(tab:lvef-tab) shows a confusion matrix of the proportion with a LVEF recorded in the MACARF enrolment form or
+an echo result from McKesson. The table shows that a majority of encounters *DO NOT* have an echo result recorded from either data sets, however the McKesson dataset has higher coverage of the population i.e. **`r round(sum(tab[,2]))`**\% of encounters have a McKesson result as opposed to **`r round(sum(tab[2,]))`**\% having a result recorded in the  MACARF form.
+
+
+
+
+```{r}
+inpatient_echo %<>% dplyr::mutate(DIFFERENCE = LVEF_RESULT_VAL-LVEF_STRIP)
+
+```
+
+```{r compare-plot,fig.cap="Distribution of the difference between recorded LVEF."}
+inpatient_echo %>%
+  dplyr::filter(!is.na(DIFFERENCE)) %>%
+plot_histogram("DIFFERENCE",title = "Distribution of Difference between LVEF results (%)") + 
+  annotate(geom="text", x=20, y=50, label="Enrolment\n Result Higher",
+              color="red",size=8) + 
+   annotate(geom="text", x=-30, y=50, label="McKesson\n Result Higher",
+              color="blue",size=8) 
+```
+
+To look at the accuracy of recorded numbers, Figure \@ref(fig:compare-plot) shows the distribution of the difference of the recorded LVEF for those encounters with a MACARF form and an echo from McKesson. The plot suggests that the results fall within &plusmn;10\% of LVEF. 
+
+```{r}
+inpatient_echo %>%
+  dplyr::filter(DIFFERENCE < -10)
+```
+
+# Validating MACARF Enrolment form with McKesson LV Results
+
+```{r}
+outpatient_forms <- execute_query("select ENCNTR_ID,PERSON_ID,
+                                  RESULT_VAL_ECHOCARDIOGRAMDATE,RESULT_VAL_LVEF from HF_ENROLMENT_FORM")
+
+```
+
+```{r}
+outpatient <- execute_query("with temp as (select x.ENCNTR_ID,x.PERSON_ID,FORM_DT_TM,PROCEDURE_START_DT_TM,datediff(day,RESULT_VAL_ECHOCARDIOGRAMDATE,PROCEDURE_START_DT_TM) as DATE_DIFFERENCE,
+y.LVEF_STRIP,LVEF_CALC,ROW_NUMBER() OVER(PARTITION BY x.ENCNTR_ID ORDER BY PROCEDURE_START_DT_TM desc) as ADDED_ROWS,LV_SUMMARY  from HF_ENROLMENT_FORM x 
+                       left join ECHO_RESULT y
+                       on x.person_id = y.person_id and PROCEDURE_START_DT_TM <= FORM_DT_TM
+                       where y.LVEF_STRIP is not null or LV_SUMMARY is not null)
+select * from temp where
+ADDED_ROWS = 1")
+```
+```{r}
+outpatient_forms %<>%
+  dplyr::left_join(outpatient,by="ENCNTR_ID")
+```
+
+To look at how well the MACARF form captures the information from McKesson and vice versa, we look patients who have had an echo and enrolment forms completed before **`r as.Date(max(outpatient$FORM_DT_TM))` **.
+
+
+```{r}
+tab <- prop.table(table(!is.na(outpatient_forms$RESULT_VAL_LVEF),!is.na(outpatient_forms$LVEF_STRIP)))*100
+
+tab %>%
+  knitr::kable(caption = paste0( "Proportion of enrolment with LVEF result (N = ",nrow(non_na_result),")"),digits=1) %>%
+  kableExtra::add_header_above(c("Has Enrolment LVEF"=1,"Has McKesson Result"=2))%>%
+  kable_styling(position = "center",full_width = FALSE)
+```
+
+Figure \@ref(fig:outpatient-compare-plot) shows the distribution of the differences between the recorded LVEF results. The plot suggests that the results fall within &plusmn;10\% of LVEF. 
+
+```{r outpatient-compare-plot,fig.cap="Difference between MACARF and McKesson recorded LVEF."}
+outpatient_forms %>% 
+  dplyr::mutate(DIFFERENCE = RESULT_VAL_LVEF-LVEF_STRIP) %>%
+  dplyr::filter(!is.na(DIFFERENCE)) %>%
+plot_histogram("DIFFERENCE",title = "Distribution of Difference between LVEF results (%)") + 
+  annotate(geom="text", x=10, y=100, label="Enrolment\n Result Higher",
+              color="red",size=8) + 
+   annotate(geom="text", x=-30, y=100, label="McKesson\n Result Higher",
+              color="blue",size=8) 
+
+```
+Figure \@ref(fig:outpatient-compare-time-plot) shows the distribution of the time differences between the recorded LVEF results. The plot suggests that majority of results lie within 30 days of each other, and that McKessons results are more recent than not.
+
+```{r outpatient-compare-time-plot,fig.cap="Distribution of the time difference between recorded LVEF results."}
+outpatient_forms %>%  
+   dplyr::filter(!is.na(DATE_DIFFERENCE)) %>%
+plot_histogram("DATE_DIFFERENCE",title = "Distribution of Date Difference  between LVEF results (days)") + 
+   annotate(geom="text", x=-400, y=50, label="McKesson\n Result More Recent",
+              color="blue",size=8) 
+```
+
+```{r}
+temp <- outpatient_forms %>%
+  dplyr::filter(is.na(LVEF_STRIP) & !is.na(RESULT_VAL_LVEF))
+```

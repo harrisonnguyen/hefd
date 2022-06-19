@@ -11,6 +11,7 @@ Define the regex for LVEF
 }
 \seealso{
 Other regex: 
-\code{\link{get_digit_regex}()}
+\code{\link{get_digit_regex}()},
+\code{\link{get_lvef_refine_regex}()}
 }
 \concept{regex}

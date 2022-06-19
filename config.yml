@@ -5,8 +5,8 @@ default:
     driver: 'SQL Server'
     server: 'sldcsql-mdb029'
     database: 'heartfailure'
-    uid: !expr keyring::key_list("heartfailure_db")[1,2]
-    pwd: !expr keyring::key_get("heartfailure_db",'pipeline')
+    uid: pipeline
+    pwd: pipelineuser
   hf_spec: "Heart Failure Specifications V1.2.xlsm"
   hf_file_dir: "C:/Users/60231488/Documents/temp"
   hfmanagement_path: "D:/FTP/HF/new/"
