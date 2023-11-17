@@ -1,7 +1,7 @@
 repo:
   url:
-    home: https://github.sydney.edu.au/speed-extract/hefd/
-    source: https://github.sydney.edu.au/speed-extract/hefd/blob/HEAD/
+    home: https://harrisonnguyen.github.io/hefd/
+    source: https://github.com/harrisonnguyen/hefd
 reference:
 - title: Query
   desc: Functions responsible for querying the database
@@ -54,4 +54,10 @@ reference:
   - -has_concept("hfhomevisit")
   - -has_concept("hfinpatient")
   - -has_concept("hfmanagement")
-  
+home:
+  links:
+  - text: Get shareable versions of analysis
+    href: https://github.com/harrisonnguyen/hefd/tree/master/doc
+authors:
+  Harrison Nguyen:
+    href: "https://github.com/harrisonnguyen/"

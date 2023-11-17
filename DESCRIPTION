@@ -2,11 +2,14 @@ Package: hefd
 Type: Package
 Title: HEart Failure Dashboard
 Version: 1.0.0
-Author: Harrison Nguyen 
-Maintainer: Harrison Nguyen <yourself@somewhere.net>
+Authors@R:
+    person(given = "Harrison",
+           family = "Nguyen",
+           role = c("aut", "cre"),
+           email = "harrison.nguyen12@gmail.com")
 Description: Contains functions and analysis used for the HEFD project developed at the University of Sydney
  and Northern Sydney Local Health District
-License: MIT + file LICENSE
+License:
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
@@ -35,4 +38,4 @@ Imports:
 Suggests: knitr, rmarkdown
 RoxygenNote: 7.1.2
 Roxygen: list(markdown = TRUE)
-URL: https://pages.github.sydney.edu.au/speed-extract/hefd/
+URL: https://github.com/harrisonnguyen/hefd, https://harrisonnguyen.github.io/hefd/
